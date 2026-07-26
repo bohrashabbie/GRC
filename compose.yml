@@ -1,0 +1,108 @@
+name: grc-commerce
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-grc}
+      POSTGRES_USER: ${POSTGRES_USER:-grc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.vps}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-grc} -d ${POSTGRES_DB:-grc}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [backend]
+
+  api:
+    build:
+      context: ./Api
+    restart: unless-stopped
+    environment:
+      ENV: production
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-grc}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-grc}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env.vps}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-30}
+      OWNER_EMAIL: ${OWNER_EMAIL:-owner@alshiaka.sa}
+      OWNER_PASSWORD: ${OWNER_PASSWORD:?Set OWNER_PASSWORD in .env.vps}
+      UPLOAD_DIR: /app/uploads
+      PUBLIC_MEDIA_BASE_URL: https://${STORE_DOMAIN:?Set STORE_DOMAIN in .env.vps}
+      ADMIN_CORS_ORIGINS: '["https://${ADMIN_DOMAIN:?Set ADMIN_DOMAIN in .env.vps}"]'
+      STOREFRONT_CORS_ORIGINS: '["https://${STORE_DOMAIN}"]'
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks: [backend, web]
+
+  admin:
+    build:
+      context: ./admin
+      args:
+        NEXT_PUBLIC_API_BASE_URL: https://${ADMIN_DOMAIN}/api/v1
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: http://api:8000/api/v1
+      AUTH_COOKIE_SECURE: "1"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [web]
+
+  storefront:
+    build:
+      context: ./storefront
+      args:
+        NEXT_PUBLIC_USE_LIVE_CATALOG: "true"
+        NEXT_PUBLIC_USE_FIXTURES: "true"
+    restart: unless-stopped
+    environment:
+      SHOP_API_URL: http://api:8000/shop/v1
+      CATALOG_FALLBACK: "false"
+      NEXT_PUBLIC_SITE_URL: https://${STORE_DOMAIN}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [web]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      STORE_DOMAIN: ${STORE_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - admin
+      - storefront
+    networks: [web]
+
+networks:
+  backend:
+    internal: true
+  web:
+
+volumes:
+  postgres_data:
+  uploads:
+  caddy_data:
+  caddy_config:

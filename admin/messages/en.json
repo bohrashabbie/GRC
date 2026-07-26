@@ -1,0 +1,835 @@
+{
+  "app": {
+    "name": "GRC Admin",
+    "shortName": "GRC"
+  },
+  "common": {
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "create": "Create",
+    "creating": "Creating…",
+    "edit": "Edit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "actions": "Actions",
+    "search": "Search",
+    "filters": "Filters",
+    "clearFilters": "Clear filters",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "loadMore": "Load more",
+    "allLoaded": "All results loaded",
+    "showing": "Showing {count} {count, plural, one {result} other {results}}",
+    "yes": "Yes",
+    "no": "No",
+    "none": "None",
+    "never": "Never",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "status": "Status",
+    "optional": "optional",
+    "required": "required",
+    "deactivate": "Deactivate",
+    "add": "Add",
+    "remove": "Remove",
+    "view": "View",
+    "unknownError": "Something went wrong. Please try again."
+  },
+  "states": {
+    "errorTitle": "Couldn't load this",
+    "emptyTitle": "Nothing here yet",
+    "emptyDescription": "No records match the current filters.",
+    "accessDeniedTitle": "You don't have access",
+    "accessDeniedDescription": "This page needs the \"{permission}\" permission. Ask an owner or admin to grant it to one of your roles.",
+    "notFoundTitle": "Not found",
+    "notFoundDescription": "The record you're looking for doesn't exist or was removed."
+  },
+  "nav": {
+    "sectionOverview": "Overview",
+    "sectionCatalog": "Catalog",
+    "sectionInventory": "Inventory",
+    "sectionPurchasing": "Purchasing",
+    "sectionSales": "Sales",
+    "sectionIdentity": "Identity",
+    "sectionSystem": "System",
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "brands": "Brands",
+    "categories": "Categories",
+    "options": "Options",
+    "stock": "Stock",
+    "locations": "Locations",
+    "transfers": "Transfers",
+    "counts": "Stock counts",
+    "suppliers": "Suppliers",
+    "purchaseOrders": "Purchase orders",
+    "orders": "Orders",
+    "customers": "Customers",
+    "users": "Staff users",
+    "roles": "Roles & permissions",
+    "settings": "Settings",
+    "audit": "Audit log",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "openMenu": "Open menu"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Admin panel access for GRC staff.",
+    "email": "Email",
+    "emailPlaceholder": "you@grc.sa",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "myAccount": "My account",
+    "sessionExpired": "Your session expired. Please sign in again.",
+    "mfaUnsupported": "This account requires two-factor authentication, which this admin panel doesn't support yet. Contact the system owner.",
+    "invalidCredentials": "Invalid email or password.",
+    "checkingSession": "Checking your session…",
+    "signedInAs": "Signed in as",
+    "forgotPassword": "Forgot password?",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "forgotTitle": "Reset your password",
+    "forgotSubtitle": "Enter your email and we'll send you a reset link.",
+    "forgotSubmit": "Send reset link",
+    "forgotSending": "Sending…",
+    "forgotSent": "If that email belongs to a staff account, a reset link is on its way.",
+    "forgotSentHint": "No email service is configured in development — the reset token is written to the API server log.",
+    "backToLogin": "Back to sign in"
+  },
+  "validation": {
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Enter a valid email address.",
+    "passwordRequired": "Password is required.",
+    "passwordMin": "Password must be at least {min} characters.",
+    "fullNameRequired": "Full name is required.",
+    "phoneE164": "Use international format, e.g. +9665XXXXXXXX."
+  },
+  "users": {
+    "title": "Staff users",
+    "description": "Accounts that can sign in to this admin panel.",
+    "newUser": "New user",
+    "createTitle": "Create staff user",
+    "createDescription": "The account is created first, then you assign roles to it.",
+    "editTitle": "Edit user",
+    "detailTitle": "User",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "status": "Status",
+      "lastLogin": "Last sign-in",
+      "created": "Created"
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "fullName": "Full name",
+      "phone": "Phone",
+      "isActive": "Account active"
+    },
+    "hints": {
+      "emailImmutable": "Email can't be changed after the account is created.",
+      "passwordOnCreate": "Set an initial password. The user should change it after first sign-in.",
+      "isActive": "Inactive accounts can't sign in. Accounts are deactivated, never deleted, because they're referenced by audit history."
+    },
+    "empty": "No staff users match these filters.",
+    "created": "User created.",
+    "updated": "User updated.",
+    "deactivated": "User deactivated.",
+    "deactivate": "Deactivate",
+    "deactivateTitle": "Deactivate this user?",
+    "deactivateDescription": "{name} will no longer be able to sign in. Their history is kept and the account can be reactivated later.",
+    "filterStatus": "Account status",
+    "noSearchHint": "The API doesn't support searching users by name or email yet — filter by status instead.",
+    "roles": {
+      "title": "Assigned roles",
+      "description": "Roles grant permissions. A role can be scoped to a single location.",
+      "assign": "Assign role",
+      "assignTitle": "Assign a role",
+      "role": "Role",
+      "selectRole": "Select a role",
+      "location": "Location scope",
+      "locationAll": "All locations",
+      "locationHint": "Leave as \"All locations\" unless this person should only act at one warehouse or store.",
+      "expiresAt": "Expires at",
+      "expiresHint": "Leave empty for a permanent assignment.",
+      "grantedAt": "Granted",
+      "grantedBy": "Granted by",
+      "empty": "No roles assigned. This user can sign in but won't see anything.",
+      "assigned": "Role assigned.",
+      "revoked": "Role revoked.",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke this role?",
+      "revokeDescription": "{role} will be removed from {name}. They immediately lose every permission it granted.",
+      "assignAtCreationHint": "Tick any roles to grant immediately. You can add or remove roles later from the user's page.",
+      "assignFailedOnCreate": "The user was created, but these roles couldn't be assigned: {roles}. Try assigning them again from the user's page."
+    }
+  },
+  "roles": {
+    "title": "Roles & permissions",
+    "description": "Create roles and control which permissions each one grants.",
+    "systemRole": "System role",
+    "detailTitle": "Role",
+    "columns": {
+      "name": "Role",
+      "code": "Code",
+      "permissions": "Permissions",
+      "type": "Type"
+    },
+    "permissionCount": "{count} of {total}",
+    "matrixTitle": "Permission matrix",
+    "matrixDescription": "Tick a permission to grant it to this role. Changes apply to everyone holding the role as soon as you save.",
+    "dangerous": "Sensitive",
+    "dangerousHint": "This permission allows money movement or privilege changes.",
+    "saveChanges": "Save permissions",
+    "unsavedChanges": "{count} unsaved {count, plural, one {change} other {changes}}",
+    "discard": "Discard changes",
+    "saved": "Permissions updated.",
+    "confirmTitle": "Update permissions for {role}?",
+    "confirmDescription": "You're granting {granted} and revoking {revoked}. Everyone holding this role is affected immediately.",
+    "selectAll": "Select all in group",
+    "clearGroup": "Clear group",
+    "noRolesTitle": "No roles",
+    "newRole": "New role",
+    "createTitle": "Create role",
+    "createDescription": "Set the role's name and starting permissions. You can change permissions later from the role's page.",
+    "created": "Role created.",
+    "codeMin": "Enter at least 2 characters.",
+    "codePattern": "Lowercase letters, numbers, and underscores only, starting with a letter (e.g. warehouse_lead).",
+    "fields": {
+      "nameEn": "Name (English)",
+      "nameAr": "Name (Arabic)",
+      "code": "Code",
+      "description": "Description"
+    },
+    "hints": {
+      "code": "A stable identifier used internally — can't be changed after the role is created."
+    }
+  },
+  "permissionGroups": {
+    "system": "System",
+    "catalog": "Catalog",
+    "inventory": "Inventory",
+    "orders": "Orders",
+    "customers": "Customers",
+    "marketing": "Marketing",
+    "finance": "Finance"
+  },
+  "catalog": {
+    "fields": {
+      "name_en": "Name (English)",
+      "name_ar": "Name (Arabic)",
+      "label_en": "Label (English)",
+      "label_ar": "Label (Arabic)",
+      "slug_en": "Slug (English)",
+      "slug_ar": "Slug (Arabic)",
+      "code": "Code",
+      "sortOrder": "Sort order",
+      "isActive": "Active"
+    },
+    "hints": {
+      "slugPerLocale": "Leave blank to generate from the name. Slugs are unique per language.",
+      "code": "Internal identifier — can't be changed later."
+    },
+    "validation": {
+      "nameRequired": "Enter a name in at least one language.",
+      "labelRequired": "Enter a label in at least one language.",
+      "codeRequired": "Code is required."
+    }
+  },
+  "brands": {
+    "title": "Brands",
+    "description": "Brands shown on products across the storefront.",
+    "newBrand": "New brand",
+    "createTitle": "Create brand",
+    "editTitle": "Edit brand",
+    "created": "Brand created.",
+    "updated": "Brand updated.",
+    "deactivated": "Brand deactivated.",
+    "deactivateTitle": "Deactivate this brand?",
+    "deactivateDescription": "{name} will be hidden from the storefront. Products keep their link to it and it can be reactivated later.",
+    "empty": "No brands yet. Create the first one to start tagging products.",
+    "columns": {
+      "name": "Brand",
+      "code": "Code",
+      "sortOrder": "Order",
+      "status": "Status"
+    }
+  },
+  "categories": {
+    "title": "Categories",
+    "description": "The category tree used for navigation and product grouping.",
+    "newCategory": "New category",
+    "createTitle": "Create category",
+    "editTitle": "Edit category",
+    "created": "Category created.",
+    "updated": "Category updated.",
+    "deactivated": "Category deactivated.",
+    "deactivateTitle": "Deactivate this category?",
+    "deactivateDescription": "{name} and its position in the tree will be hidden from the storefront. It can be reactivated later.",
+    "empty": "No categories in this dimension yet.",
+    "fields": {
+      "parent": "Parent category",
+      "noParent": "Top level (no parent)",
+      "dimension": "Dimension",
+      "showInMenu": "Show in navigation menu"
+    },
+    "hints": {
+      "dimension": "Categories, collections, and occasions are separate trees.",
+      "parent": "Choose a parent to nest this category beneath it."
+    },
+    "columns": {
+      "name": "Category",
+      "code": "Code",
+      "depth": "Depth",
+      "status": "Status"
+    },
+    "treeTitle": "Category tree",
+    "listTitle": "All categories"
+  },
+  "options": {
+    "title": "Options",
+    "description": "Variant-defining options such as size, colour, sleeve, and collar.",
+    "newOption": "New option",
+    "createTitle": "Create option",
+    "editTitle": "Edit option",
+    "created": "Option created.",
+    "updated": "Option updated.",
+    "empty": "No options yet. Create one (e.g. Size) then add its values.",
+    "detailTitle": "Option",
+    "fields": {
+      "inputType": "Input type",
+      "isFilterable": "Filterable on the storefront"
+    },
+    "columns": {
+      "label": "Option",
+      "code": "Code",
+      "inputType": "Input type",
+      "values": "Values"
+    },
+    "values": {
+      "title": "Values",
+      "description": "The choices customers pick from, in display order.",
+      "newValue": "New value",
+      "createTitle": "Create value",
+      "editTitle": "Edit value",
+      "created": "Value created.",
+      "updated": "Value updated.",
+      "empty": "No values yet for this option.",
+      "hexColor": "Colour (hex)",
+      "hexHint": "Used for colour swatches, e.g. #1B3A2F.",
+      "columns": {
+        "label": "Value",
+        "code": "Code",
+        "color": "Colour",
+        "sortOrder": "Order"
+      }
+    }
+  },
+  "products": {
+    "title": "Products",
+    "description": "Everything sold in the store, with their variants.",
+    "newProduct": "New product",
+    "createTitle": "Create product",
+    "createDescription": "Set the basics and translations. Variants are added on the product's page after it's created.",
+    "created": "Product created.",
+    "updated": "Product updated.",
+    "offer": "Offer",
+    "searchPlaceholder": "Search product or SKU",
+    "statusUpdated": "Product status updated.",
+    "empty": "No products match these filters.",
+    "detailTitle": "Product",
+    "noSearchHint": "The API doesn't support text search on products yet — use the filters.",
+    "tabs": {
+      "general": "General",
+      "media": "Media",
+      "variants": "Variants"
+    },
+    "fields": {
+      "brand": "Brand",
+      "noBrand": "No brand",
+      "productType": "Product type",
+      "basePrice": "Base price (SAR)",
+      "taxClass": "Tax class",
+      "isFeatured": "Featured product",
+      "isBestSeller": "Best seller",
+      "categories": "Categories",
+      "shortDescription": "Short description",
+      "description": "Description",
+      "status": "Status"
+    },
+    "hints": {
+      "basePrice": "VAT-inclusive price in SAR. Variants can override it.",
+      "categories": "A product can sit in several categories across dimensions.",
+      "isBestSeller": "Shows the best-seller badge and includes this product in the storefront's Best Sellers rail.",
+      "defaultVariant": "Every product has at least one variant — a default one is created automatically."
+    },
+    "columns": {
+      "name": "Product",
+      "brand": "Brand",
+      "type": "Type",
+      "status": "Status",
+      "basePrice": "Base price",
+      "offer": "Offer",
+      "created": "Created"
+    },
+    "filters": {
+      "status": "Status",
+      "brand": "Brand",
+      "type": "Product type",
+      "featured": "Featured",
+      "bestSeller": "Best seller",
+      "offer": "Offer status",
+      "onOffer": "On offer",
+      "notOnOffer": "Not on offer"
+    },
+    "media": {
+      "title": "Media",
+      "description": "Upload images and tag them to a colour so the storefront can swap them per swatch.",
+      "upload": "Upload image",
+      "uploading": "Uploading…",
+      "uploaded": "Image uploaded and attached.",
+      "empty": "No media uploaded for this product yet.",
+      "tagToColour": "Tag to colour value",
+      "noColour": "Not colour-specific",
+      "isPrimary": "Primary image",
+      "attachFailed": "The file uploaded but couldn't be attached to this product.",
+      "noListEndpoint": "The API has no endpoint that lists a product's existing media, so only files uploaded in this session are shown here."
+    },
+    "variants": {
+      "title": "Variants",
+      "description": "Every sellable combination, with its own SKU, price, and stock.",
+      "matrixTitle": "Add variant combinations",
+      "matrixDescription": "Tick the combinations that actually exist — combinations are created explicitly, never as a full cartesian product.",
+      "generate": "Create selected variants",
+      "generating": "Creating…",
+      "generated": "{count} {count, plural, one {variant} other {variants}} created.",
+      "selectedCount": "{count} selected",
+      "noOptions": "No options defined yet. Create options and values first, then come back to build variants.",
+      "limitExceeded": "Too many combinations selected. The backend caps a product at 300 variants.",
+      "empty": "No variants yet.",
+      "editPrice": "Edit price",
+      "priceUpdated": "Price updated.",
+      "variantUpdated": "Variant updated.",
+      "discontinue": "Discontinue",
+      "discontinued": "Variant discontinued.",
+      "discontinueTitle": "Discontinue this variant?",
+      "discontinueDescription": "{sku} stops being sellable. It is never deleted, because orders reference it.",
+      "columns": {
+        "sku": "SKU",
+        "options": "Options",
+        "price": "Price",
+        "comparePrice": "Compare at",
+        "costPrice": "Cost",
+        "barcode": "Barcode",
+        "status": "Status"
+      }
+    }
+  },
+  "locations": {
+    "title": "Locations",
+    "description": "Warehouses and stores that hold stock.",
+    "newLocation": "New location",
+    "createTitle": "Create location",
+    "editTitle": "Edit location",
+    "created": "Location created.",
+    "updated": "Location updated.",
+    "deactivated": "Location deactivated.",
+    "deactivateTitle": "Deactivate this location?",
+    "deactivateDescription": "{name} stops being available for new stock movements. Existing history is kept.",
+    "empty": "No locations yet.",
+    "fields": {
+      "code": "Code",
+      "type": "Type",
+      "nameAr": "Name (Arabic)",
+      "nameEn": "Name (English)",
+      "isSellableOnline": "Sellable online",
+      "fulfilmentPriority": "Fulfilment priority",
+      "isActive": "Active"
+    },
+    "hints": {
+      "fulfilmentPriority": "Lower numbers are picked first when allocating an order.",
+      "sellableOnline": "Whether stock here counts toward what the storefront can sell."
+    },
+    "columns": {
+      "name": "Location",
+      "code": "Code",
+      "type": "Type",
+      "priority": "Priority",
+      "status": "Status"
+    }
+  },
+  "stock": {
+    "title": "Stock",
+    "description": "Stock levels per variant across every location.",
+    "pickProduct": "Product",
+    "pickVariant": "Variant",
+    "pickProductFirst": "Choose a product to list its variants.",
+    "pickVariantPrompt": "Choose a variant to see its stock across locations.",
+    "noSearchHint": "The API has no SKU search endpoint, so variants are found via their product.",
+    "empty": "This variant has no stock records yet.",
+    "columns": {
+      "location": "Location",
+      "onHand": "On hand",
+      "reserved": "Reserved",
+      "incoming": "Incoming",
+      "available": "Available",
+      "updated": "Updated"
+    },
+    "adjust": {
+      "title": "Adjust stock",
+      "description": "Writes a stock movement in the same transaction — the ledger is the source of truth.",
+      "open": "Adjust",
+      "location": "Location",
+      "qtyDelta": "Quantity change",
+      "qtyHint": "Positive adds stock, negative removes it. Zero is not allowed.",
+      "note": "Reason",
+      "noteHint": "Required — this is recorded in the movement ledger.",
+      "submit": "Apply adjustment",
+      "applied": "Stock adjusted. New balance: {balance}.",
+      "qtyRequired": "Enter a non-zero quantity.",
+      "noteRequired": "A reason is required."
+    }
+  },
+  "transfers": {
+    "title": "Transfers",
+    "description": "Move stock between locations.",
+    "newTransfer": "New transfer",
+    "createTitle": "Create transfer",
+    "created": "Transfer created.",
+    "detailTitle": "Transfer",
+    "noListHint": "The API has no transfer list endpoint yet, so open a transfer by its ID or create a new one.",
+    "lookup": "Open transfer by ID",
+    "lookupPlaceholder": "Transfer ID",
+    "open": "Open",
+    "fields": {
+      "fromLocation": "From location",
+      "toLocation": "To location",
+      "note": "Note",
+      "sameLocation": "Source and destination must be different."
+    },
+    "items": {
+      "title": "Items",
+      "addItem": "Add item",
+      "empty": "Add at least one item to transfer.",
+      "qtyRequested": "Requested",
+      "qtyDispatched": "Dispatched",
+      "qtyReceived": "Received",
+      "variant": "Variant"
+    },
+    "dispatch": {
+      "action": "Dispatch",
+      "title": "Dispatch this transfer?",
+      "description": "Stock leaves the source location now. Quantities default to what was requested.",
+      "done": "Transfer dispatched."
+    },
+    "receive": {
+      "action": "Receive",
+      "title": "Receive transfer",
+      "description": "Enter what actually arrived at the destination.",
+      "done": "Transfer received."
+    }
+  },
+  "counts": {
+    "title": "Stock counts",
+    "description": "Count stock at a location and apply the variance.",
+    "newCount": "New count",
+    "createTitle": "Start a stock count",
+    "created": "Stock count started.",
+    "detailTitle": "Stock count",
+    "noListHint": "The API has no count list endpoint yet, so open a count by its ID or start a new one.",
+    "lookup": "Open count by ID",
+    "lookupPlaceholder": "Count ID",
+    "open": "Open",
+    "fields": {
+      "location": "Location",
+      "scope": "Scope",
+      "variants": "Variants to count"
+    },
+    "scopeFull": "Full count",
+    "scopePartial": "Partial count",
+    "items": {
+      "title": "Counted quantities",
+      "systemQty": "System",
+      "countedQty": "Counted",
+      "variance": "Variance",
+      "empty": "No items in this count."
+    },
+    "record": "Save counted quantities",
+    "recorded": "Counted quantities saved.",
+    "applyAction": "Apply count",
+    "applyTitle": "Apply this count?",
+    "applyDescription": "Stock levels at this location are adjusted to the counted quantities and movements are written for every variance. This can't be undone.",
+    "applied": "Stock count applied."
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "description": "Vendors you raise purchase orders against.",
+    "newSupplier": "New supplier",
+    "createTitle": "Create supplier",
+    "editTitle": "Edit supplier",
+    "created": "Supplier created.",
+    "updated": "Supplier updated.",
+    "deactivated": "Supplier deactivated.",
+    "deactivateTitle": "Deactivate this supplier?",
+    "deactivateDescription": "{name} can no longer be selected for new purchase orders. Existing orders are unaffected.",
+    "empty": "No suppliers yet.",
+    "fields": {
+      "code": "Code",
+      "name": "Name",
+      "contactName": "Contact name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "vatNumber": "VAT number",
+      "currency": "Currency",
+      "paymentTerms": "Payment terms (days)",
+      "leadTime": "Default lead time (days)",
+      "isActive": "Active"
+    },
+    "columns": {
+      "name": "Supplier",
+      "code": "Code",
+      "contact": "Contact",
+      "terms": "Terms",
+      "status": "Status"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Purchase orders",
+    "description": "Order stock from suppliers and receive it into a location.",
+    "newPo": "New purchase order",
+    "createTitle": "Create purchase order",
+    "created": "Purchase order created.",
+    "detailTitle": "Purchase order",
+    "noListHint": "The API has no purchase-order list endpoint yet, so open one by its ID or create a new one.",
+    "lookup": "Open PO by ID",
+    "lookupPlaceholder": "Purchase order ID",
+    "open": "Open",
+    "fields": {
+      "supplier": "Supplier",
+      "destination": "Destination location",
+      "expectedAt": "Expected date",
+      "taxTotal": "Tax total",
+      "shippingCost": "Shipping cost"
+    },
+    "items": {
+      "title": "Line items",
+      "addItem": "Add line",
+      "empty": "Add at least one line item.",
+      "variant": "Variant",
+      "qtyOrdered": "Ordered",
+      "qtyReceived": "Received",
+      "unitCost": "Unit cost",
+      "lineTotal": "Line total"
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "shipping": "Shipping",
+      "total": "Total"
+    },
+    "approve": "Approve",
+    "approveTitle": "Approve this purchase order?",
+    "approveDescription": "{po} becomes approved and can then be sent to the supplier.",
+    "approved": "Purchase order approved.",
+    "send": "Mark as sent",
+    "sendTitle": "Mark this purchase order as sent?",
+    "sendDescription": "Records that {po} has been sent to the supplier.",
+    "sent": "Purchase order marked as sent.",
+    "cancel": "Cancel PO",
+    "cancelTitle": "Cancel this purchase order?",
+    "cancelDescription": "{po} is cancelled and can no longer be received against.",
+    "cancelled": "Purchase order cancelled.",
+    "receive": "Receive goods",
+    "receiveTitle": "Goods receipt",
+    "receiveDescription": "Record what arrived. Partial receipts are supported — enter only what was delivered.",
+    "receiveFields": {
+      "location": "Receiving location",
+      "invoiceNumber": "Supplier invoice number",
+      "note": "Note",
+      "qty": "Received",
+      "qtyRejected": "Rejected",
+      "unitCost": "Unit cost",
+      "outstanding": "Outstanding"
+    },
+    "received": "Goods receipt recorded.",
+    "receiptNumber": "Receipt {number}"
+  },
+  "orders": {
+    "title": "Orders",
+    "description": "Customer orders, their payments, and fulfilment.",
+    "detailTitle": "Order",
+    "empty": "No orders match these filters.",
+    "filters": {
+      "status": "Order status",
+      "paymentStatus": "Payment status",
+      "fulfilmentStatus": "Fulfilment status"
+    },
+    "columns": {
+      "orderNumber": "Order",
+      "customer": "Customer",
+      "status": "Status",
+      "payment": "Payment",
+      "fulfilment": "Fulfilment",
+      "total": "Total",
+      "placedAt": "Placed"
+    },
+    "summary": {
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "shipping": "Shipping",
+      "tax": "VAT",
+      "total": "Grand total"
+    },
+    "items": {
+      "title": "Items",
+      "sku": "SKU",
+      "name": "Item",
+      "unitPrice": "Unit price",
+      "qty": "Qty",
+      "fulfilled": "Fulfilled",
+      "returned": "Returned",
+      "lineTotal": "Line total",
+      "snapshotHint": "These values are snapshots from when the order was placed, not current catalog prices."
+    },
+    "addresses": {
+      "title": "Addresses",
+      "shipping": "Shipping",
+      "billing": "Billing",
+      "empty": "No addresses recorded on this order."
+    },
+    "notes": {
+      "title": "Notes",
+      "add": "Add note",
+      "placeholder": "Write an internal note…",
+      "customerVisible": "Visible to customer",
+      "added": "Note added.",
+      "empty": "No notes on this order yet.",
+      "internal": "Internal",
+      "bodyRequired": "Write something first."
+    },
+    "status": {
+      "title": "Status",
+      "orderStatus": "Order",
+      "paymentStatus": "Payment",
+      "fulfilmentStatus": "Fulfilment",
+      "changeTo": "Change to",
+      "noTransitions": "No further transitions are possible from this status.",
+      "reason": "Reason",
+      "confirmTitle": "Change {field} to {value}?",
+      "confirmDescription": "This is recorded in the order's history and the audit log.",
+      "updated": "Order status updated."
+    },
+    "payments": {
+      "title": "Payments",
+      "provider": "Provider",
+      "method": "Method",
+      "amount": "Amount",
+      "refunded": "Refunded",
+      "refundable": "Refundable",
+      "status": "Status",
+      "empty": "No payments recorded on this order."
+    },
+    "refund": {
+      "action": "Refund",
+      "title": "Refund payment",
+      "description": "Refunds are issued against a single captured payment and can't exceed what's left on it.",
+      "amount": "Refund amount",
+      "amountHint": "Up to {max} remaining on this payment.",
+      "reason": "Reason",
+      "submit": "Issue refund",
+      "done": "Refund issued.",
+      "amountRequired": "Enter an amount greater than zero.",
+      "amountTooHigh": "That's more than the {max} still refundable on this payment.",
+      "noCapturedPayment": "This order has no captured payment to refund."
+    }
+  },
+  "customers": {
+    "title": "Customers",
+    "description": "Storefront customer accounts and their addresses.",
+    "detailTitle": "Customer",
+    "empty": "No customers match these filters.",
+    "updated": "Customer updated.",
+    "anonymous": "(no name)",
+    "columns": {
+      "name": "Customer",
+      "email": "Email",
+      "phone": "Phone",
+      "status": "Status",
+      "created": "Joined"
+    },
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "localePref": "Preferred language",
+      "acceptsMarketing": "Accepts marketing",
+      "isActive": "Account active"
+    },
+    "orders": {
+      "title": "Order history",
+      "empty": "This customer hasn't placed any orders yet.",
+      "viewAll": "View all orders"
+    },
+    "addresses": {
+      "title": "Addresses",
+      "empty": "No addresses saved.",
+      "defaultShipping": "Default shipping",
+      "defaultBilling": "Default billing"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Store configuration, grouped by area.",
+    "empty": "No settings have been defined yet.",
+    "updated": "Setting updated.",
+    "key": "Key",
+    "value": "Value",
+    "public": "Public",
+    "publicHint": "Public settings are readable by the storefront.",
+    "updatedAt": "Updated",
+    "edit": "Edit",
+    "editTitle": "Edit setting",
+    "jsonInvalid": "That isn't valid JSON.",
+    "jsonHint": "Values are stored as JSON — use quotes for text, no quotes for numbers, true/false for switches.",
+    "confirmTitle": "Update {key}?",
+    "confirmDescription": "This changes store behaviour immediately and is recorded in the audit log."
+  },
+  "audit": {
+    "title": "Audit log",
+    "description": "Every write to orders, payments, prices, roles, and permissions.",
+    "empty": "No audit entries match these filters.",
+    "readOnly": "This log is read-only.",
+    "columns": {
+      "when": "When",
+      "actor": "Actor",
+      "action": "Action",
+      "entity": "Entity",
+      "entityId": "ID"
+    },
+    "filters": {
+      "entityType": "Entity type",
+      "action": "Action",
+      "actor": "Actor user ID",
+      "dateFrom": "From",
+      "dateTo": "To",
+      "anyEntity": "Any entity",
+      "anyAction": "Any action"
+    },
+    "diff": {
+      "before": "Before",
+      "after": "After",
+      "noBefore": "No previous value (record created).",
+      "noAfter": "No new value (record removed).",
+      "changedOnly": "Only the fields that changed are recorded."
+    },
+    "system": "System"
+  }
+}

@@ -1,0 +1,36 @@
+# Secrets and machine-local configuration
+**/.env
+**/.env.local
+**/.env.*.local
+!.env.vps.example
+!**/.env.example
+
+# JavaScript dependencies and Next.js output
+**/node_modules/
+**/.next/
+**/out/
+**/*.tsbuildinfo
+**/npm-debug.log*
+
+# Python environments and caches
+**/.venv/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Runtime data and logs
+Api/uploads/
+Api/*.log
+Api/tok.txt
+*.pid
+
+# IDE and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Preserved metadata from the former nested admin repository
+.admin-git-backup/

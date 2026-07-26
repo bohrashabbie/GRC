@@ -1,0 +1,290 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   AlShiaka storefront — design tokens
+   ---------------------------------------------------------------------------
+   The palette is built from the material vocabulary of the category itself:
+   undyed cotton and linen (sand), oud-dark wood (ink), palm shade (palm),
+   gold thread on a bisht hem (gold), and the desaturated red of a shemagh
+   (brick). Deliberately no `slate` and no `blue-600`.
+
+   There is no dark mode. A retailer of white and cream garments photographed
+   on warm backgrounds has one correct ground; inverting it would fight the
+   product photography rather than serve it.
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* -- Sand: page grounds, cards, hairlines ------------------------------ */
+  --color-sand-50: #fbf9f5;
+  --color-sand-100: #f5f0e7;
+  --color-sand-200: #ebe3d6;
+  --color-sand-300: #dacfbd;
+  --color-sand-400: #c0b29b;
+
+  /* -- Ink: text and dark surfaces. Warm, never neutral-grey ------------- */
+  --color-ink-400: #8a7f71; /* 3.4:1 — large text, placeholders, icons only */
+  --color-ink-500: #6b6155; /* 5.4:1 — secondary body text */
+  --color-ink-600: #4e463c;
+  --color-ink-700: #3a342c;
+  --color-ink-800: #26221c;
+  --color-ink-900: #16130f; /* 17:1 — primary text, footer ground */
+
+  /* -- Palm: the primary action colour ----------------------------------- */
+  --color-palm-500: #35634f;
+  --color-palm-600: #27503f; /* primary CTA — 10:1 against white text */
+  --color-palm-700: #1c3b2e;
+  --color-palm-800: #132a21;
+
+  /* -- Gold: accent only. See the contrast note below -------------------- */
+  --color-gold-300: #e2c88f;
+  --color-gold-400: #d4af6a;
+  --color-gold-500: #b8873f; /* 2.9:1 — NON-TEXT ONLY: rules, rings, badges */
+  --color-gold-700: #8a6428; /* 5.0:1 — the gold to use when it must be text */
+
+  /* -- Brick: sale, discount, urgency. Never a pure red ------------------ */
+  --color-brick-500: #b04a3a;
+  --color-brick-600: #96382b; /* 7.8:1 — sale price, discount badge */
+
+  /* -- Semantic aliases -------------------------------------------------- */
+  --color-background: var(--color-sand-50);
+  --color-surface: #ffffff;
+  --color-foreground: var(--color-ink-900);
+  --color-muted: var(--color-ink-500);
+  --color-hairline: var(--color-sand-200);
+  --color-hairline-strong: var(--color-sand-300);
+
+  /* -- Type families ------------------------------------------------------
+     --font-display is rebound per-locale further down: Reem Kufi carries
+     Arabic headlines, Cormorant Garamond carries Latin ones. Each script
+     gets a display face that actually has presence in that script, rather
+     than one family stretched unconvincingly across both.
+  ------------------------------------------------------------------------ */
+  --font-sans: var(--font-plex-arabic), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), var(--font-plex-arabic), serif;
+
+  /* -- Type scale: fluid, editorial ------------------------------------- */
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1.4;
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-h3: 1.375rem;
+  --text-h2: clamp(1.375rem, 2.5vw, 1.875rem);
+  --text-h1: clamp(1.75rem, 3.5vw, 2.5rem);
+  --text-display-2: clamp(2rem, 4.5vw, 3.25rem);
+  --text-display-1: clamp(2.5rem, 6vw, 4.5rem);
+
+  /* -- Corners: near-square. Rounded corners read as software, not
+        tailoring. Only pills and colour swatches go fully round. -------- */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-full: 9999px;
+
+  /* -- Elevation: hairlines do almost all the work. One real shadow, for
+        overlays that genuinely float (cart drawer, mega menu). --------- */
+  --shadow-overlay: 0 24px 60px -24px rgb(22 19 15 / 0.28);
+  --shadow-raised: 0 2px 10px -4px rgb(22 19 15 / 0.16);
+
+  /* -- Layout ------------------------------------------------------------ */
+  --spacing-gutter: 1.25rem;
+  --container-site: 90rem; /* 1440px */
+
+  /* -- Motion: short and unfussy ---------------------------------------- */
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Base
+-------------------------------------------------------------------------- */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Arabic sits optically smaller than Latin at the same px size, and its
+     ascenders/descenders need more room. Nudge both, only for Arabic. */
+  :lang(ar) body,
+  html[lang="ar"] body {
+    font-size: 1.0625rem;
+    line-height: 1.85;
+  }
+
+  html[lang="ar"] {
+    --font-display: var(--font-reem-kufi), var(--font-plex-arabic), sans-serif;
+  }
+
+  ::selection {
+    background-color: var(--color-gold-300);
+    color: var(--color-ink-900);
+  }
+
+  /* One focus treatment everywhere, keyboard-only, gold so it reads as brand
+     rather than as a browser default. */
+  :focus-visible {
+    outline: 2px solid var(--color-gold-500);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Component-level primitives
+-------------------------------------------------------------------------- */
+
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  /* Arabic display faces are not designed for negative tracking — Reem Kufi's
+     joins tighten badly. Reset it. */
+  html[lang="ar"] .font-display {
+    letter-spacing: 0;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  /* Eyebrow / section kicker. Uppercase + wide tracking is a Latin device:
+     Arabic has no case, and letter-spacing severs its cursive joins outright,
+     so Arabic gets weight and colour instead. */
+  .eyebrow {
+    font-size: var(--text-eyebrow);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--color-gold-700);
+  }
+
+  html[lang="ar"] .eyebrow {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.8125rem;
+  }
+
+  /* Long-form body copy — product descriptions and the static pages. Sized
+     for reading rather than scanning, and measure-capped: a 1400px-wide
+     paragraph is unreadable in either script. */
+  .prose-storefront {
+    max-width: 68ch;
+    color: var(--color-ink-600);
+    font-size: 0.9375rem;
+    line-height: 1.75;
+  }
+
+  :lang(ar) .prose-storefront,
+  html[lang="ar"] .prose-storefront {
+    font-size: 1rem;
+    line-height: 2;
+  }
+
+  .prose-storefront > * + * {
+    margin-block-start: 1.15em;
+  }
+
+  .prose-storefront h2 {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    line-height: 1.3;
+    color: var(--color-ink-900);
+    margin-block-start: 2em;
+  }
+
+  html[lang="ar"] .prose-storefront h2 {
+    line-height: 1.6;
+  }
+
+  .prose-storefront h3 {
+    font-weight: 600;
+    color: var(--color-ink-900);
+    margin-block-start: 1.75em;
+  }
+
+  .prose-storefront a {
+    color: var(--color-gold-700);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .prose-storefront ul,
+  .prose-storefront ol {
+    padding-inline-start: 1.35em;
+    list-style: disc;
+  }
+
+  .prose-storefront ol {
+    list-style: decimal;
+  }
+
+  .prose-storefront li + li {
+    margin-block-start: 0.4em;
+  }
+
+  .prose-storefront strong {
+    color: var(--color-ink-900);
+    font-weight: 600;
+  }
+
+  /* Numerals in Arabic UI: Saudi ecommerce overwhelmingly uses Western digits
+     for prices and SKUs even in Arabic copy. Force them so a font's default
+     Eastern-Arabic figures don't surprise us. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+-------------------------------------------------------------------------- */
+
+@utility container-site {
+  width: 100%;
+  max-width: var(--container-site);
+  margin-inline: auto;
+  padding-inline: var(--spacing-gutter);
+
+  @media (width >= 48rem) {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* Vertical rhythm for a homepage/PLP section band. */
+@utility section-y {
+  padding-block: clamp(3rem, 7vw, 6rem);
+}
+
+/* Mirrors an icon that encodes direction (chevrons, arrows) under RTL.
+   Applied to the icon, never to a whole container. */
+@utility flip-rtl {
+  html[dir="rtl"] & {
+    transform: scaleX(-1);
+  }
+}

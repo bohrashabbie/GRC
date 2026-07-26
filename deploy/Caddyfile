@@ -1,0 +1,31 @@
+{$STORE_DOMAIN} {
+    encode zstd gzip
+
+    handle /shop/v1/* {
+        reverse_proxy api:8000
+    }
+
+    handle /uploads/* {
+        reverse_proxy api:8000
+    }
+
+    handle {
+        reverse_proxy storefront:3100
+    }
+}
+
+{$ADMIN_DOMAIN} {
+    encode zstd gzip
+
+    handle /api/v1/* {
+        reverse_proxy api:8000
+    }
+
+    handle /uploads/* {
+        reverse_proxy api:8000
+    }
+
+    handle {
+        reverse_proxy admin:3000
+    }
+}
