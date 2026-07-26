@@ -48,6 +48,11 @@ export const PERMISSIONS = {
 
   // marketing / finance
   marketingView: "marketing.view",
+  cmsView: "cms.view",
+  cmsBannerManage: "cms.banner.manage",
+  cmsMenuManage: "cms.menu.manage",
+  cmsPageManage: "cms.page.manage",
+  cmsPagePublish: "cms.page.publish",
   financeView: "finance.view",
 } as const
 

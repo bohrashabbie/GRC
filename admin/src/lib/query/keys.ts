@@ -119,6 +119,26 @@ export const queryKeys = {
     list: (group?: string | null) => ["settings", "list", group ?? null] as const,
   },
 
+  banners: {
+    all: ["banners"] as const,
+    list: (params: { placement?: string | null; is_active?: boolean | null }) =>
+      ["banners", "list", params] as const,
+    detail: (bannerId: number) => ["banners", "detail", bannerId] as const,
+  },
+
+  menus: {
+    all: ["menus"] as const,
+    list: () => ["menus", "list"] as const,
+    detail: (menuId: number) => ["menus", "detail", menuId] as const,
+  },
+
+  pages: {
+    all: ["pages"] as const,
+    list: (params: { status?: string | null }) =>
+      ["pages", "list", params] as const,
+    detail: (pageId: number) => ["pages", "detail", pageId] as const,
+  },
+
   audit: {
     all: ["audit"] as const,
     list: (params: Omit<AuditListParams, "cursor" | "limit">) =>

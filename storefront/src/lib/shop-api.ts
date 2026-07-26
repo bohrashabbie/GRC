@@ -59,6 +59,10 @@ import {
 const USE_FIXTURES = process.env.NEXT_PUBLIC_USE_FIXTURES !== "false";
 const USE_LIVE_CATALOG = process.env.NEXT_PUBLIC_USE_LIVE_CATALOG !== "false";
 const ALLOW_CATALOG_FALLBACK = process.env.CATALOG_FALLBACK !== "false";
+/** Overrides every per-call ISR window. 0 means read live on every request. */
+const REVALIDATE_OVERRIDE = Number.isFinite(Number(process.env.CATALOG_REVALIDATE_SECONDS))
+  ? Number(process.env.CATALOG_REVALIDATE_SECONDS)
+  : null;
 const BASE_URL =
   process.env.SHOP_API_URL ??
   process.env.NEXT_PUBLIC_SHOP_API_URL ??
@@ -91,6 +95,16 @@ async function shopFetch<T>(path: string, options: FetchOptions): Promise<T> {
     if (value !== undefined) url.searchParams.set(key, String(value));
   }
 
+  // `CATALOG_REVALIDATE_SECONDS=0` makes every catalogue read live, which also
+  // opts these routes out of static prerendering. Without it a product added in
+  // the admin stays invisible until the ISR window expires or the image is
+  // rebuilt — fine under traffic, wrong while the catalogue is being built.
+  const live =
+    options.revalidate === false ||
+    (REVALIDATE_OVERRIDE !== null && REVALIDATE_OVERRIDE <= 0);
+  const window =
+    REVALIDATE_OVERRIDE !== null ? REVALIDATE_OVERRIDE : options.revalidate || 300;
+
   const response = await fetch(url, {
     method: options.method ?? "GET",
     headers: {
@@ -98,8 +112,8 @@ async function shopFetch<T>(path: string, options: FetchOptions): Promise<T> {
       ...(options.body ? { "Content-Type": "application/json" } : {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
-    next: options.revalidate === false ? undefined : { revalidate: options.revalidate ?? 300 },
-    cache: options.revalidate === false ? "no-store" : undefined,
+    next: live ? undefined : { revalidate: window },
+    cache: live ? "no-store" : undefined,
   });
 
   if (!response.ok) {

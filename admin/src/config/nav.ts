@@ -1,5 +1,8 @@
 import {
   ClipboardCheck,
+  FileText,
+  Images,
+  Menu as MenuIcon,
   ClipboardList,
   FileClock,
   LayoutDashboard,
@@ -134,6 +137,29 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: "customers",
         icon: Users,
         permission: PERMISSIONS.customerView,
+      },
+    ],
+  },
+  {
+    labelKey: "sectionContent",
+    items: [
+      {
+        href: "/banners",
+        labelKey: "banners",
+        icon: Images,
+        permission: PERMISSIONS.cmsView,
+      },
+      {
+        href: "/menus",
+        labelKey: "menus",
+        icon: MenuIcon,
+        permission: PERMISSIONS.cmsView,
+      },
+      {
+        href: "/pages",
+        labelKey: "pages",
+        icon: FileText,
+        permission: PERMISSIONS.cmsView,
       },
     ],
   },

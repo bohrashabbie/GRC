@@ -74,7 +74,11 @@
     "audit": "سجل التدقيق",
     "collapse": "طي القائمة الجانبية",
     "expand": "توسيع القائمة الجانبية",
-    "openMenu": "فتح القائمة"
+    "openMenu": "فتح القائمة",
+    "sectionContent": "المحتوى",
+    "banners": "البانرات",
+    "menus": "القوائم",
+    "pages": "الصفحات"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -841,5 +845,64 @@
     "uploaded": "تم رفع الصورة.",
     "remove": "إزالة",
     "noImage": "لا توجد صورة."
+  },
+  "banners": {
+    "title": "البانرات",
+    "description": "الشرائح الرئيسية والأشرطة الترويجية التي تظهر في المتجر.",
+    "newBanner": "بانر جديد",
+    "createTitle": "إنشاء بانر",
+    "editTitle": "تعديل البانر",
+    "formDescription": "الصورة ونص الغلاف ووجهة الرابط.",
+    "created": "تم إنشاء البانر.",
+    "updated": "تم تحديث البانر.",
+    "deactivated": "تم تعطيل البانر.",
+    "deactivateTitle": "تعطيل هذا البانر؟",
+    "deactivateDescription": "لن يظهر {name} في المتجر. يمكن تفعيله لاحقًا.",
+    "empty": "لا توجد بانرات بعد.",
+    "untitled": "بانر بدون عنوان",
+    "allPlacements": "كل المواضع",
+    "placements": {
+      "home_hero": "الواجهة الرئيسية",
+      "home_promo": "شريط العروض",
+      "category_top": "أعلى التصنيف",
+      "checkout_strip": "شريط الدفع"
+    },
+    "themes": {
+      "dark": "صورة داكنة ونص فاتح",
+      "light": "صورة فاتحة ونص داكن"
+    },
+    "linkTypes": {
+      "category": "تصنيف",
+      "product": "منتج",
+      "collection": "مجموعة",
+      "url": "رابط"
+    },
+    "locales": {
+      "ar": "العربية",
+      "en": "الإنجليزية"
+    },
+    "fields": {
+      "placement": "الموضع",
+      "textTheme": "نص الغلاف",
+      "desktopImage": "صورة سطح المكتب",
+      "desktopHint": "قصّة عريضة، نحو 2400×1030.",
+      "mobileImage": "صورة الجوال",
+      "mobileHint": "قصّة طولية اختيارية، نحو 1080×1350.",
+      "headline": "العنوان",
+      "subheadline": "العنوان الفرعي",
+      "ctaLabel": "نص الزر",
+      "altText": "النص البديل للصورة",
+      "linkType": "يؤدي إلى",
+      "noLink": "بدون رابط",
+      "linkUrl": "الرابط",
+      "linkTargetId": "معرّف الوجهة",
+      "startsAt": "يبدأ في",
+      "endsAt": "ينتهي في",
+      "sortOrder": "الترتيب",
+      "isActive": "مفعّل"
+    },
+    "validation": {
+      "desktopRequired": "صورة سطح المكتب مطلوبة، وإلا لن يظهر البانر."
+    }
   }
 }

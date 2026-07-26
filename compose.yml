@@ -71,6 +71,10 @@ services:
     environment:
       SHOP_API_URL: http://api:8000/shop/v1
       CATALOG_FALLBACK: "false"
+      # 0 = read the catalogue live on every request, so admin edits appear
+      # immediately. Raise it (300 is a sensible start) once the catalogue is
+      # settled and real traffic makes caching worth the staleness.
+      CATALOG_REVALIDATE_SECONDS: "0"
       NEXT_PUBLIC_SITE_URL: https://${STORE_DOMAIN}
     depends_on:
       api:

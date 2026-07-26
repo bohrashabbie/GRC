@@ -74,7 +74,11 @@
     "audit": "Audit log",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
-    "openMenu": "Open menu"
+    "openMenu": "Open menu",
+    "sectionContent": "Content",
+    "banners": "Banners",
+    "menus": "Menus",
+    "pages": "Pages"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -841,5 +845,64 @@
     "uploaded": "Image uploaded.",
     "remove": "Remove",
     "noImage": "No image set."
+  },
+  "banners": {
+    "title": "Banners",
+    "description": "Hero slides and promotional strips shown on the storefront.",
+    "newBanner": "New banner",
+    "createTitle": "Create banner",
+    "editTitle": "Edit banner",
+    "formDescription": "Artwork, overlay text and where the banner links to.",
+    "created": "Banner created.",
+    "updated": "Banner updated.",
+    "deactivated": "Banner deactivated.",
+    "deactivateTitle": "Deactivate this banner?",
+    "deactivateDescription": "{name} will stop appearing on the storefront. It can be reactivated later.",
+    "empty": "No banners yet.",
+    "untitled": "Untitled banner",
+    "allPlacements": "All placements",
+    "placements": {
+      "home_hero": "Home hero",
+      "home_promo": "Home promo",
+      "category_top": "Category top",
+      "checkout_strip": "Checkout strip"
+    },
+    "themes": {
+      "dark": "Dark artwork, light text",
+      "light": "Light artwork, dark text"
+    },
+    "linkTypes": {
+      "category": "Category",
+      "product": "Product",
+      "collection": "Collection",
+      "url": "URL"
+    },
+    "locales": {
+      "ar": "Arabic",
+      "en": "English"
+    },
+    "fields": {
+      "placement": "Placement",
+      "textTheme": "Overlay text",
+      "desktopImage": "Desktop image",
+      "desktopHint": "Wide crop, around 2400x1030.",
+      "mobileImage": "Mobile image",
+      "mobileHint": "Optional tall crop, around 1080x1350.",
+      "headline": "Headline",
+      "subheadline": "Subheadline",
+      "ctaLabel": "Button label",
+      "altText": "Image alt text",
+      "linkType": "Links to",
+      "noLink": "No link",
+      "linkUrl": "URL",
+      "linkTargetId": "Target id",
+      "startsAt": "Starts at",
+      "endsAt": "Ends at",
+      "sortOrder": "Order",
+      "isActive": "Active"
+    },
+    "validation": {
+      "desktopRequired": "A desktop image is required, or the banner will not appear."
+    }
   }
 }
