@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { TranslationNameFields } from "@/components/translations-fields"
+import { useRouter } from "@/i18n/navigation"
 import { usePermission } from "@/hooks/use-permission"
 import { brandsApi, categoriesApi, productsApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
@@ -68,6 +69,7 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
   const locale = useLocale()
   const schema = useProductEditSchema()
   const queryClient = useQueryClient()
+  const router = useRouter()
   const canManage = usePermission(PERMISSIONS.catalogManage)
 
   const [selectedCategories, setSelectedCategories] = useState<Set<number>>(
@@ -125,6 +127,9 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
       })
       await queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
       toast.success(t("updated"))
+      // Saving ends the edit, so return to the list rather than leaving the
+      // form open with no signal that anything happened beyond the toast.
+      router.push("/products")
     } catch (error) {
       if (isApiError(error) && error.isValidation) {
         const unmatched = applyFieldErrors(error, form.setError, FIELD_NAMES)
