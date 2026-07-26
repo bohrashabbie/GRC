@@ -904,5 +904,98 @@
     "validation": {
       "desktopRequired": "A desktop image is required, or the banner will not appear."
     }
+  },
+  "pages": {
+    "title": "Pages",
+    "description": "Static pages such as shipping, returns and terms.",
+    "newPage": "New page",
+    "createTitle": "Create page",
+    "editTitle": "Edit page",
+    "formDescription": "Content and SEO for both locales. A page is only visible on the storefront once published.",
+    "created": "Page created.",
+    "updated": "Page updated.",
+    "unpublished": "Page returned to draft.",
+    "unpublish": "Unpublish",
+    "unpublishTitle": "Unpublish this page?",
+    "unpublishDescription": "{name} returns to draft and leaves the storefront. Its content is kept.",
+    "empty": "No pages yet.",
+    "templates": {
+      "default": "Default",
+      "full_width": "Full width",
+      "contact": "Contact"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "locales": {
+      "ar": "Arabic",
+      "en": "English"
+    },
+    "fields": {
+      "code": "Code",
+      "template": "Template",
+      "status": "Status",
+      "pageTitle": "Title",
+      "slug": "Slug",
+      "slugPlaceholder": "Left blank, generated from the title",
+      "body": "Body",
+      "metaTitle": "Meta title",
+      "metaDescription": "Meta description"
+    },
+    "validation": {
+      "codeRequired": "A code is required.",
+      "titleRequired": "Both Arabic and English need a title."
+    }
+  },
+  "menus": {
+    "title": "Menus",
+    "description": "Header and footer navigation shown on the storefront.",
+    "newMenu": "New menu",
+    "createTitle": "Create menu",
+    "editTitle": "Edit menu",
+    "formDescription": "A menu is identified by its code, which the storefront asks for by name.",
+    "created": "Menu created.",
+    "updated": "Menu updated.",
+    "empty": "No menus yet.",
+    "noItems": "No items in this menu yet.",
+    "newItem": "Add item",
+    "newItemTitle": "Add menu item",
+    "editItemTitle": "Edit menu item",
+    "itemFormDescription": "Label per locale, and where the link goes.",
+    "itemCreated": "Item added.",
+    "itemUpdated": "Item updated.",
+    "itemDeactivated": "Item deactivated.",
+    "deactivateItemTitle": "Deactivate this item?",
+    "deactivateItemDescription": "{name} will stop appearing in the menu. It can be reactivated later.",
+    "linkTypes": {
+      "category": "Category",
+      "brand": "Brand",
+      "collection": "Collection",
+      "page": "Page",
+      "url": "URL"
+    },
+    "fields": {
+      "code": "Code",
+      "codeHint": "The storefront requests main_nav for the header, and footer_* for the footer columns.",
+      "isActive": "Active",
+      "label": {
+        "ar": "Label (Arabic)",
+        "en": "Label (English)"
+      },
+      "parent": "Parent",
+      "topLevel": "Top level",
+      "linkType": "Links to",
+      "linkUrl": "URL",
+      "linkTargetId": "Target id",
+      "badge": "Badge",
+      "sortOrder": "Order"
+    },
+    "validation": {
+      "codeRequired": "A code is required.",
+      "labelRequired": "Both Arabic and English need a label.",
+      "urlRequired": "A URL is required for this link type.",
+      "targetRequired": "A target id is required for this link type."
+    }
   }
 }
