@@ -1,0 +1,41 @@
+# TEMPORARY overlay: reach the stack by IP over plain HTTP, before DNS is mapped.
+#
+#   docker compose --env-file .env.vps -f compose.yml -f compose.ip.yml up -d --build
+#
+#   http://<PUBLIC_HOST>        storefront
+#   http://<PUBLIC_HOST>:3000   admin panel (and /api/v1 on the same origin)
+#
+# Requires PUBLIC_HOST in .env.vps. The admin image must be rebuilt when this
+# overlay is added or removed, because Next.js compiles NEXT_PUBLIC_API_BASE_URL
+# into the browser bundle at build time — hence the `--build` above.
+#
+# This turns off the Secure flag on the refresh cookie, so the admin login is
+# unencrypted. Restrict port 3000 to your own IP at the VPS firewall. Once the
+# domains resolve, drop `-f compose.ip.yml` and rebuild to return to HTTPS.
+
+services:
+  api:
+    environment:
+      PUBLIC_MEDIA_BASE_URL: http://${PUBLIC_HOST:?Set PUBLIC_HOST in .env.vps}
+      ADMIN_CORS_ORIGINS: '["http://${PUBLIC_HOST}:3000"]'
+      STOREFRONT_CORS_ORIGINS: '["http://${PUBLIC_HOST}"]'
+
+  admin:
+    build:
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://${PUBLIC_HOST}:3000/api/v1
+    environment:
+      AUTH_COOKIE_SECURE: "0"
+
+  storefront:
+    environment:
+      NEXT_PUBLIC_SITE_URL: http://${PUBLIC_HOST}
+
+  caddy:
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile.ip", "--adapter", "caddyfile"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./deploy/Caddyfile.ip:/etc/caddy/Caddyfile.ip:ro

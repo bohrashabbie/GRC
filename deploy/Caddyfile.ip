@@ -1,0 +1,42 @@
+# TEMPORARY plain-HTTP routing by IP address, for use before DNS is mapped.
+#
+# Loaded only when the stack is started with `-f compose.ip.yml`. There are no
+# domain site blocks here on purpose: Caddy would otherwise keep retrying
+# Let's Encrypt for names that do not resolve, and repeated failures count
+# against the ACME rate limit.
+#
+# No TLS. Anything sent to these ports, including the owner login, travels in
+# cleartext. Restrict port 3000 to your own IP at the VPS firewall and stop
+# using this file as soon as the domains resolve.
+
+http://{$PUBLIC_HOST} {
+	encode zstd gzip
+
+	handle /shop/v1/* {
+		reverse_proxy api:8000
+	}
+
+	handle /uploads/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy storefront:3100
+	}
+}
+
+http://{$PUBLIC_HOST}:3000 {
+	encode zstd gzip
+
+	handle /api/v1/* {
+		reverse_proxy api:8000
+	}
+
+	handle /uploads/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy admin:3000
+	}
+}
