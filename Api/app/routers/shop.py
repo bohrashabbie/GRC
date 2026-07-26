@@ -109,3 +109,29 @@ def stores(accept_language: str | None = Header(None), db: Session = Depends(get
 @router.get("/regions")
 def regions(accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     return shop_service.regions(db, shop_service.locale_from_header(accept_language))
+
+
+@router.get("/banners")
+def banners(
+    placement: str = Query(..., description="home_hero | home_promo | category_top | checkout_strip"),
+    request: Request = None,
+    accept_language: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    locale, base_url = _context(request, accept_language)
+    return shop_service.banners(db, placement, locale, base_url)
+
+
+@router.get("/menus/{code}")
+def menu(code: str, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
+    return shop_service.menu(db, code, shop_service.locale_from_header(accept_language))
+
+
+@router.get("/pages/slugs")
+def page_slugs(accept_language: str | None = Header(None), db: Session = Depends(get_db)):
+    return shop_service.page_slugs(db, shop_service.locale_from_header(accept_language))
+
+
+@router.get("/pages/{slug}")
+def page(slug: str, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
+    return shop_service.page(db, slug, shop_service.locale_from_header(accept_language))

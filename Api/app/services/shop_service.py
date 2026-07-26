@@ -18,11 +18,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import NotFoundError
+from app.models.cms import PageTranslation
 from app.models.catalog import (
     Attribute,
     AttributeTranslation,
     Brand,
     Category,
+    CategoryTranslation,
     Media,
     Option,
     OptionValue,
@@ -36,6 +38,7 @@ from app.models.catalog import (
     VariantOptionValue,
 )
 from app.models.inventory import Location, StockLevel
+from app.services import cms_service
 
 
 def locale_from_header(value: str | None) -> str:
@@ -853,3 +856,119 @@ def regions(db: Session, locale: str) -> list[dict]:
         {"id": str(row.id), "name": row.name_en if locale == "en" else row.name_ar}
         for row in rows
     ]
+
+
+# --------------------------------------------------------------------------- #
+# CMS projections: banners, menus, static pages                                #
+# --------------------------------------------------------------------------- #
+
+
+def _cms_translation(rows: Iterable, locale: str):
+    """Requested locale, falling back to Arabic then to whatever exists."""
+    by_locale = {row.locale: row for row in rows}
+    return by_locale.get(locale) or by_locale.get("ar") or next(iter(by_locale.values()), None)
+
+
+def _resolve_href(db: Session, link_type: str | None, target_id: int | None, url: str | None, locale: str) -> str | None:
+    """Turn a typed link into a storefront path. Unroutable types fall back to
+    link_url so a banner never renders a dead href."""
+    if link_type is None:
+        return url
+    if link_type == "url":
+        return url
+    if link_type == "category" and target_id is not None:
+        row = db.execute(
+            select(CategoryTranslation).where(
+                CategoryTranslation.category_id == target_id,
+                CategoryTranslation.locale == locale,
+            )
+        ).scalars().first()
+        return f"/c/{row.slug}" if row else url
+    if link_type == "product" and target_id is not None:
+        row = db.execute(
+            select(ProductTranslation).where(
+                ProductTranslation.product_id == target_id,
+                ProductTranslation.locale == locale,
+            )
+        ).scalars().first()
+        return f"/p/{row.slug}" if row else url
+    if link_type == "page" and target_id is not None:
+        row = db.execute(
+            select(PageTranslation).where(
+                PageTranslation.page_id == target_id, PageTranslation.locale == locale
+            )
+        ).scalars().first()
+        return f"/pages/{row.slug}" if row else url
+    return url
+
+
+def banners(db: Session, placement: str, locale: str, base_url: str) -> list[dict]:
+    result = []
+    for row in cms_service.active_banners(db, placement):
+        text = _cms_translation(row.translations, locale)
+        alt = text.alt_text if text else None
+        desktop = _media_image(db.get(Media, row.media_desktop_id), base_url, alt) if row.media_desktop_id else None
+        if desktop is None:
+            # desktop_image is non-nullable in the storefront contract; a banner
+            # without artwork is a half-configured draft, not a slide.
+            continue
+        mobile = _media_image(db.get(Media, row.media_mobile_id), base_url, alt) if row.media_mobile_id else None
+        result.append({
+            "id": str(row.id),
+            "placement": row.placement,
+            "title": text.headline if text else None,
+            "subtitle": text.subheadline if text else None,
+            "cta_label": text.cta_label if text else None,
+            "cta_href": _resolve_href(db, row.link_type, row.link_target_id, row.link_url, locale),
+            "desktop_image": desktop,
+            "mobile_image": mobile,
+            "text_theme": row.text_theme,
+            "sort_order": row.sort_order,
+        })
+    return result
+
+
+def menu(db: Session, code: str, locale: str) -> dict:
+    row = cms_service.get_menu_by_code(db, code)
+    if not row.is_active:
+        raise NotFoundError("Menu not found")
+
+    items = [item for item in row.items if item.is_active]
+    by_parent: dict[int | None, list] = {}
+    for item in items:
+        by_parent.setdefault(item.parent_id, []).append(item)
+
+    def build(parent_id: int | None) -> list[dict]:
+        children = sorted(by_parent.get(parent_id, []), key=lambda i: (i.sort_order, i.id))
+        out = []
+        for item in children:
+            text = _cms_translation(item.translations, locale)
+            out.append({
+                "id": str(item.id),
+                "label": text.label if text else "",
+                "href": _resolve_href(db, item.link_type, item.link_target_id, item.link_url, locale) or "#",
+                "children": build(item.id),
+            })
+        return out
+
+    return {"code": row.code, "title": row.code, "items": build(None)}
+
+
+def page(db: Session, slug: str, locale: str) -> dict:
+    row = cms_service.get_published_page_by_slug(db, slug, locale)
+    text = _cms_translation(row.translations, locale)
+    return {
+        "slug": text.slug if text else slug,
+        "title": text.title if text else "",
+        "body_html": (text.body if text else None) or "",
+        "updated_at": row.updated_at.isoformat(),
+        "seo": {
+            "title": (text.meta_title if text else None) or (text.title if text else ""),
+            "description": (text.meta_description if text else None) or "",
+            "canonical": f"/pages/{text.slug}" if text else None,
+        },
+    }
+
+
+def page_slugs(db: Session, locale: str) -> list[str]:
+    return cms_service.published_page_slugs(db, locale)

@@ -56,6 +56,12 @@ PERMISSIONS: list[PermissionDef] = [
     PermissionDef("customer.update", "customers", "Edit customer accounts and addresses"),
     # marketing
     PermissionDef("marketing.view", "marketing", "View marketing configuration"),
+    # cms — banners, menus, static pages
+    PermissionDef("cms.view", "marketing", "View banners, menus and static pages"),
+    PermissionDef("cms.banner.manage", "marketing", "Create/edit/remove home and category banners"),
+    PermissionDef("cms.menu.manage", "marketing", "Create/edit navigation menus and their items"),
+    PermissionDef("cms.page.manage", "marketing", "Create/edit static pages"),
+    PermissionDef("cms.page.publish", "marketing", "Publish or unpublish a static page"),
     # finance
     PermissionDef("finance.view", "finance", "View financial reports and exports"),
 ]
@@ -153,7 +159,16 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "inventory.view",
     ],
     "support": ["order.view", "order.note", "customer.view", "customer.update"],
-    "marketing": ["marketing.view", "catalog.view", "customer.view"],
+    "marketing": [
+        "marketing.view",
+        "catalog.view",
+        "customer.view",
+        "cms.view",
+        "cms.banner.manage",
+        "cms.menu.manage",
+        "cms.page.manage",
+        "cms.page.publish",
+    ],
     "accountant": ["finance.view", "order.view", "audit.view", "settings.view"],
 }
 

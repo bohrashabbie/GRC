@@ -279,7 +279,9 @@
       "parent": "Parent category",
       "noParent": "Top level (no parent)",
       "dimension": "Dimension",
-      "showInMenu": "Show in navigation menu"
+      "showInMenu": "Show in navigation menu",
+      "image": "Category image",
+      "imageHint": "Shown on category tiles in the storefront."
     },
     "hints": {
       "dimension": "Categories, collections, and occasions are separate trees.",
@@ -831,5 +833,13 @@
       "changedOnly": "Only the fields that changed are recorded."
     },
     "system": "System"
+  },
+  "media": {
+    "upload": "Upload image",
+    "replace": "Replace image",
+    "uploading": "Uploading...",
+    "uploaded": "Image uploaded.",
+    "remove": "Remove",
+    "noImage": "No image set."
   }
 }

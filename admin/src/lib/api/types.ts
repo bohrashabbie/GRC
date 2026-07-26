@@ -989,3 +989,143 @@ export type AuditListParams = {
   date_from?: string | null
   date_to?: string | null
 }
+
+/* -------------------------------------------------------------------------- */
+/* CMS — banners, menus, pages                                                 */
+/* -------------------------------------------------------------------------- */
+
+export type BannerPlacement =
+  | "home_hero"
+  | "home_promo"
+  | "category_top"
+  | "checkout_strip"
+
+export type BannerLinkType = "category" | "product" | "collection" | "url"
+
+export type BannerTranslationIn = {
+  locale: string
+  headline?: string | null
+  subheadline?: string | null
+  cta_label?: string | null
+  alt_text?: string | null
+}
+
+export type BannerTranslationOut = BannerTranslationIn
+
+export type BannerOut = {
+  id: number
+  placement: BannerPlacement
+  media_desktop_id: number | null
+  media_mobile_id: number | null
+  link_type: BannerLinkType | null
+  link_target_id: number | null
+  link_url: string | null
+  starts_at: string | null
+  ends_at: string | null
+  sort_order: number
+  is_active: boolean
+  text_theme: "light" | "dark"
+  translations: BannerTranslationOut[]
+}
+
+export type BannerCreate = {
+  placement: BannerPlacement
+  media_desktop_id?: number | null
+  media_mobile_id?: number | null
+  link_type?: BannerLinkType | null
+  link_target_id?: number | null
+  link_url?: string | null
+  starts_at?: string | null
+  ends_at?: string | null
+  sort_order?: number
+  is_active?: boolean
+  text_theme?: "light" | "dark"
+  translations: BannerTranslationIn[]
+}
+
+export type BannerUpdate = Partial<Omit<BannerCreate, "translations">> & {
+  translations?: BannerTranslationIn[] | null
+}
+
+export type MenuLinkType = "category" | "brand" | "collection" | "page" | "url"
+
+export type MenuItemOut = {
+  id: number
+  menu_id: number
+  parent_id: number | null
+  link_type: MenuLinkType
+  link_target_id: number | null
+  link_url: string | null
+  icon_media_id: number | null
+  badge_code: string | null
+  sort_order: number
+  is_active: boolean
+  translations: LabelTranslationOut[]
+}
+
+export type MenuItemCreate = {
+  parent_id?: number | null
+  link_type: MenuLinkType
+  link_target_id?: number | null
+  link_url?: string | null
+  icon_media_id?: number | null
+  badge_code?: string | null
+  sort_order?: number
+  is_active?: boolean
+  translations: LabelTranslationIn[]
+}
+
+export type MenuItemUpdate = Partial<Omit<MenuItemCreate, "translations">> & {
+  translations?: LabelTranslationIn[] | null
+}
+
+export type MenuOut = {
+  id: number
+  code: string
+  is_active: boolean
+  items: MenuItemOut[]
+}
+
+export type MenuCreate = { code: string; is_active?: boolean }
+export type MenuUpdate = { code?: string | null; is_active?: boolean | null }
+
+export type PageStatus = "draft" | "published"
+export type PageTemplate = "default" | "full_width" | "contact"
+
+export type PageTranslationIn = {
+  locale: string
+  title: string
+  slug?: string | null
+  body?: string | null
+  meta_title?: string | null
+  meta_description?: string | null
+}
+
+export type PageTranslationOut = {
+  locale: string
+  title: string
+  slug: string
+  body: string | null
+  meta_title: string | null
+  meta_description: string | null
+}
+
+export type PageOut = {
+  id: number
+  code: string
+  template: PageTemplate
+  status: PageStatus
+  published_at: string | null
+  translations: PageTranslationOut[]
+}
+
+export type PageCreate = {
+  code: string
+  template?: PageTemplate
+  status?: PageStatus
+  translations: PageTranslationIn[]
+}
+
+export type PageUpdate = Partial<Omit<PageCreate, "translations">> & {
+  translations?: PageTranslationIn[] | null
+}

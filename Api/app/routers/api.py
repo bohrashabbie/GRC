@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.routers import (
     audit,
     auth,
+    banners,
     brands,
     categories,
     counts,
@@ -11,9 +12,11 @@ from app.routers import (
     inventory,
     locations,
     media,
+    menus,
     option_values,
     options,
     orders,
+    pages,
     products,
     purchase_orders,
     roles,
@@ -47,3 +50,6 @@ api_router.include_router(orders.router, prefix="/orders", tags=["orders"])
 api_router.include_router(customers.router, prefix="/customers", tags=["customers"])
 api_router.include_router(settings.router, prefix="/settings", tags=["settings"])
 api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
+api_router.include_router(banners.router, prefix="/banners", tags=["cms"])
+api_router.include_router(menus.router, prefix="/menus", tags=["cms"])
+api_router.include_router(pages.router, prefix="/pages", tags=["cms"])

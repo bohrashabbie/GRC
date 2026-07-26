@@ -66,6 +66,15 @@ from app.models.purchasing import (
     Supplier,
 )
 from app.models.system import ApiKey, ExportJob, ImportJob, Notification, Setting, WebhookEvent
+from app.models.cms import (
+    Banner,
+    BannerTranslation,
+    Menu,
+    MenuItem,
+    MenuItemTranslation,
+    Page,
+    PageTranslation,
+)
 
 __all__ = [
     "Base",
@@ -131,4 +140,11 @@ __all__ = [
     "ImportJob",
     "WebhookEvent",
     "ApiKey",
+    "Banner",
+    "BannerTranslation",
+    "Menu",
+    "MenuItem",
+    "MenuItemTranslation",
+    "Page",
+    "PageTranslation",
 ]

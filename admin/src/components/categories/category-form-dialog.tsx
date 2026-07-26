@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -35,8 +36,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { MediaPicker } from "@/components/media/media-picker"
 import { TranslationNameFields } from "@/components/translations-fields"
-import { categoriesApi } from "@/lib/api/endpoints"
+import { categoriesApi, mediaApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { translatedName } from "@/lib/format"
@@ -106,6 +108,24 @@ export function CategoryFormDialog({
     },
   })
 
+  // image_media_id sits outside the zod schema: it is set by uploading, not
+  // typed, so there is nothing to validate.
+  const [imageMediaId, setImageMediaId] = useState<number | null>(
+    category?.image_media_id ?? null
+  )
+  const [imageKey, setImageKey] = useState<string | null>(null)
+
+  // CategoryOut carries only the id, so the preview needs one lookup.
+  const imageQuery = useQuery({
+    queryKey: ["media", category?.image_media_id],
+    queryFn: ({ signal }) => mediaApi.get(category!.image_media_id!, signal),
+    enabled: open && !!category?.image_media_id,
+  })
+
+  useEffect(() => {
+    if (imageQuery.data) setImageKey(imageQuery.data.storage_key)
+  }, [imageQuery.data])
+
   const dimension = form.watch("dimension")
 
   // Parent options come from the same dimension — the trees are separate.
@@ -134,6 +154,7 @@ export function CategoryFormDialog({
           sort_order: values.sort_order,
           show_in_menu: values.show_in_menu,
           is_active: values.is_active,
+          image_media_id: imageMediaId,
           translations,
         })
       } else {
@@ -144,6 +165,7 @@ export function CategoryFormDialog({
           sort_order: values.sort_order,
           show_in_menu: values.show_in_menu,
           is_active: values.is_active,
+          image_media_id: imageMediaId,
           translations,
         })
       }
@@ -177,6 +199,17 @@ export function CategoryFormDialog({
             noValidate
           >
             <TranslationNameFields control={form.control} showSlug />
+
+            <MediaPicker
+              value={imageMediaId}
+              storageKey={imageKey}
+              onChange={(mediaId, storageKey) => {
+                setImageMediaId(mediaId)
+                setImageKey(storageKey)
+              }}
+              label={t("fields.image")}
+              hint={t("fields.imageHint")}
+            />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField

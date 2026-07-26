@@ -72,6 +72,18 @@ import type {
   VariantOut,
   VariantPriceUpdate,
   VariantUpdate,
+  BannerOut,
+  BannerCreate,
+  BannerUpdate,
+  MenuOut,
+  MenuCreate,
+  MenuUpdate,
+  MenuItemOut,
+  MenuItemCreate,
+  MenuItemUpdate,
+  PageOut,
+  PageCreate,
+  PageUpdate,
 } from "./types"
 
 /**
@@ -518,4 +530,86 @@ export const auditApi = {
       },
       signal,
     }),
+}
+
+/* -------------------------------------------------------------------------- */
+/* CMS — banners                                                               */
+/* -------------------------------------------------------------------------- */
+
+export const bannersApi = {
+  list: (
+    params: {
+      cursor?: string | null
+      limit?: number
+      placement?: string | null
+      is_active?: boolean | null
+    } = {},
+    signal?: AbortSignal
+  ) =>
+    api.get<CursorPage<BannerOut>>("/banners", {
+      query: {
+        cursor: params.cursor ?? undefined,
+        limit: params.limit,
+        placement: params.placement ?? undefined,
+        is_active: params.is_active ?? undefined,
+      },
+      signal,
+    }),
+  get: (bannerId: number, signal?: AbortSignal) =>
+    api.get<BannerOut>(`/banners/${bannerId}`, { signal }),
+  create: (payload: BannerCreate) => api.post<BannerOut>("/banners", payload),
+  update: (bannerId: number, payload: BannerUpdate) =>
+    api.patch<BannerOut>(`/banners/${bannerId}`, payload),
+  deactivate: (bannerId: number) => api.del(`/banners/${bannerId}`),
+}
+
+/* -------------------------------------------------------------------------- */
+/* CMS — menus                                                                 */
+/* -------------------------------------------------------------------------- */
+
+export const menusApi = {
+  list: (
+    params: { cursor?: string | null; limit?: number } = {},
+    signal?: AbortSignal
+  ) =>
+    api.get<CursorPage<MenuOut>>("/menus", {
+      query: { cursor: params.cursor ?? undefined, limit: params.limit },
+      signal,
+    }),
+  get: (menuId: number, signal?: AbortSignal) =>
+    api.get<MenuOut>(`/menus/${menuId}`, { signal }),
+  create: (payload: MenuCreate) => api.post<MenuOut>("/menus", payload),
+  update: (menuId: number, payload: MenuUpdate) =>
+    api.patch<MenuOut>(`/menus/${menuId}`, payload),
+  deactivate: (menuId: number) => api.del(`/menus/${menuId}`),
+  createItem: (menuId: number, payload: MenuItemCreate) =>
+    api.post<MenuItemOut>(`/menus/${menuId}/items`, payload),
+  updateItem: (itemId: number, payload: MenuItemUpdate) =>
+    api.patch<MenuItemOut>(`/menus/items/${itemId}`, payload),
+  deactivateItem: (itemId: number) => api.del(`/menus/items/${itemId}`),
+}
+
+/* -------------------------------------------------------------------------- */
+/* CMS — pages                                                                 */
+/* -------------------------------------------------------------------------- */
+
+export const pagesApi = {
+  list: (
+    params: { cursor?: string | null; limit?: number; status?: string | null } = {},
+    signal?: AbortSignal
+  ) =>
+    api.get<CursorPage<PageOut>>("/pages", {
+      query: {
+        cursor: params.cursor ?? undefined,
+        limit: params.limit,
+        status: params.status ?? undefined,
+      },
+      signal,
+    }),
+  get: (pageId: number, signal?: AbortSignal) =>
+    api.get<PageOut>(`/pages/${pageId}`, { signal }),
+  create: (payload: PageCreate) => api.post<PageOut>("/pages", payload),
+  update: (pageId: number, payload: PageUpdate) =>
+    api.patch<PageOut>(`/pages/${pageId}`, payload),
+  unpublish: (pageId: number) => api.del(`/pages/${pageId}`),
 }
