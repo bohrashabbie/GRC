@@ -32,3 +32,31 @@ touch one, a fixture leaked out of this boundary and that is the bug.
   price strings. No component multiplies, sums, or applies VAT.
 - **No cart totals.** Cart maths is entirely server-side; faking it would
   invite a client-side implementation that later has to be torn out.
+
+## Replacing the home hero banners
+
+There is no `banners` table and no `/shop/v1/banners` route — CMS is out of
+scope for this phase — so the hero is fixture data in `merchandising.ts`.
+
+To use a real image, put a landscape file under `public/hero/` and set the
+banner's `image` to its path instead of a fixture index:
+
+```ts
+{
+  id: "hero-1",
+  placement: "home_hero",
+  title: t("تشكيلة الشتاء", "The Winter Edit"),
+  subtitle: t("أقمشة أثقل", "Heavier cloth"),
+  cta: t("تسوق التشكيلة", "Shop the edit"),
+  href: "/c/thobes-winter",
+  image: "/hero/winter.jpg",
+  mobileImage: "/hero/winter-portrait.jpg",  // optional
+  theme: "dark",
+}
+```
+
+The hero crops to 21/9 on desktop and 4/5 on mobile, so use roughly 2400x1030
+for `image` and 1080x1350 for `mobileImage`. A portrait source in the desktop
+slot gets sliced to a thin strip — that is why the product fixtures look wrong
+there. Text sits on the inline-start half over a gradient, so keep that side of
+the frame uncluttered and leave `theme: "dark"` unless the image is pale.

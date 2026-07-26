@@ -1,7 +1,7 @@
 /** TEMPORARY fixture data — banners, collections, menus, pages. See ./README.md. */
 
 import type { Banner, BannerPlacement, Collection, LocaleCode, Menu, StaticPage } from "@/types/shop";
-import { type Bilingual, img, t } from "./shared";
+import { type Bilingual, img, publicImage, t } from "./shared";
 import { fixtureProducts } from "./catalog";
 
 /* -------------------------------------------------------------------------- */
@@ -15,7 +15,13 @@ interface RawBanner {
   subtitle: Bilingual;
   cta: Bilingual;
   href: string;
-  image: number;
+  /**
+   * Either a 1-based index into the portrait product fixtures, or a path under
+   * `public/` — e.g. `"/hero/winter.jpg"` — for a real landscape banner.
+   */
+  image: number | string;
+  /** Optional portrait crop for the 4/5 mobile hero. Falls back to `image`. */
+  mobileImage?: string;
   theme: "light" | "dark";
 }
 
@@ -63,18 +69,26 @@ const RAW_BANNERS: RawBanner[] = [
 ];
 
 export function fixtureBanners(placement: BannerPlacement, locale: LocaleCode): Banner[] {
-  return RAW_BANNERS.filter((raw) => raw.placement === placement).map((raw, index) => ({
-    id: raw.id,
-    placement: raw.placement,
-    title: raw.title[locale],
-    subtitle: raw.subtitle[locale],
-    cta_label: raw.cta[locale],
-    cta_href: raw.href,
-    desktop_image: img(raw.image, raw.title[locale]),
-    mobile_image: img(raw.image, raw.title[locale]),
-    text_theme: raw.theme,
-    sort_order: index,
-  }));
+  return RAW_BANNERS.filter((raw) => raw.placement === placement).map((raw, index) => {
+    const alt = raw.title[locale];
+    const desktop =
+      typeof raw.image === "string" ? publicImage(raw.image, alt) : img(raw.image, alt);
+
+    return {
+      id: raw.id,
+      placement: raw.placement,
+      title: alt,
+      subtitle: raw.subtitle[locale],
+      cta_label: raw.cta[locale],
+      cta_href: raw.href,
+      desktop_image: desktop,
+      mobile_image: raw.mobileImage
+        ? publicImage(raw.mobileImage, alt, 1080, 1350)
+        : desktop,
+      text_theme: raw.theme,
+      sort_order: index,
+    };
+  });
 }
 
 /* -------------------------------------------------------------------------- */

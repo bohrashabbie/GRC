@@ -6,6 +6,29 @@ export type Bilingual = Record<LocaleCode, string>;
 
 export const t = (ar: string, en: string): Bilingual => ({ ar, en });
 
+/**
+ * A real image served from `public/`, for banners that should not use the
+ * portrait product fixtures. The hero crops to 21/9 on desktop and 4/5 on
+ * mobile, so a landscape source around 2400x1030 is what fits; anything
+ * portrait gets sliced down to a thin strip.
+ */
+export function publicImage(
+  src: string,
+  alt = "",
+  width = 2400,
+  height = 1030,
+): MediaImage {
+  return {
+    id: src,
+    url: src,
+    alt,
+    width,
+    height,
+    available_widths: [640, 1280, 1920, width],
+    blur_data_url: null,
+  };
+}
+
 /** Eight source photos, cycled. `n` is 1-based and wraps. */
 export function img(n: number, alt = ""): MediaImage {
   const index = ((n - 1) % 8) + 1;
