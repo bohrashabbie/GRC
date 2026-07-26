@@ -241,16 +241,26 @@ export async function getReviews(
 /* Merchandising                                                              */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Banners come from the admin. An empty array is a real answer — it means the
+ * merchandiser has not published anything for this placement — so unlike the
+ * menu below, there is no fixture fallback on success. Fixtures only cover the
+ * case where the API itself is unreachable.
+ */
 export async function getBanners(
   placement: BannerPlacement,
   locale: LocaleCode,
 ): Promise<Banner[]> {
-  if (USE_FIXTURES) return fixtureBanners(placement, locale);
-  return shopFetch<Banner[]>("/banners", {
-    locale,
-    revalidate: 600,
-    searchParams: { placement },
-  });
+  try {
+    return await shopFetch<Banner[]>("/banners", {
+      locale,
+      revalidate: 600,
+      searchParams: { placement },
+    });
+  } catch (error) {
+    if (!USE_FIXTURES || !ALLOW_CATALOG_FALLBACK) throw error;
+    return fixtureBanners(placement, locale);
+  }
 }
 
 export async function getCollection(code: string, locale: LocaleCode): Promise<Collection> {
@@ -260,14 +270,33 @@ export async function getCollection(code: string, locale: LocaleCode): Promise<C
   );
 }
 
+/**
+ * Navigation is structural: every page renders the header, so a missing menu
+ * must not take the site down. A 404 here means the menu has not been created
+ * in the admin yet, and the fixture stands in until it is.
+ */
 export async function getMenu(code: string, locale: LocaleCode): Promise<Menu> {
-  if (USE_FIXTURES) return fixtureMenu(code, locale);
-  return shopFetch<Menu>(`/menus/${code}`, { locale, revalidate: 3600 });
+  try {
+    return await shopFetch<Menu>(`/menus/${code}`, { locale, revalidate: 3600 });
+  } catch (error) {
+    const missing = error instanceof ShopApiError && error.status === 404;
+    if (missing || (USE_FIXTURES && ALLOW_CATALOG_FALLBACK)) {
+      return fixtureMenu(code, locale);
+    }
+    throw error;
+  }
 }
 
 export async function getPage(slug: string, locale: LocaleCode): Promise<StaticPage | null> {
-  if (USE_FIXTURES) return fixturePage(slug, locale);
-  return shopFetch<StaticPage>(`/pages/${slug}`, { locale, revalidate: 3600 });
+  try {
+    return await shopFetch<StaticPage>(`/pages/${slug}`, { locale, revalidate: 3600 });
+  } catch (error) {
+    // A missing page is a real 404 for the route, not a reason to serve a
+    // fixture that would put demo copy on a live site.
+    if (error instanceof ShopApiError && error.status === 404) return null;
+    if (!USE_FIXTURES || !ALLOW_CATALOG_FALLBACK) throw error;
+    return fixturePage(slug, locale);
+  }
 }
 
 /**
@@ -275,8 +304,13 @@ export async function getPage(slug: string, locale: LocaleCode): Promise<StaticP
  * used only at build time, never on a request path.
  */
 export async function getPageSlugs(): Promise<string[]> {
-  if (USE_FIXTURES) return fixturePageSlugs();
-  return shopFetch<string[]>("/pages/slugs", { locale: "ar", revalidate: 3600 });
+  try {
+    return await shopFetch<string[]>("/pages/slugs", { locale: "ar", revalidate: 3600 });
+  } catch (error) {
+    // Build-time only: an unreachable API must not fail the build.
+    if (!USE_FIXTURES || !ALLOW_CATALOG_FALLBACK) return [];
+    return fixturePageSlugs();
+  }
 }
 
 export async function getProductSlugs(): Promise<string[]> {
