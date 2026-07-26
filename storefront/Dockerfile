@@ -7,8 +7,18 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 ARG NEXT_PUBLIC_USE_LIVE_CATALOG=true
 ARG NEXT_PUBLIC_USE_FIXTURES=true
+# These two must exist at BUILD time, not just at runtime. With
+# CATALOG_REVALIDATE_SECONDS=0 the catalogue fetches become no-store, which
+# opts the routes out of static prerendering — otherwise Next renders them here,
+# in a container with no API, and bakes the fixtures into the shipped HTML.
+# CATALOG_FALLBACK=false makes that failure loud instead of silent if it ever
+# happens again.
+ARG CATALOG_REVALIDATE_SECONDS=0
+ARG CATALOG_FALLBACK=false
 ENV NEXT_PUBLIC_USE_LIVE_CATALOG=$NEXT_PUBLIC_USE_LIVE_CATALOG \
-    NEXT_PUBLIC_USE_FIXTURES=$NEXT_PUBLIC_USE_FIXTURES
+    NEXT_PUBLIC_USE_FIXTURES=$NEXT_PUBLIC_USE_FIXTURES \
+    CATALOG_REVALIDATE_SECONDS=$CATALOG_REVALIDATE_SECONDS \
+    CATALOG_FALLBACK=$CATALOG_FALLBACK
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

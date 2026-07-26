@@ -67,6 +67,10 @@ services:
       args:
         NEXT_PUBLIC_USE_LIVE_CATALOG: "true"
         NEXT_PUBLIC_USE_FIXTURES: "true"
+        # Must match the runtime values below. These decide whether Next
+        # prerenders the catalogue pages during the build, where no API exists.
+        CATALOG_REVALIDATE_SECONDS: "0"
+        CATALOG_FALLBACK: "false"
     restart: unless-stopped
     environment:
       SHOP_API_URL: http://api:8000/shop/v1
