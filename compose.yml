@@ -31,9 +31,14 @@ services:
       OWNER_EMAIL: ${OWNER_EMAIL:-owner@alshiaka.sa}
       OWNER_PASSWORD: ${OWNER_PASSWORD:?Set OWNER_PASSWORD in .env.vps}
       UPLOAD_DIR: /app/uploads
-      PUBLIC_MEDIA_BASE_URL: https://${STORE_DOMAIN:?Set STORE_DOMAIN in .env.vps}
-      ADMIN_CORS_ORIGINS: '["https://${ADMIN_DOMAIN:?Set ADMIN_DOMAIN in .env.vps}"]'
-      STOREFRONT_CORS_ORIGINS: '["https://${STORE_DOMAIN}"]'
+      # STORE_DOMAIN / ADMIN_DOMAIN are only needed for the HTTPS deployment.
+      # compose.ip.yml overrides every value derived from them, so they are not
+      # hard-required here — that would force a placeholder domain on an
+      # IP-only deploy. A domain deploy with either one unset fails loudly when
+      # Caddy adapts a site block with an empty address.
+      PUBLIC_MEDIA_BASE_URL: https://${STORE_DOMAIN:-}
+      ADMIN_CORS_ORIGINS: '["https://${ADMIN_DOMAIN:-}"]'
+      STOREFRONT_CORS_ORIGINS: '["https://${STORE_DOMAIN:-}"]'
     volumes:
       - uploads:/app/uploads
     depends_on:
@@ -51,7 +56,7 @@ services:
     build:
       context: ./admin
       args:
-        NEXT_PUBLIC_API_BASE_URL: https://${ADMIN_DOMAIN}/api/v1
+        NEXT_PUBLIC_API_BASE_URL: https://${ADMIN_DOMAIN:-}/api/v1
     restart: unless-stopped
     environment:
       API_BASE_URL: http://api:8000/api/v1
@@ -79,18 +84,23 @@ services:
       # immediately. Raise it (300 is a sensible start) once the catalogue is
       # settled and real traffic makes caching worth the staleness.
       CATALOG_REVALIDATE_SECONDS: "0"
-      NEXT_PUBLIC_SITE_URL: https://${STORE_DOMAIN}
+      NEXT_PUBLIC_SITE_URL: https://${STORE_DOMAIN:-}
     depends_on:
       api:
         condition: service_healthy
     networks: [web]
 
+  # Opt-in. Only the domain/HTTPS deployment runs a reverse proxy, and it must
+  # be asked for by name: `--profile proxy`. Without the profile nothing binds
+  # 443, so plain HTTP on the public IP is never redirected to HTTPS.
+  # See compose.ip.yml for the proxy-less IP deployment.
   caddy:
     image: caddy:2-alpine
+    profiles: ["proxy"]
     restart: unless-stopped
     environment:
-      STORE_DOMAIN: ${STORE_DOMAIN}
-      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+      STORE_DOMAIN: ${STORE_DOMAIN:-}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:-}
     ports:
       - "80:80"
       - "443:443"
