@@ -32,10 +32,10 @@ export function Logo({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <LogoMark className="size-7 shrink-0 text-gold-500" />
-      {/* "GRC" is Latin in both locales, so the wordmark is pinned to the
-          Latin display face rather than following `--font-display`, which
-          swaps to Reem Kufi under Arabic and would render the acronym in a
-          face never drawn for it. */}
+      {/* "GR8" has no Arabic form, so the wordmark is pinned to the Latin
+          display face rather than following `--font-display`, which swaps to
+          Reem Kufi under Arabic and would render the wordmark in a face never
+          drawn for it. */}
       <span className="font-[family-name:var(--font-cormorant)] text-[1.5rem] leading-none tracking-[0.08em] text-ink-900">
         {t("name")}
       </span>

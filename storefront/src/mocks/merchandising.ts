@@ -190,8 +190,8 @@ const PAGE_BODIES: Record<string, { title: Bilingual; body: Bilingual }> = {
   about: {
     title: t("من نحن", "About us"),
     body: t(
-      "<p>بدأت GRC من فكرة بسيطة: أن الثوب السعودي يستحق خامة أفضل وقصّة أدق. نعمل مع مصانع مختارة داخل المملكة وخارجها، ونراجع كل دفعة قبل وصولها إلى المتجر.</p><h2>حرفية</h2><p>تُنفّذ تفاصيل الياقة والأكمام يدويًا، وهي التفاصيل التي تُظهر الفرق بعد عشرات الغسلات.</p><h2>فروعنا</h2><p>لدينا فروع في الرياض وجدة والدمام، ويمكن استلام الطلبات أو إرجاعها من أي فرع.</p>",
-      "<p>GRC started from a simple idea: that the Saudi thobe deserves better cloth and a more careful line. We work with selected makers inside and outside the Kingdom, and review every batch before it reaches the shop floor.</p><h2>Craft</h2><p>Collar and cuff detailing is finished by hand — the details that still show after fifty washes.</p><h2>Our stores</h2><p>We have branches in Riyadh, Jeddah and Dammam. Orders can be collected or returned at any of them.</p>",
+      "<p>بدأت GR8 من فكرة بسيطة: أن الثوب السعودي يستحق خامة أفضل وقصّة أدق. نعمل مع مصانع مختارة داخل المملكة وخارجها، ونراجع كل دفعة قبل وصولها إلى المتجر.</p><h2>حرفية</h2><p>تُنفّذ تفاصيل الياقة والأكمام يدويًا، وهي التفاصيل التي تُظهر الفرق بعد عشرات الغسلات.</p><h2>فروعنا</h2><p>لدينا فروع في الرياض وجدة والدمام، ويمكن استلام الطلبات أو إرجاعها من أي فرع.</p>",
+      "<p>GR8 started from a simple idea: that the Saudi thobe deserves better cloth and a more careful line. We work with selected makers inside and outside the Kingdom, and review every batch before it reaches the shop floor.</p><h2>Craft</h2><p>Collar and cuff detailing is finished by hand — the details that still show after fifty washes.</p><h2>Our stores</h2><p>We have branches in Riyadh, Jeddah and Dammam. Orders can be collected or returned at any of them.</p>",
     ),
   },
   shipping: {
@@ -239,15 +239,15 @@ const PAGE_BODIES: Record<string, { title: Bilingual; body: Bilingual }> = {
   careers: {
     title: t("الوظائف", "Careers"),
     body: t(
-      "<p>نبحث دائمًا عن زملاء يهتمون بالتفاصيل.</p><h2>الفروع</h2><p>وظائف البيع متاحة في الرياض وجدة والدمام.</p><h2>التقديم</h2><p>أرسل سيرتك الذاتية إلى careers@grc.example.</p>",
-      "<p>We are always looking for colleagues who care about detail.</p><h2>Stores</h2><p>Sales roles are open in Riyadh, Jeddah and Dammam.</p><h2>Applying</h2><p>Send your CV to careers@grc.example.</p>",
+      "<p>نبحث دائمًا عن زملاء يهتمون بالتفاصيل.</p><h2>الفروع</h2><p>وظائف البيع متاحة في الرياض وجدة والدمام.</p><h2>التقديم</h2><p>أرسل سيرتك الذاتية إلى careers@gr8.example.</p>",
+      "<p>We are always looking for colleagues who care about detail.</p><h2>Stores</h2><p>Sales roles are open in Riyadh, Jeddah and Dammam.</p><h2>Applying</h2><p>Send your CV to careers@gr8.example.</p>",
     ),
   },
   contact: {
     title: t("تواصل معنا", "Contact us"),
     body: t(
-      "<p>خدمة العملاء متاحة من الأحد إلى الخميس، 9 صباحًا حتى 6 مساءً.</p><h2>الهاتف</h2><p>920000000</p><h2>البريد الإلكتروني</h2><p>support@grc.example</p>",
-      "<p>Customer service is available Sunday to Thursday, 9am to 6pm.</p><h2>Phone</h2><p>920000000</p><h2>Email</h2><p>support@grc.example</p>",
+      "<p>خدمة العملاء متاحة من الأحد إلى الخميس، 9 صباحًا حتى 6 مساءً.</p><h2>الهاتف</h2><p>920000000</p><h2>البريد الإلكتروني</h2><p>support@gr8.example</p>",
+      "<p>Customer service is available Sunday to Thursday, 9am to 6pm.</p><h2>Phone</h2><p>920000000</p><h2>Email</h2><p>support@gr8.example</p>",
     ),
   },
   "size-guide": {

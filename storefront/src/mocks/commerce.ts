@@ -375,7 +375,7 @@ const RAW_ORDERS: {
   items: { name: Bilingual; sku: string; options: Bilingual; price: string; qty: number; image: number }[];
 }[] = [
   {
-    number: "GRC-10482",
+    number: "GR8-10482",
     status: "delivered",
     daysAgo: 22,
     total: "738.00",
@@ -391,7 +391,7 @@ const RAW_ORDERS: {
     ],
   },
   {
-    number: "GRC-10517",
+    number: "GR8-10517",
     status: "shipped",
     daysAgo: 5,
     total: "434.00",
@@ -415,7 +415,7 @@ const RAW_ORDERS: {
     ],
   },
   {
-    number: "GRC-10530",
+    number: "GR8-10530",
     status: "processing",
     daysAgo: 1,
     total: "425.00",

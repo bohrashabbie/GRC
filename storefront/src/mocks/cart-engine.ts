@@ -33,7 +33,7 @@ export interface StoredLine {
 }
 
 const COUPONS: Record<string, { type: "percent" | "fixed"; value: number; label: string }> = {
-  GRC10: { type: "percent", value: 10, label: "GRC10 — 10%" },
+  GR810: { type: "percent", value: 10, label: "GR810 — 10%" },
   WELCOME50: { type: "fixed", value: 5_000, label: "WELCOME50 — 50 SAR" },
 };
 

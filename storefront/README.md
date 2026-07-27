@@ -1,4 +1,4 @@
-# GRC storefront
+# GR8 storefront
 
 Public customer-facing site. Separate app from `admin/` — different audience,
 different auth, different design goals.

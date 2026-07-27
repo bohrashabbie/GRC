@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "GRC Admin",
-    "shortName": "GRC"
+    "name": "GR8 Admin",
+    "shortName": "GR8"
   },
   "common": {
     "save": "Save",
@@ -82,9 +82,9 @@
   },
   "auth": {
     "loginTitle": "Sign in",
-    "loginSubtitle": "Admin panel access for GRC staff.",
+    "loginSubtitle": "Admin panel access for GR8 staff.",
     "email": "Email",
-    "emailPlaceholder": "you@grc.sa",
+    "emailPlaceholder": "you@gr8.sa",
     "password": "Password",
     "signIn": "Sign in",
     "signingIn": "Signing in…",

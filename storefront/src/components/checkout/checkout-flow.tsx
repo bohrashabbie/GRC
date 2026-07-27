@@ -121,7 +121,7 @@ export function CheckoutFlow({
       return;
     }
 
-    const orderNumber = `GRC-${Math.floor(10_600 + Math.random() * 400)}`;
+    const orderNumber = `GR8-${Math.floor(10_600 + Math.random() * 400)}`;
     await clear();
     router.push(
       `/checkout/confirmation?order=${orderNumber}&email=${encodeURIComponent(email)}`,

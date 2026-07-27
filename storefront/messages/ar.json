@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "GRC",
+    "name": "GR8",
     "tagline": "الزي السعودي التقليدي، بحرفية تليق بك"
   },
   "topbar": {
@@ -51,7 +51,7 @@
     "followUs": "تابعنا",
     "crNumber": "س.ت 1010XXXXXX",
     "vatNumber": "الرقم الضريبي 3000XXXXXXXXXX",
-    "rights": "© {year} GRC. جميع الحقوق محفوظة.",
+    "rights": "© {year} GR8. جميع الحقوق محفوظة.",
     "paymentMethods": "وسائل الدفع المقبولة"
   },
   "product": {

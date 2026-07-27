@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "GRC",
+    "name": "GR8",
     "tagline": "Saudi traditional wear, made to be worn well"
   },
   "topbar": {
@@ -51,7 +51,7 @@
     "followUs": "Follow us",
     "crNumber": "CR 1010XXXXXX",
     "vatNumber": "VAT 3000XXXXXXXXXX",
-    "rights": "© {year} GRC. All rights reserved.",
+    "rights": "© {year} GR8. All rights reserved.",
     "paymentMethods": "Accepted payment methods"
   },
   "product": {

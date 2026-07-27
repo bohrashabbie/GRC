@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "لوحة تحكم GRC",
-    "shortName": "GRC"
+    "name": "لوحة تحكم GR8",
+    "shortName": "GR8"
   },
   "common": {
     "save": "حفظ",
@@ -82,9 +82,9 @@
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
-    "loginSubtitle": "الدخول إلى لوحة التحكم لموظفي GRC.",
+    "loginSubtitle": "الدخول إلى لوحة التحكم لموظفي GR8.",
     "email": "البريد الإلكتروني",
-    "emailPlaceholder": "you@grc.sa",
+    "emailPlaceholder": "you@gr8.sa",
     "password": "كلمة المرور",
     "signIn": "تسجيل الدخول",
     "signingIn": "جارٍ تسجيل الدخول…",

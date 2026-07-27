@@ -4,10 +4,10 @@ This file is context for Claude Code across sessions. Read it before making any 
 
 ## What this project is
 
-**GRC** — Saudi men's traditional-wear ecommerce, thobes-focused. Bilingual
+**GR8** — Saudi men's traditional-wear ecommerce, thobes-focused. Bilingual
 Arabic/English, Arabic default, RTL primary layout. Originally scaffolded as an
-"AlShiaka clone"; the product was renamed to GRC and the catalog is thobes only.
-Two repos, siblings, not nested:
+"AlShiaka clone", then renamed to GRC, and renamed again to GR8 on 2026-07-27.
+The catalog is thobes only. Two repos, siblings, not nested:
 
 ```
 dumbstack/GRC/
@@ -19,6 +19,14 @@ dumbstack/GRC/
 Note the frontend folder is lowercase `admin/` — npm rejects capitals in
 package names and Windows would not release the handle to rename it. Windows
 paths are case-insensitive, so `Admin/` resolves to the same directory.
+
+The repo folder is still `dumbstack/GRC/`, and infrastructure identifiers still
+say `grc` on purpose: the Postgres db/user, the Compose project name
+`grc-commerce`, the `grc` system user in `Api/Dockerfile`, the `grc_refresh`
+cookie and the `grc.*` localStorage keys. Only the visible branding was renamed
+to GR8. Renaming `POSTGRES_DB`/`POSTGRES_USER` would break an existing
+deployment — those apply only when the `postgres_data` volume is first
+initialised — so leave them unless you are also wiping the volume.
 
 Branding lives in `admin/messages/{ar,en}.json` under `app.name` / `app.shortName`,
 and the logo is `admin/public/logo-mark.svg` (+ `favicon.svg`). Replacing that one

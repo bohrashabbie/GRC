@@ -50,7 +50,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(
-    title="GRC Commerce API",
+    title="GR8 Commerce API",
     version="0.2.0",
     docs_url="/docs",
     lifespan=lifespan,

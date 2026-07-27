@@ -365,7 +365,7 @@ function toProductCard(raw: RawProduct, locale: LocaleCode): ProductCard {
     id: raw.slug,
     slug: raw.slug,
     name: raw.name[locale],
-    brand: { id: "grc", slug: "grc", name: "GRC" },
+    brand: { id: "gr8", slug: "gr8", name: "GR8" },
     primary_image: img(raw.image, raw.name[locale]),
     hover_image: img(raw.image + 1, raw.name[locale]),
     price: raw.price,
@@ -646,7 +646,7 @@ export function fixtureProductDetail(slug: string, locale: LocaleCode): ProductD
     slug: raw.slug,
     name: raw.name[locale],
     description_html: description,
-    brand: { id: "grc", slug: "grc", name: "GRC" },
+    brand: { id: "gr8", slug: "gr8", name: "GR8" },
     breadcrumbs: [
       ...path.map((node) => ({ slug: node.slug, name: node.name })),
       ...(leaf ? [{ slug: leaf.slug, name: leaf.name }] : []),
