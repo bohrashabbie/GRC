@@ -123,13 +123,18 @@ export function PoCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      {/* The line-item list grows without bound, so the dialog is capped to the
+          viewport and the body scrolls. Header and footer stay pinned, keeping
+          Create reachable however many lines have been added. `sm:` prefix on
+          the width because the base DialogContent sets `sm:max-w-sm`, which
+          otherwise wins at every breakpoint that matters. */}
+      <DialogContent className="flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t("createTitle")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label>{t("fields.supplier")}</Label>
@@ -215,7 +220,7 @@ export function PoCreateDialog({
             {lines.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("items.empty")}</p>
             ) : (
-              <ul className="flex flex-col gap-2">
+              <ul className="flex max-h-64 flex-col gap-2 overflow-y-auto">
                 {lines.map((line, index) => (
                   <li
                     key={`${line.variant.id}-${index}`}
