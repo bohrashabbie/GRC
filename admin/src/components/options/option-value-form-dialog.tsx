@@ -39,6 +39,14 @@ import type { OptionValueOut } from "@/lib/api/types"
 
 const HEX_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 
+function normalizeHex(hex?: string): string {
+  if (!hex || !HEX_PATTERN.test(hex)) return "#000000"
+  if (hex.length === 4) {
+    return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`.toUpperCase()
+  }
+  return hex.toUpperCase()
+}
+
 function useValueSchema() {
   const c = useTranslations("catalog")
   const o = useTranslations("options")
@@ -185,13 +193,20 @@ export function OptionValueFormDialog({
                 <FormItem>
                   <FormLabel>{t("values.hexColor")}</FormLabel>
                   <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={normalizeHex(field.value)}
+                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      className="size-9 p-0.5 cursor-pointer rounded-md border border-input bg-background shrink-0 transition-colors hover:border-accent"
+                      title="Pick a color"
+                    />
                     <FormControl>
                       <Input dir="ltr" placeholder="#1B3A2F" {...field} />
                     </FormControl>
                     {HEX_PATTERN.test(hexPreview ?? "") && (
                       <span
                         aria-hidden
-                        className="size-8 shrink-0 rounded-md border border-border"
+                        className="size-9 shrink-0 rounded-md border border-border shadow-sm"
                         style={{ backgroundColor: hexPreview }}
                       />
                     )}
