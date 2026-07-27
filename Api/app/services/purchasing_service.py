@@ -108,11 +108,12 @@ def approve_purchase_order(db: Session, po_id: int, actor_user_id: int) -> Purch
     po = get_purchase_order(db, po_id)
     if po.status not in ("draft", "awaiting_approval"):
         raise BusinessRuleError(f"Cannot approve a purchase order in status '{po.status}'.")
-    if po.created_by_user_id == actor_user_id:
-        raise BusinessRuleError(
-            "Approving a purchase order requires a different person than the one who created it.",
-            code="second_approver_required",
-        )
+    # No second-approver requirement: this deployment runs with a single owner
+    # account, so segregation of duties would make every purchase order
+    # unapprovable. approved_by_user_id is still recorded, so reinstating the
+    # check is a matter of comparing it to created_by_user_id again once there
+    # is more than one member of staff. The equivalent rule on stock counts in
+    # inventory_service.approve_stock_count is deliberately still in place.
     po.status = "approved"
     po.approved_by_user_id = actor_user_id
     po.approved_at = datetime.now(timezone.utc)
