@@ -1,3 +1,10 @@
+# www resolves to the same host, so it needs a site block of its own or Caddy
+# answers 404 for it. Redirect rather than serve both: one canonical origin
+# keeps sessions, canonical URLs and the sitemap consistent.
+www.{$STORE_DOMAIN} {
+    redir https://{$STORE_DOMAIN}{uri} permanent
+}
+
 {$STORE_DOMAIN} {
     encode zstd gzip
 
