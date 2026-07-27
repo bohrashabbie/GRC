@@ -199,6 +199,7 @@ function OptionDetailContent() {
         <OptionValueFormDialog
           key={editingValue?.id ?? "new"}
           optionId={optionId}
+          inputType={optionQuery.data?.input_type}
           value={editingValue}
           open={valueOpen}
           onOpenChange={setValueOpen}

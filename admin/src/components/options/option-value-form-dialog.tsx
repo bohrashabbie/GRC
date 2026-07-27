@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { TranslationNameFields } from "@/components/translations-fields"
-import { optionValuesApi } from "@/lib/api/endpoints"
+import { optionsApi, optionValuesApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
 import {
@@ -74,11 +74,13 @@ const FIELD_NAMES = ["code", "hex_color", "sort_order"] as const
 
 export function OptionValueFormDialog({
   optionId,
+  inputType,
   value,
   open,
   onOpenChange,
 }: {
   optionId: number
+  inputType?: string
   value?: OptionValueOut
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -89,6 +91,15 @@ export function OptionValueFormDialog({
   const schema = useValueSchema()
   const queryClient = useQueryClient()
   const isEdit = !!value
+
+  const optionQuery = useQuery({
+    queryKey: queryKeys.options.detail(optionId),
+    queryFn: ({ signal }) => optionsApi.get(optionId, signal),
+    enabled: !inputType && Number.isFinite(optionId),
+  })
+
+  const effectiveInputType = inputType ?? optionQuery.data?.input_type
+  const showHexColor = effectiveInputType === "swatch"
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -102,7 +113,7 @@ export function OptionValueFormDialog({
 
   async function onSubmit(values: FormValues) {
     const translations = fromLabelTranslationForm(values.translations)
-    const hex = values.hex_color ? values.hex_color : null
+    const hex = showHexColor && values.hex_color ? values.hex_color : null
     try {
       if (isEdit) {
         // The API doesn't allow changing an option value's code after creation.
@@ -186,36 +197,38 @@ export function OptionValueFormDialog({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="hex_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("values.hexColor")}</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={normalizeHex(field.value)}
-                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                      className="size-9 p-0.5 cursor-pointer rounded-md border border-input bg-background shrink-0 transition-colors hover:border-accent"
-                      title="Pick a color"
-                    />
-                    <FormControl>
-                      <Input dir="ltr" placeholder="#1B3A2F" {...field} />
-                    </FormControl>
-                    {HEX_PATTERN.test(hexPreview ?? "") && (
-                      <span
-                        aria-hidden
-                        className="size-9 shrink-0 rounded-md border border-border shadow-sm"
-                        style={{ backgroundColor: hexPreview }}
+            {showHexColor && (
+              <FormField
+                control={form.control}
+                name="hex_color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("values.hexColor")}</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={normalizeHex(field.value)}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        className="size-9 p-0.5 cursor-pointer rounded-md border border-input bg-background shrink-0 transition-colors hover:border-accent"
+                        title="Pick a color"
                       />
-                    )}
-                  </div>
-                  <FormDescription>{t("values.hexHint")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormControl>
+                        <Input dir="ltr" placeholder="#1B3A2F" {...field} />
+                      </FormControl>
+                      {HEX_PATTERN.test(hexPreview ?? "") && (
+                        <span
+                          aria-hidden
+                          className="size-9 shrink-0 rounded-md border border-border shadow-sm"
+                          style={{ backgroundColor: hexPreview }}
+                        />
+                      )}
+                    </div>
+                    <FormDescription>{t("values.hexHint")}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <DialogFooter>
               <Button
