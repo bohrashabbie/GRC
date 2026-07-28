@@ -27,7 +27,7 @@ export function CartPageView() {
       <div className="py-24 text-center">
         <p className="font-display text-h2 text-ink-900">{t("empty")}</p>
         <Link
-          href="/c/thobes"
+          href="/c"
           className="mt-6 inline-flex h-12 items-center rounded-xs bg-palm-600 px-6 text-sm font-medium text-sand-50 transition-colors hover:bg-palm-700"
         >
           {t("emptyAction")}

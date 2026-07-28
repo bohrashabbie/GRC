@@ -59,7 +59,7 @@ export default async function WishlistPage({ params }: PageProps) {
       <div className="py-16 text-center">
         <p className="text-sm text-ink-500">{t("wishlistEmpty")}</p>
         <Link
-          href="/c/thobes"
+          href="/c"
           className="mt-5 inline-flex h-11 items-center rounded-xs bg-palm-600 px-6 text-sm font-medium text-sand-50"
         >
           {tCart("emptyAction")}

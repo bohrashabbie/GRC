@@ -82,7 +82,7 @@ export function CartDrawer() {
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
             <p className="text-sm text-ink-500">{t("empty")}</p>
             <Link
-              href="/c/thobes"
+              href="/c"
               onClick={close}
               className="inline-flex h-11 items-center rounded-xs bg-palm-600 px-6 text-sm font-medium text-sand-50"
             >
