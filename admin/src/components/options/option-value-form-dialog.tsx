@@ -38,6 +38,19 @@ import { queryKeys } from "@/lib/query/keys"
 import type { OptionValueOut } from "@/lib/api/types"
 
 const HEX_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
+const PICKER_FALLBACK = "#1B3A2F"
+
+/**
+ * `<input type="color">` accepts only full #rrggbb, so a stored shorthand like
+ * #ccc has to be expanded or the control silently falls back to black and the
+ * box stops matching the hex written beside it.
+ */
+function pickerValue(hex: string | undefined): string {
+  if (!hex || !HEX_PATTERN.test(hex)) return PICKER_FALLBACK
+  if (hex.length === 7) return hex
+  const [, r, g, b] = hex
+  return `#${r}${r}${g}${g}${b}${b}`
+}
 
 function useValueSchema() {
   const c = useTranslations("catalog")
@@ -67,11 +80,14 @@ const FIELD_NAMES = ["code", "hex_color", "sort_order"] as const
 export function OptionValueFormDialog({
   optionId,
   value,
+  withSwatch,
   open,
   onOpenChange,
 }: {
   optionId: number
   value?: OptionValueOut
+  /** Colour values carry a swatch; sizes are labels only. */
+  withSwatch: boolean
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -94,7 +110,7 @@ export function OptionValueFormDialog({
 
   async function onSubmit(values: FormValues) {
     const translations = fromLabelTranslationForm(values.translations)
-    const hex = values.hex_color ? values.hex_color : null
+    const hex = withSwatch && values.hex_color ? values.hex_color : null
     try {
       if (isEdit) {
         // The API doesn't allow changing an option value's code after creation.
@@ -128,8 +144,6 @@ export function OptionValueFormDialog({
       toast.error(getErrorMessage(error, c("unknownError")))
     }
   }
-
-  const hexPreview = form.watch("hex_color")
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -178,29 +192,35 @@ export function OptionValueFormDialog({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="hex_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("values.hexColor")}</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <FormControl>
-                      <Input dir="ltr" placeholder="#1B3A2F" {...field} />
-                    </FormControl>
-                    {HEX_PATTERN.test(hexPreview ?? "") && (
-                      <span
-                        aria-hidden
-                        className="size-8 shrink-0 rounded-md border border-border"
-                        style={{ backgroundColor: hexPreview }}
+            {withSwatch && (
+              <FormField
+                control={form.control}
+                name="hex_color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("values.hexColor")}</FormLabel>
+                    <div className="flex items-center gap-2">
+                      {/* The box is the control staff actually use — click it
+                          and pick. The text field stays alongside it because a
+                          brand colour arrives as a hex to paste, not a colour
+                          to hunt for by eye. Both write the same field. */}
+                      <input
+                        type="color"
+                        aria-label={t("values.picker")}
+                        value={pickerValue(field.value)}
+                        onChange={(event) => field.onChange(event.target.value)}
+                        className="size-9 shrink-0 cursor-pointer rounded-md border border-border bg-transparent p-1"
                       />
-                    )}
-                  </div>
-                  <FormDescription>{t("values.hexHint")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      <FormControl>
+                        <Input dir="ltr" placeholder="#1B3A2F" {...field} />
+                      </FormControl>
+                    </div>
+                    <FormDescription>{t("values.hexHint")}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <DialogFooter>
               <Button

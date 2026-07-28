@@ -257,21 +257,28 @@ def get_category_tree(db: Session, dimension: str) -> list[Category]:
 # --------------------------------------------------------------------------
 
 SYSTEM_OPTION_CODES = ("colour", "size")
-EDITABLE_OPTION_CODE = "colour"
-SYSTEM_SIZE_VALUE_CODES = ("140", "150", "s", "m", "l")
+# Colour values carry a swatch; size values are labels only. Nothing else about
+# the two differs, and both are staff-editable.
+SWATCH_OPTION_CODE = "colour"
 
 
 def _system_options_only() -> BusinessRuleError:
     return BusinessRuleError(
-        "Color and Size are fixed system options and cannot be created or edited.",
+        "Color and Size are the store's two options; no others can be created.",
         code="system_options_only",
     )
 
 
-def _require_editable_colour(option: Option) -> None:
-    if option.code != EDITABLE_OPTION_CODE:
+def _require_system_option(option: Option) -> None:
+    """Values may only be added to the two options the storefront can render.
+
+    The options themselves are fixed, so this only ever rejects a value aimed
+    at a leftover pre-GR8 option row (`length`, or a duplicate `color`), which
+    is still in the table because variants reference it.
+    """
+    if option.code not in SYSTEM_OPTION_CODES:
         raise BusinessRuleError(
-            "Size values are fixed. Only Color values can be added or edited.",
+            f"'{option.code}' is a retired option and no longer accepts new values.",
             code="system_option_locked",
         )
 
@@ -296,12 +303,15 @@ def create_option_value(db: Session, data) -> OptionValue:
     option = db.get(Option, data.option_id)
     if option is None:
         raise NotFoundError("Option not found")
-    _require_editable_colour(option)
+    _require_system_option(option)
     value = OptionValue(
         option_id=data.option_id,
         code=data.code,
-        hex_color=data.hex_color,
-        swatch_media_id=data.swatch_media_id,
+        # A size has no colour. Dropping the swatch here rather than trusting
+        # the caller keeps a stray hex out of the storefront's colour filter,
+        # which groups by hex and would otherwise show a size as a swatch.
+        hex_color=data.hex_color if option.code == SWATCH_OPTION_CODE else None,
+        swatch_media_id=data.swatch_media_id if option.code == SWATCH_OPTION_CODE else None,
         sort_order=data.sort_order,
     )
     db.add(value)
@@ -324,10 +334,13 @@ def update_option_value(db: Session, option_value_id: int, data) -> OptionValue:
     option = db.get(Option, value.option_id)
     if option is None:
         raise NotFoundError("Option not found")
-    _require_editable_colour(option)
-    for field in ("hex_color", "swatch_media_id"):
-        if field in data.model_fields_set:
-            setattr(value, field, getattr(data, field))
+    _require_system_option(option)
+    if option.code == SWATCH_OPTION_CODE:
+        for field in ("hex_color", "swatch_media_id"):
+            if field in data.model_fields_set:
+                setattr(value, field, getattr(data, field))
+    if "is_active" in data.model_fields_set and data.is_active is not None:
+        value.is_active = data.is_active
     if "sort_order" in data.model_fields_set and data.sort_order is not None:
         value.sort_order = data.sort_order
     if data.translations is not None:

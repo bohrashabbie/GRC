@@ -270,6 +270,11 @@ class OptionValue(Base, TimestampMixin):
     hex_color: Mapped[str | None] = mapped_column(CHAR(7), nullable=True)
     swatch_media_id: Mapped[int | None] = mapped_column(ForeignKey("media.id"), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Values a variant already uses can never be removed (Hard Rule 4), so
+    # retiring one is a flag rather than a delete. This is also what keeps
+    # pre-GR8 demo values out of the admin without dropping the rows the old
+    # variants still point at.
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     option: Mapped["Option"] = relationship(back_populates="values")
     translations: Mapped[list["OptionValueTranslation"]] = relationship(

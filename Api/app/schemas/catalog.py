@@ -183,6 +183,9 @@ class OptionValueUpdate(BaseModel):
     hex_color: str | None = None
     swatch_media_id: int | None = None
     sort_order: int | None = None
+    #  Retiring a value stops it being offered on new products; it is never
+    #  deleted, because variants and order lines reference it (Hard Rule 4).
+    is_active: bool | None = None
     translations: list[LabelTranslationIn] | None = None
 
 
@@ -193,6 +196,7 @@ class OptionValueOut(BaseModel):
     hex_color: str | None
     swatch_media_id: int | None
     sort_order: int
+    is_active: bool
     created_at: datetime
     translations: list[LabelTranslationOut]
 

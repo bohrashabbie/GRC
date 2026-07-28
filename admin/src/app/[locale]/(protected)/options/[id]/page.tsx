@@ -65,7 +65,12 @@ function OptionDetailContent() {
   const optionLabel = optionQuery.data
     ? translatedLabel(optionQuery.data.translations, locale)
     : t("detailTitle")
-  const canManageValues = optionQuery.data?.code === "colour"
+  // Both live options take staff-added values. Anything else is a retired
+  // pre-GR8 option row kept only because variants still point at it, and the
+  // API rejects writes to it, so the buttons stay hidden there.
+  const optionCode = optionQuery.data?.code
+  const isSwatchOption = optionCode === "colour"
+  const canManageValues = optionCode === "colour" || optionCode === "size"
 
   const values = [...(valuesQuery.data?.items ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order
@@ -124,7 +129,7 @@ function OptionDetailContent() {
               {canManageValues && (
                 <RequirePermission permission={PERMISSIONS.catalogManage}>
                   <Button size="sm" onClick={openCreateValue}>
-                    {t("newColor")}
+                    {isSwatchOption ? t("newColor") : t("newSize")}
                   </Button>
                 </RequirePermission>
               )}
@@ -188,6 +193,7 @@ function OptionDetailContent() {
           key={editingValue?.id ?? "new"}
           optionId={optionId}
           value={editingValue}
+          withSwatch={isSwatchOption}
           open={valueOpen}
           onOpenChange={setValueOpen}
         />

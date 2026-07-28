@@ -297,8 +297,9 @@
     "listTitle": "All categories"
   },
   "options": {
-    "systemDescription": "Color and Size are fixed store options. Add or edit colors here; sizes are predefined.",
+    "systemDescription": "Color and Size are the store's two options. Add and edit their values here.",
     "newColor": "Add color",
+    "newSize": "Add size",
     "title": "Options",
     "description": "Variant-defining options such as size, colour, sleeve, and collar.",
     "newOption": "New option",
@@ -328,13 +329,14 @@
       "updated": "Value updated.",
       "empty": "No values yet for this option.",
       "hexColor": "Colour (hex)",
-      "hexHint": "Used for colour swatches, e.g. #1B3A2F.",
+      "hexHint": "Pick a colour with the box, or paste a hex such as #1B3A2F.",
       "columns": {
         "label": "Value",
         "code": "Code",
         "color": "Colour",
         "sortOrder": "Order"
-      }
+      },
+      "picker": "Pick a colour"
     }
   },
   "products": {

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import and_, or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
@@ -29,17 +29,15 @@ def list_option_values(
     db: Session = Depends(get_db),
     _user=Depends(require("catalog.view")),
 ) -> dict:
+    # Scoped to the two live options and to values that have not been retired,
+    # so a value added here shows up here — which a hardcoded code list could
+    # never do.
     stmt = (
         select(OptionValue)
         .join(Option, Option.id == OptionValue.option_id)
         .where(
-            or_(
-                Option.code == catalog_service.EDITABLE_OPTION_CODE,
-                and_(
-                    Option.code == "size",
-                    OptionValue.code.in_(catalog_service.SYSTEM_SIZE_VALUE_CODES),
-                ),
-            )
+            Option.code.in_(catalog_service.SYSTEM_OPTION_CODES),
+            OptionValue.is_active.is_(True),
         )
         .options(selectinload(OptionValue.translations))
     )
