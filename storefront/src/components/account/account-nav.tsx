@@ -1,8 +1,10 @@
 "use client";
 
+import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 
-import { Link, usePathname } from "@/i18n/navigation";
+import { signOut } from "@/app/actions";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
@@ -15,6 +17,8 @@ const ITEMS = [
 export function AccountNav() {
   const t = useTranslations("account");
   const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   return (
     <nav aria-label={t("title")}>
@@ -42,12 +46,22 @@ export function AccountNav() {
         })}
 
         <li className="lg:mt-6 lg:border-t lg:border-hairline lg:pt-4">
-          <Link
-            href="/account/login"
-            className="block whitespace-nowrap px-4 py-3 text-sm text-ink-400 transition-colors hover:text-brick-600"
+          {/* A link to the login page is not a sign-out — the cookie has to be
+              cleared, and the layout re-read, or the shopper stays signed in. */}
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() =>
+              startTransition(async () => {
+                await signOut();
+                router.push("/");
+                router.refresh();
+              })
+            }
+            className="block w-full whitespace-nowrap px-4 py-3 text-start text-sm text-ink-400 transition-colors hover:text-brick-600 disabled:opacity-60"
           >
             {t("signOut")}
-          </Link>
+          </button>
         </li>
       </ul>
     </nav>

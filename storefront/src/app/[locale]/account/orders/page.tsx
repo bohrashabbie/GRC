@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { OrderStatusBadge } from "@/components/account/order-status";
 import { ChevronForwardIcon } from "@/components/ui/icons";
-import { getOrders } from "@/lib/shop-api";
+import { accountOrders } from "@/app/actions";
 import { formatDate, formatPrice } from "@/lib/format";
 import type { Locale } from "@/i18n/routing";
 
@@ -24,7 +24,7 @@ export default async function OrdersPage({ params }: PageProps) {
   const [t, tOrders, orders] = await Promise.all([
     getTranslations("account"),
     getTranslations("orders"),
-    getOrders(typedLocale),
+    accountOrders(typedLocale),
   ]);
 
   if (orders.length === 0) {

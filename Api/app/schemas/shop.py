@@ -4,6 +4,7 @@ need validating."""
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
@@ -117,3 +118,33 @@ class SessionOut(BaseModel):
 
 class WishlistOut(BaseModel):
     product_ids: list[int]
+
+
+class ProfileUpdateIn(BaseModel):
+    first_name: str | None = Field(default=None, min_length=1, max_length=80)
+    last_name: str | None = Field(default=None, min_length=1, max_length=80)
+    email: EmailStr | None = None
+    phone: str | None = Field(default=None, max_length=20)
+
+
+class PasswordChangeIn(BaseModel):
+    current_password: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=1, max_length=200)
+
+
+class AccountOrderOut(BaseModel):
+    id: str
+    order_number: str
+    status: str
+    placed_at: datetime
+    item_count: int
+    grand_total: Decimal
+
+
+class AccountSummaryOut(BaseModel):
+    """Counts for the account landing page, so each card says how much is
+    behind it rather than repeating a static description."""
+
+    order_count: int
+    wishlist_count: int
+    address_count: int

@@ -2,8 +2,9 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { Logo } from "@/components/ui/logo";
+import { AccountMenu } from "@/components/account/account-menu";
 import { CartButton } from "@/components/cart/cart-button";
-import { HeartIcon, UserIcon } from "@/components/ui/icons";
+import { HeartIcon } from "@/components/ui/icons";
 import { getCategoryTree } from "@/lib/shop-api";
 import type { Locale } from "@/i18n/routing";
 import { TopBar } from "./top-bar";
@@ -35,13 +36,7 @@ export async function Header({ locale }: { locale: Locale }) {
           <div className="ms-auto flex items-center gap-0.5 md:ms-0">
             <SearchDrawer />
 
-            <Link
-              href="/account"
-              aria-label={t("account")}
-              className="hidden size-10 items-center justify-center text-ink-800 transition-colors hover:text-palm-600 sm:inline-flex"
-            >
-              <UserIcon className="size-5" />
-            </Link>
+            <AccountMenu />
 
             <Link
               href="/account/wishlist"

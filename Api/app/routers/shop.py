@@ -12,10 +12,14 @@ from app.middleware.error import AuthenticationError
 from app.middleware.security import decode_customer_access_token
 from app.models.customers import Customer
 from app.schemas.shop import (
+    AccountOrderOut,
+    AccountSummaryOut,
     CheckoutIn,
     CheckoutOut,
     CustomerOut,
     LoginIn,
+    PasswordChangeIn,
+    ProfileUpdateIn,
     RegisterIn,
     SessionOut,
     StockCheckIn,
@@ -150,6 +154,7 @@ def check_stock(payload: StockCheckIn, db: Session = Depends(get_db)) -> list[di
 def checkout(
     payload: CheckoutIn,
     accept_language: str | None = Header(None),
+    customer: Customer = Depends(get_current_customer),
     db: Session = Depends(get_db),
 ):
     """Create the order and take its stock in one transaction.
@@ -159,7 +164,11 @@ def checkout(
     rather than failing blankly. No order is created in that case.
     """
     order = checkout_service.create_order(
-        db, payload, locale=shop_service.locale_from_header(accept_language)
+        db,
+        payload,
+        locale=shop_service.locale_from_header(accept_language),
+        customer_id=customer.id,
+        customer_email=customer.email,
     )
     return {
         "order_number": order.order_number,
@@ -285,3 +294,85 @@ def _customer_payload(customer: Customer) -> dict:
         "last_name": customer.last_name,
         "phone": customer.phone_e164,
     }
+
+
+@router.patch("/account/profile", response_model=CustomerOut)
+def update_profile(
+    payload: ProfileUpdateIn,
+    customer: Customer = Depends(get_current_customer),
+    db: Session = Depends(get_db),
+):
+    updated = account_service.update_profile(db, customer.id, payload)
+    return _customer_payload(updated)
+
+
+@router.post("/account/password", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+def change_password(
+    payload: PasswordChangeIn,
+    customer: Customer = Depends(get_current_customer),
+    db: Session = Depends(get_db),
+) -> None:
+    account_service.change_password(
+        db, customer.id, payload.current_password, payload.new_password
+    )
+
+
+@router.get("/account/orders", response_model=list[AccountOrderOut])
+def account_orders(
+    customer: Customer = Depends(get_current_customer), db: Session = Depends(get_db)
+):
+    return [
+        {
+            "id": str(order.id),
+            "order_number": order.order_number,
+            "status": order.status,
+            "placed_at": order.placed_at,
+            "item_count": order.item_count,
+            "grand_total": order.grand_total,
+        }
+        for order in account_service.list_orders(db, customer.id)
+    ]
+
+
+@router.get("/account/summary", response_model=AccountSummaryOut)
+def account_summary(
+    customer: Customer = Depends(get_current_customer), db: Session = Depends(get_db)
+):
+    """Counts behind each card on the account landing page."""
+    from app.models.customers import CustomerAddress
+    from sqlalchemy import func, select as sa_select
+
+    address_count = db.execute(
+        sa_select(func.count())
+        .select_from(CustomerAddress)
+        .where(CustomerAddress.customer_id == customer.id)
+    ).scalar_one()
+
+    return {
+        "order_count": len(account_service.list_orders(db, customer.id)),
+        "wishlist_count": len(account_service.wishlist_product_ids(db, customer.id)),
+        "address_count": address_count,
+    }
+
+
+@router.get("/account/orders/{order_number}")
+def account_order_detail(
+    order_number: str,
+    request: Request,
+    accept_language: str | None = Header(None),
+    customer: Customer = Depends(get_current_customer),
+    db: Session = Depends(get_db),
+):
+    """One of the caller's own orders. Scoped by customer_id in the query, so
+    guessing another shopper's order number returns 404, not their receipt."""
+    locale, base_url = _context(request, accept_language)
+    return account_service.get_order_detail(
+        db, customer.id, order_number, base_url, locale=locale
+    )
+
+
+@router.get("/account/addresses")
+def account_addresses(
+    customer: Customer = Depends(get_current_customer), db: Session = Depends(get_db)
+):
+    return account_service.list_addresses(db, customer.id)

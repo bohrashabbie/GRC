@@ -483,6 +483,13 @@ export interface Customer {
   phone: string | null;
 }
 
+/** Counts behind each card on the account landing page. */
+export interface AccountSummary {
+  order_count: number;
+  wishlist_count: number;
+  address_count: number;
+}
+
 export interface RegisterInput {
   first_name: string;
   last_name: string;

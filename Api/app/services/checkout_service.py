@@ -115,7 +115,14 @@ def _shipping_total(method_id: str, subtotal: Decimal) -> Decimal:
     return price
 
 
-def create_order(db: Session, data, *, locale: str = "ar") -> Order:
+def create_order(
+    db: Session,
+    data,
+    *,
+    locale: str = "ar",
+    customer_id: int | None = None,
+    customer_email: str | None = None,
+) -> Order:
     """Create an order and take its stock, atomically.
 
     Stock is re-checked here and nowhere else that matters: the quantity the
@@ -173,14 +180,20 @@ def create_order(db: Session, data, *, locale: str = "ar") -> Order:
     order = Order(
         id=order_id,
         order_number=f"GRC-{order_id + 10_000}",
-        customer_id=None,
-        email=data.email,
+        # Attached to the shopper when they are signed in, which they always
+        # are now that the cart requires an account. Without this the order
+        # exists but belongs to nobody, and never appears under My Orders.
+        customer_id=customer_id,
+        # The authenticated account is authoritative. The request still
+        # carries email for backwards compatibility with the checkout shape.
+        email=customer_email or data.email,
         phone_e164=data.shipping_address.phone,
         status="pending",
         payment_status="unpaid",
         fulfilment_status="unfulfilled",
         currency="SAR",
         locale=locale,
+        shipping_method_code=data.shipping_method_id,
         placed_at=now,
     )
     db.add(order)
@@ -257,6 +270,11 @@ def create_order(db: Session, data, *, locale: str = "ar") -> Order:
             national_short_address=None,
         )
     )
+    # Keep the shopper's address book in step with what they actually ordered
+    # to, so /account/addresses fills itself instead of staying empty forever.
+    if customer_id is not None:
+        _remember_address(db, customer_id, address, governorate_name, area_name)
+
     db.add(
         OrderStatusHistory(
             order_id=order_id,
@@ -294,3 +312,66 @@ def create_order(db: Session, data, *, locale: str = "ar") -> Order:
     db.commit()
     db.refresh(order)
     return order
+
+
+def _remember_address(db: Session, customer_id: int, address, governorate_name: str, area_name: str) -> None:
+    """Upsert this delivery address into the customer's saved addresses.
+
+    Matched on the parts that identify a building — governorate, area, block,
+    street, building — so ordering twice to the same place does not fill the
+    address book with duplicates, while a genuinely different address is added.
+    """
+    from app.models.customers import CustomerAddress
+    from app.models.catalog import Region
+
+    region_id = db.execute(
+        select(Region.id).where(Region.code == address.governorate_id)
+    ).scalar_one_or_none()
+    if region_id is None:
+        # No row to point the FK at. Skipping is right: an order that succeeded
+        # must not fail because a convenience feature could not run.
+        return
+
+    line1 = f"Street {address.street}, Building {address.building}"
+    district = f"Block {address.block}"
+
+    existing = db.execute(
+        select(CustomerAddress).where(
+            CustomerAddress.customer_id == customer_id,
+            CustomerAddress.region_id == region_id,
+            CustomerAddress.city == area_name,
+            CustomerAddress.district == district,
+            CustomerAddress.line1 == line1,
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
+        existing.recipient_name = address.full_name
+        existing.phone_e164 = address.phone
+        existing.line2 = address.extra_directions
+        return
+
+    is_first = (
+        db.execute(
+            select(func.count())
+            .select_from(CustomerAddress)
+            .where(CustomerAddress.customer_id == customer_id)
+        ).scalar_one()
+        == 0
+    )
+    db.add(
+        CustomerAddress(
+            customer_id=customer_id,
+            recipient_name=address.full_name,
+            phone_e164=address.phone,
+            line1=line1,
+            line2=address.extra_directions,
+            district=district,
+            city=area_name,
+            region_id=region_id,
+            postal_code=None,
+            country_code="KW",
+            national_short_address=None,
+            is_default_shipping=is_first,
+            is_default_billing=is_first,
+        )
+    )

@@ -1,10 +1,17 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import type { Customer } from "@/types/shop";
 
 /**
@@ -46,6 +53,16 @@ export function SessionProvider({
 }) {
   const [reason, setReason] = useState<LoginReason | null>(null);
   const isAuthenticated = customer !== null;
+  const pathname = usePathname();
+
+  // This provider lives in the root layout, which survives client-side
+  // navigation — so without this the prompt stayed open on top of the very
+  // sign-in page it had just sent the shopper to. Keyed on the path rather
+  // than the link's onClick so the back button and any programmatic
+  // navigation close it too.
+  useEffect(() => {
+    setReason(null);
+  }, [pathname]);
 
   const requireLogin = useCallback(
     (next: LoginReason) => {
@@ -77,6 +94,15 @@ function LoginPrompt({
   onClose: () => void;
 }) {
   const t = useTranslations("account");
+
+  // Escape closes it, as any modal should.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
 
   const body =
     reason === "wishlist"

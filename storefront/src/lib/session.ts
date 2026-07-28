@@ -35,5 +35,16 @@ export async function setSessionToken(token: string): Promise<void> {
 
 export async function clearSession(): Promise<void> {
   const store = await cookies();
-  store.delete(COOKIE_NAME);
+  // Deleted by name *and* path. A bare delete() only matches the default path,
+  // so a cookie written at "/" can survive it and leave the shopper signed in
+  // after pressing sign out. Overwriting with maxAge 0 as well covers browsers
+  // that ignore a delete for a cookie they consider httpOnly-protected.
+  store.set(COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+  store.delete({ name: COOKIE_NAME, path: "/" });
 }

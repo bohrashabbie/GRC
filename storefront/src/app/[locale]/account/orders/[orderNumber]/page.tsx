@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { OrderStatusBadge, STATUS_KEY } from "@/components/account/order-status";
 import { ChevronForwardIcon } from "@/components/ui/icons";
-import { getOrder } from "@/lib/shop-api";
+import { accountOrder } from "@/app/actions";
 import { addressLines, formatDate, formatPrice } from "@/lib/format";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const typedLocale = locale as Locale;
-  const order = await getOrder(decodeURIComponent(orderNumber), typedLocale);
+  const order = await accountOrder(decodeURIComponent(orderNumber), typedLocale);
   if (!order) notFound();
 
   const [t, tCart] = await Promise.all([getTranslations("orders"), getTranslations("cart")]);

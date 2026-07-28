@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { getAddresses } from "@/lib/shop-api";
+import { accountAddresses } from "@/app/actions";
 import { addressLines } from "@/lib/format";
 import type { Locale } from "@/i18n/routing";
 
@@ -21,7 +21,7 @@ export default async function AddressesPage({ params }: PageProps) {
   const [t, tCheckout, addresses] = await Promise.all([
     getTranslations("account"),
     getTranslations("checkout"),
-    getAddresses(typedLocale),
+    accountAddresses(typedLocale),
   ]);
 
   if (addresses.length === 0) {

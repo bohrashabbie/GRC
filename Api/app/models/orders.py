@@ -26,6 +26,7 @@ class Order(Base, TimestampMixin):
     grand_total: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     coupon_code_snapshot: Mapped[str | None] = mapped_column(nullable=True)
     locale: Mapped[str] = mapped_column(nullable=False, default="ar")
+    shipping_method_code: Mapped[str | None] = mapped_column(nullable=True)
     placed_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     cancelled_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
     cancel_reason: Mapped[str | None] = mapped_column(nullable=True)

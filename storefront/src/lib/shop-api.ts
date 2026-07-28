@@ -23,7 +23,12 @@ import type {
   StoreLocation,
   VariantStock,
 } from "@/types/shop";
-import type { Customer, CustomerSession, RegisterInput } from "@/types/shop";
+import type {
+  AccountSummary,
+  Customer,
+  CustomerSession,
+  RegisterInput,
+} from "@/types/shop";
 import {
   fixtureAddresses,
   fixtureBanners,
@@ -543,6 +548,80 @@ export async function removeFromWishlist(
     locale,
     revalidate: false,
     method: "DELETE",
+    token,
+  });
+}
+
+export async function updateProfile(
+  input: { first_name?: string; last_name?: string; email?: string; phone?: string | null },
+  token: string,
+  locale: LocaleCode,
+): Promise<Customer> {
+  return shopFetch<Customer>("/account/profile", {
+    locale,
+    revalidate: false,
+    method: "PATCH",
+    body: input,
+    token,
+  });
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  token: string,
+  locale: LocaleCode,
+): Promise<void> {
+  await shopFetch<unknown>("/account/password", {
+    locale,
+    revalidate: false,
+    method: "POST",
+    body: { current_password: currentPassword, new_password: newPassword },
+    token,
+  });
+}
+
+export async function fetchAccountOrders(
+  token: string,
+  locale: LocaleCode,
+): Promise<OrderSummary[]> {
+  return shopFetch<OrderSummary[]>("/account/orders", {
+    locale,
+    revalidate: false,
+    token,
+  });
+}
+
+export async function fetchAccountOrder(
+  orderNumber: string,
+  token: string,
+  locale: LocaleCode,
+): Promise<OrderDetail> {
+  return shopFetch<OrderDetail>(`/account/orders/${orderNumber}`, {
+    locale,
+    revalidate: false,
+    token,
+  });
+}
+
+export async function fetchAccountAddresses(
+  token: string,
+  locale: LocaleCode,
+): Promise<Address[]> {
+  return shopFetch<Address[]>("/account/addresses", {
+    locale,
+    revalidate: false,
+    token,
+  });
+}
+
+export async function fetchAccountSummary(
+  token: string,
+  locale: LocaleCode,
+): Promise<AccountSummary> {
+  return shopFetch<AccountSummary>("/account/summary", {
+    locale,
+    revalidate: false,
     token,
   });
 }

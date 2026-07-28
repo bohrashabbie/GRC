@@ -2,6 +2,11 @@
 
 import {
   ShopApiError,
+  changePassword,
+  fetchAccountAddresses,
+  fetchAccountOrder,
+  fetchAccountOrders,
+  fetchAccountSummary,
   fetchCustomer,
   fetchWishlist,
   getCart,
@@ -13,6 +18,7 @@ import {
   registerCustomer,
   removeFromWishlist,
   saveToWishlist,
+  updateProfile,
   validateCoupon,
   type ListQuery,
   type StoredLine,
@@ -23,11 +29,15 @@ import {
   setSessionToken,
 } from "@/lib/session";
 import type {
+  AccountSummary,
+  Address,
   Cart,
   Customer,
   InsufficientStock,
   LocaleCode,
   PlaceOrderInput,
+  OrderDetail,
+  OrderSummary,
   PlacedOrder,
   RegisterInput,
   ProductListResponse,
@@ -235,5 +245,83 @@ export async function toggleWishlist(
       return { ok: false, reason: "login_required" };
     }
     throw error;
+  }
+}
+
+export async function accountSummary(locale: LocaleCode): Promise<AccountSummary | null> {
+  const token = await getSessionToken();
+  if (!token) return null;
+  try {
+    return await fetchAccountSummary(token, locale);
+  } catch {
+    return null;
+  }
+}
+
+export async function accountOrders(locale: LocaleCode): Promise<OrderSummary[]> {
+  const token = await getSessionToken();
+  if (!token) return [];
+  try {
+    return await fetchAccountOrders(token, locale);
+  } catch {
+    return [];
+  }
+}
+
+export type SaveResult = { ok: true } | { ok: false; code: string; message: string };
+
+export async function saveProfile(
+  input: { first_name: string; last_name: string; email: string; phone: string | null },
+  locale: LocaleCode,
+): Promise<SaveResult> {
+  const token = await getSessionToken();
+  if (!token) return { ok: false, code: "login_required", message: "Sign in to continue." };
+  try {
+    await updateProfile(input, token, locale);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ShopApiError) return { ok: false, code: error.code, message: error.message };
+    return { ok: false, code: "unreachable", message: "Could not reach the server." };
+  }
+}
+
+export async function updatePassword(
+  currentPassword: string,
+  newPassword: string,
+  locale: LocaleCode,
+): Promise<SaveResult> {
+  const token = await getSessionToken();
+  if (!token) return { ok: false, code: "login_required", message: "Sign in to continue." };
+  try {
+    await changePassword(currentPassword, newPassword, token, locale);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ShopApiError) return { ok: false, code: error.code, message: error.message };
+    return { ok: false, code: "unreachable", message: "Could not reach the server." };
+  }
+}
+
+export async function accountOrder(
+  orderNumber: string,
+  locale: LocaleCode,
+): Promise<OrderDetail | null> {
+  const token = await getSessionToken();
+  if (!token) return null;
+  try {
+    return await fetchAccountOrder(orderNumber, token, locale);
+  } catch {
+    // 404 for someone else's order number is indistinguishable from one that
+    // does not exist, which is the point.
+    return null;
+  }
+}
+
+export async function accountAddresses(locale: LocaleCode): Promise<Address[]> {
+  const token = await getSessionToken();
+  if (!token) return [];
+  try {
+    return await fetchAccountAddresses(token, locale);
+  } catch {
+    return [];
   }
 }
