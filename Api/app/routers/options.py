@@ -28,8 +28,13 @@ def list_options(
     db: Session = Depends(get_db),
     _user=Depends(require("catalog.view")),
 ) -> dict:
-    stmt = select(Option).options(selectinload(Option.translations))
+    stmt = (
+        select(Option)
+        .where(Option.code.in_(catalog_service.SYSTEM_OPTION_CODES))
+        .options(selectinload(Option.translations))
+    )
     items, next_cursor = paginate(db, stmt, Option, cursor, limit)
+    items.sort(key=lambda option: (option.sort_order, option.id))
     return {"items": [OptionOut.model_validate(o) for o in items], "next_cursor": next_cursor}
 
 

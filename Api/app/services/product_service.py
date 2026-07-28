@@ -327,3 +327,28 @@ def update_product_status(db: Session, product_id: int, new_status: str, actor_u
     db.refresh(product)
     product.category_ids = get_product_category_ids(db, product.id)
     return _set_derived_fields(product)
+
+
+def delete_product(db: Session, product_id: int, actor_user_id: int | None) -> None:
+    """Archive rather than remove a product that historical orders may reference."""
+    product = _load(db, product_id)
+    proposed = {
+        "status": "archived",
+        "is_featured": False,
+        "is_best_seller": False,
+    }
+    before, after = audit_service.diff_changed_fields(product, proposed)
+    for field, value in proposed.items():
+        setattr(product, field, value)
+
+    if before:
+        audit_service.record(
+            db,
+            actor_user_id=actor_user_id,
+            action="product.delete",
+            entity_type="product",
+            entity_id=product.id,
+            before=before,
+            after=after,
+        )
+    db.commit()

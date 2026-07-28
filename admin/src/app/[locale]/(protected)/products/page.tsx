@@ -1,9 +1,10 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import type { ColumnDef } from "@tanstack/react-table"
 import { useFormatter, useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
@@ -25,6 +27,7 @@ import { ProductCreateDialog } from "@/components/products/product-create-dialog
 import { useCursorList } from "@/hooks/use-cursor-list"
 import { useQueryParam } from "@/hooks/use-query-param"
 import { brandsApi, productsApi } from "@/lib/api/endpoints"
+import { getErrorMessage } from "@/lib/api/error-message"
 import { formatMoney, mediaUrl, translatedName } from "@/lib/format"
 import {
   PRODUCT_STATUS_VALUES,
@@ -52,7 +55,9 @@ function ProductsContent() {
   const locale = useLocale()
   const format = useFormatter()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [createOpen, setCreateOpen] = useState(false)
+  const [deleting, setDeleting] = useState<ProductOut | null>(null)
 
   const [statusParam, setStatusParam] = useQueryParam("status")
   const [searchParam, setSearchParam] = useQueryParam("q")
@@ -99,6 +104,17 @@ function ProductsContent() {
     if (id === null) return "—"
     const brand = brands.find((b) => b.id === id)
     return brand ? translatedName(brand.translations, locale) : `#${id}`
+  }
+
+  async function handleDelete(product: ProductOut) {
+    try {
+      await productsApi.delete(product.id)
+      await queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+      toast.success(t("deleted"))
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
+      throw error
+    }
   }
 
   const columns: ColumnDef<ProductOut, unknown>[] = [
@@ -199,6 +215,27 @@ function ProductsContent() {
       header: t("columns.created"),
       cell: ({ row }) =>
         format.dateTime(new Date(row.original.created_at), "short"),
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) =>
+        row.original.status !== "archived" ? (
+          <RequirePermission permission={PERMISSIONS.catalogManage}>
+            <div className="flex justify-end">
+              <Button
+                variant="destructive"
+                size="xs"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setDeleting(row.original)
+                }}
+              >
+                {t("delete")}
+              </Button>
+            </div>
+          </RequirePermission>
+        ) : null,
     },
   ]
 
@@ -313,6 +350,19 @@ function ProductsContent() {
 
       {createOpen && (
         <ProductCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
+      )}
+
+      {deleting && (
+        <ConfirmDialog
+          open={!!deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title={t("deleteTitle")}
+          description={t("deleteDescription", {
+            name: translatedName(deleting.translations, locale),
+          })}
+          confirmLabel={t("delete")}
+          onConfirm={() => handleDelete(deleting)}
+        />
       )}
     </div>
   )

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-BANNER_PLACEMENTS = {"home_hero", "home_promo", "category_top", "checkout_strip"}
+BANNER_PLACEMENTS = {"home_hero"}
 BANNER_LINK_TYPES = {"category", "product", "collection", "url"}
 MENU_LINK_TYPES = {"category", "brand", "collection", "page", "url"}
 PAGE_TEMPLATES = {"default", "full_width", "contact"}

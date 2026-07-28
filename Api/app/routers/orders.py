@@ -27,7 +27,8 @@ def list_orders(
     _user=Depends(require("order.view")),
 ) -> dict:
     """Cursor-paginated on (created_at, id) descending. Filters: status,
-    payment_status, fulfilment_status, customer_id."""
+    payment_status, fulfilment_status, customer_id. The customer scope also
+    includes legacy unlinked orders whose email matches that unique customer."""
     stmt = select(Order).options(selectinload(Order.items))
     if status_ is not None:
         stmt = stmt.where(Order.status == status_)
@@ -36,7 +37,7 @@ def list_orders(
     if fulfilment_status is not None:
         stmt = stmt.where(Order.fulfilment_status == fulfilment_status)
     if customer_id is not None:
-        stmt = stmt.where(Order.customer_id == customer_id)
+        stmt = stmt.where(order_service.customer_order_scope(customer_id))
     items, next_cursor = paginate(db, stmt, Order, cursor, limit)
     return {"items": [OrderOut.model_validate(o) for o in items], "next_cursor": next_cursor}
 

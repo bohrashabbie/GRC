@@ -2,7 +2,6 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { HeroSlider } from "@/components/home/hero-slider";
 import { CategoryTiles } from "@/components/home/category-tiles";
-import { PromoBanner } from "@/components/home/promo-banner";
 import { ProductRail } from "@/components/product/product-rail";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { UspStrip } from "@/components/layout/usp-strip";
@@ -18,12 +17,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   const typedLocale = locale as Locale;
 
-  const [t, tHeader, heroBanners, promoBanners, categories, bestSellers, offers, newArrivals] =
+  const [t, tHeader, heroBanners, categories, bestSellers, offers, newArrivals] =
     await Promise.all([
       getTranslations("home"),
       getTranslations("header"),
       getBanners("home_hero", typedLocale),
-      getBanners("home_promo", typedLocale),
       getCategoryTree(typedLocale),
       getCollection("best_sellers", typedLocale),
       getCollection("offers", typedLocale),
@@ -57,8 +55,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <ProductRail products={bestSellers.products} />
         </div>
       </section>
-
-      {promoBanners[0] && <PromoBanner banner={promoBanners[0]} />}
 
       {offers.products.length > 0 && (
         <section className="section-y">

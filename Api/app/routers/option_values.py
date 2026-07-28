@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.deps import require
-from app.models.catalog import OptionValue
+from app.models.catalog import Option, OptionValue
 from app.schemas.catalog import OptionValueCreate, OptionValueOut, OptionValueUpdate
 from app.services import catalog_service
 from app.utils import paginate
@@ -29,7 +29,20 @@ def list_option_values(
     db: Session = Depends(get_db),
     _user=Depends(require("catalog.view")),
 ) -> dict:
-    stmt = select(OptionValue).options(selectinload(OptionValue.translations))
+    stmt = (
+        select(OptionValue)
+        .join(Option, Option.id == OptionValue.option_id)
+        .where(
+            or_(
+                Option.code == catalog_service.EDITABLE_OPTION_CODE,
+                and_(
+                    Option.code == "size",
+                    OptionValue.code.in_(catalog_service.SYSTEM_SIZE_VALUE_CODES),
+                ),
+            )
+        )
+        .options(selectinload(OptionValue.translations))
+    )
     if option_id is not None:
         stmt = stmt.where(OptionValue.option_id == option_id)
     items, next_cursor = paginate(db, stmt, OptionValue, cursor, limit)

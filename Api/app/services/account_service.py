@@ -29,6 +29,7 @@ from app.middleware.security import (
     verify_password,
 )
 from app.models.customers import Customer, WishlistItem
+from app.services import order_service
 
 MIN_PASSWORD_LENGTH = 8
 
@@ -221,15 +222,18 @@ def change_password(db: Session, customer_id: int, current: str, new: str) -> No
 
 
 def list_orders(db: Session, customer_id: int) -> list:
-    """The customer's own orders, newest first. Scoped by customer_id in the
-    query itself rather than filtered afterwards, so there is no path where a
-    mistake upstream leaks somebody else's order."""
+    """The customer's own orders, newest first.
+
+    Legacy orders may predate customer_id linkage, so a NULL link may fall
+    back to the account's unique email. An order explicitly linked to another
+    customer never qualifies through that fallback.
+    """
     from app.models.orders import Order, OrderItem
 
     orders = list(
         db.execute(
             select(Order)
-            .where(Order.customer_id == customer_id)
+            .where(order_service.customer_order_scope(customer_id))
             .order_by(Order.placed_at.desc())
         ).scalars()
     )
@@ -271,7 +275,8 @@ def get_order_detail(
 
     order = db.execute(
         select(Order).where(
-            Order.order_number == order_number, Order.customer_id == customer_id
+            Order.order_number == order_number,
+            order_service.customer_order_scope(customer_id),
         )
     ).scalar_one_or_none()
     # Scoped by customer_id in the query, so another shopper's order number is

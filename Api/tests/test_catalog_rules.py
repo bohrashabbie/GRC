@@ -134,6 +134,48 @@ def test_product_brand_can_be_cleared(monkeypatch):
     assert result.brand_id is None
 
 
+def test_delete_product_archives_without_hard_deleting(monkeypatch):
+    product = SimpleNamespace(
+        id=1,
+        status="active",
+        is_featured=True,
+        is_best_seller=True,
+    )
+    db = FakeSession(product=product)
+    audit_calls = []
+    monkeypatch.setattr(product_service, "_load", lambda *_args: product)
+    monkeypatch.setattr(
+        audit_service,
+        "record",
+        lambda *_args, **kwargs: audit_calls.append(kwargs),
+    )
+
+    product_service.delete_product(db, product.id, actor_user_id=7)
+
+    assert product.status == "archived"
+    assert product.is_featured is False
+    assert product.is_best_seller is False
+    assert db.deleted == []
+    assert audit_calls == [
+        {
+            "actor_user_id": 7,
+            "action": "product.delete",
+            "entity_type": "product",
+            "entity_id": 1,
+            "before": {
+                "status": "active",
+                "is_featured": True,
+                "is_best_seller": True,
+            },
+            "after": {
+                "status": "archived",
+                "is_featured": False,
+                "is_best_seller": False,
+            },
+        }
+    ]
+
+
 def test_category_sync_reassigns_primary_and_sort_order():
     first = SimpleNamespace(product_id=1, category_id=11, is_primary=True, sort_order=0)
     second = SimpleNamespace(product_id=1, category_id=12, is_primary=False, sort_order=1)

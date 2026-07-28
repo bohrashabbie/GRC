@@ -184,7 +184,7 @@ export interface ProductListResponse extends Paginated<ProductCard> {
 /* Merchandising: banners, collections, menus, pages                          */
 /* -------------------------------------------------------------------------- */
 
-export type BannerPlacement = "home_hero" | "home_promo" | "plp_top";
+export type BannerPlacement = "home_hero";
 
 export interface Banner {
   id: string;

@@ -31,16 +31,9 @@ import { queryKeys } from "@/lib/query/keys"
 import type {
   BannerLinkType,
   BannerOut,
-  BannerPlacement,
   BannerTranslationIn,
 } from "@/lib/api/types"
 
-const PLACEMENTS: BannerPlacement[] = [
-  "home_hero",
-  "home_promo",
-  "category_top",
-  "checkout_strip",
-]
 const LINK_TYPES: BannerLinkType[] = ["category", "product", "collection", "url"]
 const NO_LINK = "__none__"
 const LOCALES = ["ar", "en"] as const
@@ -80,9 +73,6 @@ export function BannerFormDialog({
   const queryClient = useQueryClient()
   const isEdit = !!banner
 
-  const [placement, setPlacement] = useState<BannerPlacement>(
-    banner?.placement ?? "home_hero"
-  )
   const [textTheme, setTextTheme] = useState<"light" | "dark">(
     banner?.text_theme ?? "dark"
   )
@@ -139,7 +129,7 @@ export function BannerFormDialog({
     }))
 
     const payload = {
-      placement,
+      placement: "home_hero" as const,
       media_desktop_id: desktopId,
       media_mobile_id: mobileId,
       link_type: linkType === NO_LINK ? null : (linkType as BannerLinkType),
@@ -182,41 +172,20 @@ export function BannerFormDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <Label>{t("fields.placement")}</Label>
-              <Select
-                value={placement}
-                onValueChange={(v) => setPlacement(v as BannerPlacement)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PLACEMENTS.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {t(`placements.${p}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label>{t("fields.textTheme")}</Label>
-              <Select
-                value={textTheme}
-                onValueChange={(v) => setTextTheme(v as "light" | "dark")}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dark">{t("themes.dark")}</SelectItem>
-                  <SelectItem value="light">{t("themes.light")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex flex-col gap-2">
+            <Label>{t("fields.textTheme")}</Label>
+            <Select
+              value={textTheme}
+              onValueChange={(v) => setTextTheme(v as "light" | "dark")}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dark">{t("themes.dark")}</SelectItem>
+                <SelectItem value="light">{t("themes.light")}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

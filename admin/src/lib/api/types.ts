@@ -1017,11 +1017,7 @@ export type AuditListParams = {
 /* CMS — banners, menus, pages                                                 */
 /* -------------------------------------------------------------------------- */
 
-export type BannerPlacement =
-  | "home_hero"
-  | "home_promo"
-  | "category_top"
-  | "checkout_strip"
+export type BannerPlacement = "home_hero"
 
 export type BannerLinkType = "category" | "product" | "collection" | "url"
 

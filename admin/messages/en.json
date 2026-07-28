@@ -301,6 +301,8 @@
     "listTitle": "All categories"
   },
   "options": {
+    "systemDescription": "Color and Size are fixed store options. Add or edit colors here; sizes are predefined.",
+    "newColor": "Add color",
     "title": "Options",
     "description": "Variant-defining options such as size, colour, sleeve, and collar.",
     "newOption": "New option",
@@ -340,6 +342,10 @@
     }
   },
   "products": {
+    "delete": "Delete",
+    "deleted": "Product deleted.",
+    "deleteTitle": "Delete this product?",
+    "deleteDescription": "{name} will be removed from the storefront and archived. Existing orders and history are kept.",
     "title": "Products",
     "description": "Everything sold in the store, with their variants.",
     "newProduct": "New product",
@@ -859,7 +865,7 @@
   },
   "banners": {
     "title": "Banners",
-    "description": "Hero slides and promotional strips shown on the storefront.",
+    "description": "Hero slides shown in the homepage banner slider.",
     "newBanner": "New banner",
     "createTitle": "Create banner",
     "editTitle": "Edit banner",
@@ -871,12 +877,8 @@
     "deactivateDescription": "{name} will stop appearing on the storefront. It can be reactivated later.",
     "empty": "No banners yet.",
     "untitled": "Untitled banner",
-    "allPlacements": "All placements",
     "placements": {
-      "home_hero": "Home hero",
-      "home_promo": "Home promo",
-      "category_top": "Category top",
-      "checkout_strip": "Checkout strip"
+      "home_hero": "Home hero"
     },
     "themes": {
       "dark": "Dark artwork, light text",
@@ -893,7 +895,6 @@
       "en": "English"
     },
     "fields": {
-      "placement": "Placement",
       "textTheme": "Overlay text",
       "desktopImage": "Desktop image",
       "desktopHint": "Wide crop, around 2400x1030.",

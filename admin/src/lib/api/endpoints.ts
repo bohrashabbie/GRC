@@ -310,6 +310,8 @@ export const productsApi = {
   create: (payload: ProductCreate) => api.post<ProductOut>("/products", payload),
   update: (productId: number, payload: ProductUpdate) =>
     api.patch<ProductOut>(`/products/${productId}`, payload),
+  /** Soft-delete: archives the product and preserves order history. */
+  delete: (productId: number) => api.del(`/products/${productId}`),
   setStatus: (productId: number, status: string) =>
     api.patch<ProductOut>(`/products/${productId}/status`, { status }),
   /** Saves the whole stock column in one transaction. Needs stock.adjust. */

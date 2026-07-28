@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -210,7 +211,7 @@ def cities(
 
 @router.get("/banners")
 def banners(
-    placement: str = Query(..., description="home_hero | home_promo | category_top | checkout_strip"),
+    placement: Literal["home_hero"] = Query(..., description="Homepage hero slider"),
     request: Request = None,
     accept_language: str | None = Header(None),
     db: Session = Depends(get_db),

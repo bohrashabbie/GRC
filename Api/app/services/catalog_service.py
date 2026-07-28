@@ -256,16 +256,28 @@ def get_category_tree(db: Session, dimension: str) -> list[Category]:
 # Options & option values
 # --------------------------------------------------------------------------
 
-def create_option(db: Session, data) -> Option:
-    option = Option(
-        code=data.code, input_type=data.input_type, is_filterable=data.is_filterable, sort_order=data.sort_order
+SYSTEM_OPTION_CODES = ("colour", "size")
+EDITABLE_OPTION_CODE = "colour"
+SYSTEM_SIZE_VALUE_CODES = ("140", "150", "s", "m", "l")
+
+
+def _system_options_only() -> BusinessRuleError:
+    return BusinessRuleError(
+        "Color and Size are fixed system options and cannot be created or edited.",
+        code="system_options_only",
     )
-    db.add(option)
-    db.flush()
-    _sync_label_translations(db, [], data.translations, "option_id", option.id, OptionTranslation)
-    db.commit()
-    db.refresh(option)
-    return option
+
+
+def _require_editable_colour(option: Option) -> None:
+    if option.code != EDITABLE_OPTION_CODE:
+        raise BusinessRuleError(
+            "Size values are fixed. Only Color values can be added or edited.",
+            code="system_option_locked",
+        )
+
+
+def create_option(db: Session, data) -> Option:
+    raise _system_options_only()
 
 
 def get_option(db: Session, option_id: int) -> Option:
@@ -276,21 +288,15 @@ def get_option(db: Session, option_id: int) -> Option:
 
 
 def update_option(db: Session, option_id: int, data) -> Option:
-    option = get_option(db, option_id)
-    for field in ("code", "input_type", "is_filterable", "sort_order"):
-        value = getattr(data, field)
-        if value is not None:
-            setattr(option, field, value)
-    if data.translations is not None:
-        _sync_label_translations(db, list(option.translations), data.translations, "option_id", option.id, OptionTranslation)
-    db.commit()
-    db.refresh(option)
-    return option
+    get_option(db, option_id)
+    raise _system_options_only()
 
 
 def create_option_value(db: Session, data) -> OptionValue:
-    if db.get(Option, data.option_id) is None:
+    option = db.get(Option, data.option_id)
+    if option is None:
         raise NotFoundError("Option not found")
+    _require_editable_colour(option)
     value = OptionValue(
         option_id=data.option_id,
         code=data.code,
@@ -315,6 +321,10 @@ def get_option_value(db: Session, option_value_id: int) -> OptionValue:
 
 def update_option_value(db: Session, option_value_id: int, data) -> OptionValue:
     value = get_option_value(db, option_value_id)
+    option = db.get(Option, value.option_id)
+    if option is None:
+        raise NotFoundError("Option not found")
+    _require_editable_colour(option)
     for field in ("hex_color", "swatch_media_id"):
         if field in data.model_fields_set:
             setattr(value, field, getattr(data, field))

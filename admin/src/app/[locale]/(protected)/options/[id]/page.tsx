@@ -18,7 +18,6 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
-import { OptionFormDialog } from "@/components/options/option-form-dialog"
 import { OptionValueFormDialog } from "@/components/options/option-value-form-dialog"
 import {
   ListEmptyState,
@@ -47,7 +46,6 @@ function OptionDetailContent() {
   const params = useParams<{ id: string }>()
   const optionId = Number(params.id)
 
-  const [editOpen, setEditOpen] = useState(false)
   const [valueOpen, setValueOpen] = useState(false)
   const [editingValue, setEditingValue] = useState<OptionValueOut | undefined>()
 
@@ -67,6 +65,7 @@ function OptionDetailContent() {
   const optionLabel = optionQuery.data
     ? translatedLabel(optionQuery.data.translations, locale)
     : t("detailTitle")
+  const canManageValues = optionQuery.data?.code === "colour"
 
   const values = [...(valuesQuery.data?.items ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order
@@ -103,14 +102,7 @@ function OptionDetailContent() {
         <>
           <PageHeader
             title={optionLabel}
-            description={t("description")}
-            action={
-              <RequirePermission permission={PERMISSIONS.catalogManage}>
-                <Button variant="outline" onClick={() => setEditOpen(true)}>
-                  {c("edit")}
-                </Button>
-              </RequirePermission>
-            }
+            description={t("systemDescription")}
           />
 
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -129,11 +121,13 @@ function OptionDetailContent() {
                 <CardTitle>{t("values.title")}</CardTitle>
                 <CardDescription>{t("values.description")}</CardDescription>
               </div>
-              <RequirePermission permission={PERMISSIONS.catalogManage}>
-                <Button size="sm" onClick={openCreateValue}>
-                  {t("values.newValue")}
-                </Button>
-              </RequirePermission>
+              {canManageValues && (
+                <RequirePermission permission={PERMISSIONS.catalogManage}>
+                  <Button size="sm" onClick={openCreateValue}>
+                    {t("newColor")}
+                  </Button>
+                </RequirePermission>
+              )}
             </CardHeader>
             <CardContent>
               {valuesQuery.isLoading && <ListLoadingSkeleton rows={3} />}
@@ -169,15 +163,17 @@ function OptionDetailContent() {
                       <span className="text-xs text-muted-foreground">
                         #{value.sort_order}
                       </span>
-                      <RequirePermission permission={PERMISSIONS.catalogManage}>
-                        <Button
-                          variant="outline"
-                          size="xs"
-                          onClick={() => openEditValue(value)}
-                        >
-                          {c("edit")}
-                        </Button>
-                      </RequirePermission>
+                      {canManageValues && (
+                        <RequirePermission permission={PERMISSIONS.catalogManage}>
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            onClick={() => openEditValue(value)}
+                          >
+                            {c("edit")}
+                          </Button>
+                        </RequirePermission>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -187,15 +183,7 @@ function OptionDetailContent() {
         </>
       )}
 
-      {editOpen && optionQuery.data && (
-        <OptionFormDialog
-          option={optionQuery.data}
-          open={editOpen}
-          onOpenChange={setEditOpen}
-        />
-      )}
-
-      {valueOpen && (
+      {valueOpen && canManageValues && (
         <OptionValueFormDialog
           key={editingValue?.id ?? "new"}
           optionId={optionId}

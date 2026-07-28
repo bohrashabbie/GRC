@@ -8,10 +8,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, NotFoundError
+from app.models.customers import Customer
 from app.models.orders import Order, OrderAddress, OrderNote, OrderStatusHistory, Payment, PaymentRefund
 from app.services import audit_service, inventory_service
 
@@ -46,6 +47,17 @@ _TRANSITION_TABLES = {
     "payment_status": VALID_PAYMENT_STATUS_TRANSITIONS,
     "fulfilment_status": VALID_FULFILMENT_STATUS_TRANSITIONS,
 }
+
+
+def customer_order_scope(customer_id: int):
+    """Linked orders plus legacy NULL links matching the unique customer email."""
+    customer_email = (
+        select(Customer.email).where(Customer.id == customer_id).scalar_subquery()
+    )
+    return or_(
+        Order.customer_id == customer_id,
+        and_(Order.customer_id.is_(None), Order.email == customer_email),
+    )
 
 
 def get_order(db: Session, order_id: int) -> Order:

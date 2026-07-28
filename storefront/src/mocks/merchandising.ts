@@ -56,16 +56,6 @@ const RAW_BANNERS: RawBanner[] = [
     image: 5,
     theme: "dark",
   },
-  {
-    id: "promo-1",
-    placement: "home_promo",
-    title: t("خصم حتى 30%", "Up to 30% off"),
-    subtitle: t("على تشكيلة مختارة من الثياب الصيفية", "Selected summer thobes"),
-    cta: t("تسوق العروض", "Shop offers"),
-    href: "/c/thobes-summer",
-    image: 7,
-    theme: "dark",
-  },
 ];
 
 export function fixtureBanners(placement: BannerPlacement, locale: LocaleCode): Banner[] {

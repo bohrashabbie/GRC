@@ -19,22 +19,11 @@ import {
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { useQueryParam } from "@/hooks/use-query-param"
 import { bannersApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import type { BannerOut } from "@/lib/api/types"
-
-const ALL = "__all__"
-const PLACEMENTS = ["home_hero", "home_promo", "category_top", "checkout_strip"]
 
 export default function BannersPage() {
   return (
@@ -50,14 +39,11 @@ function BannersContent() {
   const locale = useLocale()
   const queryClient = useQueryClient()
 
-  const [placementParam, setPlacementParam] = useQueryParam("placement")
-  const placement = placementParam ?? ALL
-
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<BannerOut | undefined>()
   const [deactivating, setDeactivating] = useState<BannerOut | undefined>()
 
-  const listParams = { placement: placement === ALL ? null : placement, is_active: null }
+  const listParams = { placement: "home_hero", is_active: null }
   const bannersQuery = useQuery({
     queryKey: queryKeys.banners.list(listParams),
     queryFn: ({ signal }) =>
@@ -108,23 +94,6 @@ function BannersContent() {
         }
       />
 
-      <Select
-        value={placement}
-        onValueChange={(v) => setPlacementParam(v === ALL ? null : v)}
-      >
-        <SelectTrigger className="w-64">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>{t("allPlacements")}</SelectItem>
-          {PLACEMENTS.map((p) => (
-            <SelectItem key={p} value={p}>
-              {t(`placements.${p}`)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
       {bannersQuery.isLoading ? (
         <ListLoadingSkeleton />
       ) : bannersQuery.isError ? (
@@ -142,7 +111,7 @@ function BannersContent() {
                 <div className="flex min-w-0 flex-col gap-1">
                   <span className="truncate font-medium">{headline(banner)}</span>
                   <span className="text-xs text-muted-foreground">
-                    {t(`placements.${banner.placement}`)} · {t("fields.sortOrder")}{" "}
+                    {t("placements.home_hero")} · {t("fields.sortOrder")}{" "}
                     {banner.sort_order}
                   </span>
                 </div>

@@ -142,6 +142,16 @@ def update_product_status(
     return product_service.update_product_status(db, product_id, payload.status, current_user.id)
 
 
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require("catalog.manage")),
+) -> None:
+    """Soft-delete the product so order history keeps its references."""
+    product_service.delete_product(db, product_id, current_user.id)
+
+
 @router.get("/{product_id}/media", response_model=list[ProductMediaItemOut])
 def list_product_media(
     product_id: int, db: Session = Depends(get_db), _user=Depends(require("catalog.view"))
