@@ -117,7 +117,10 @@ export interface ProductVariant {
   price: Money;
   compare_at_price: Money | null;
   stock_state: StockState;
-  /** Exposed only when low, so we can say "only 3 left" honestly. */
+  /**
+   * The real remaining quantity, so the stepper has a ceiling to clamp to.
+   * Null means genuinely uncapped — a product with inventory tracking off.
+   */
   available_quantity: number | null;
   /** option_id -> option_value_id. The full coordinate of this variant. */
   option_values: Record<string, string>;
@@ -203,7 +206,11 @@ export interface Collection {
   code: string;
   title: string;
   subtitle: string | null;
+  /** The collection's own listing page, e.g. `/collections/best_sellers`. */
   href: string | null;
+  /** How many products are in the collection, not just the rail's slice. */
+  total_count?: number;
+  /** The rail's slice — the first handful, not the whole collection. */
   products: ProductCard[];
 }
 
@@ -402,6 +409,61 @@ export interface PaymentResult {
   /** Present when a gateway needs a redirect. Stubbed backend returns null. */
   redirect_url: string | null;
   failure_reason: string | null;
+}
+
+/** What the browser may assert about an order: ids and quantities, never money. */
+export interface PlaceOrderInput {
+  lines: { variant_id: number; quantity: number }[];
+  email: string;
+  shipping_address: {
+    full_name: string;
+    phone: string;
+    street: string;
+    district: string;
+    city_name: string;
+    region_name: string;
+    building_number: string | null;
+    short_address: string | null;
+    postal_code: string | null;
+    additional_number: string | null;
+  };
+  shipping_method_id: string;
+  payment_method_code: PaymentMethodCode;
+}
+
+export interface PlacedOrder {
+  order_number: string;
+  status: string;
+  payment_status: string;
+  email: string | null;
+  totals: {
+    subtotal: Money;
+    discount_total: Money;
+    shipping_total: Money;
+    tax_total: Money;
+    grand_total: Money;
+  };
+}
+
+/**
+ * The shape the API returns in `details` on a 409 insufficient_stock, so the
+ * cart can say "only N left" against the right line rather than showing a
+ * generic failure.
+ */
+export interface InsufficientStock {
+  variant_id: number;
+  variant_name: string;
+  requested: number;
+  available: number;
+}
+
+/** Live availability for a set of variants, re-read just before submit. */
+export interface VariantStock {
+  variant_id: number;
+  quantity: number;
+  stock_state: StockState;
+  /** Null when the product is not inventory-tracked — no ceiling at all. */
+  max_quantity: number | null;
 }
 
 /* -------------------------------------------------------------------------- */

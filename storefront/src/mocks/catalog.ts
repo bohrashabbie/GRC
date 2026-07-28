@@ -391,6 +391,8 @@ export function fixtureProducts(locale: LocaleCode): ProductCard[] {
 
 export interface ListQuery {
   category?: string;
+  /** Merchandising collection: best_sellers | new_arrivals | offers | featured. */
+  collection?: string;
   q?: string;
   colour?: string[];
   size?: string[];
@@ -401,8 +403,18 @@ export interface ListQuery {
   cursor?: string | null;
 }
 
+/** Mirrors the API's collection membership so the fallback shows the same set. */
+function inCollection(raw: RawProduct, code: string): boolean {
+  if (code === "best_sellers") return raw.badges.includes("best_seller");
+  if (code === "offers") return raw.compareAt !== undefined;
+  // new_arrivals and featured are an ordering / an editorial flag the fixtures
+  // do not model, so every product qualifies.
+  return true;
+}
+
 function matches(raw: RawProduct, query: ListQuery, locale: LocaleCode): boolean {
   if (query.category && !raw.categories.includes(query.category)) return false;
+  if (query.collection && !inCollection(raw, query.collection)) return false;
 
   if (query.q) {
     const needle = query.q.toLowerCase();
@@ -512,7 +524,7 @@ export function fixtureProductList(query: ListQuery, locale: LocaleCode): Produc
   // the facet filters themselves are applied — otherwise selecting one colour
   // would zero out the counts for every other colour.
   const scoped = RAW_PRODUCTS.filter((raw) =>
-    matches(raw, { category: query.category, q: query.q }, locale),
+    matches(raw, { category: query.category, collection: query.collection, q: query.q }, locale),
   );
   const filtered = sortProducts(
     scoped.filter((raw) => matches(raw, query, locale)),

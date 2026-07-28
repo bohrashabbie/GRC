@@ -10,8 +10,15 @@ from decimal import Decimal
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, NotFoundError
-from app.models.catalog import Product, ProductCategory, ProductTranslation, Variant
-from app.services import audit_service
+from app.models.catalog import (
+    Media,
+    Product,
+    ProductCategory,
+    ProductMedia,
+    ProductTranslation,
+    Variant,
+)
+from app.services import audit_service, inventory_service
 from app.utils import slugify
 
 
@@ -30,6 +37,67 @@ def is_product_on_offer(product: Product) -> bool:
 def _set_derived_fields(product: Product) -> Product:
     product.is_on_offer = is_product_on_offer(product)
     return product
+
+
+def attach_primary_image_keys(db: Session, products: list[Product]) -> None:
+    """Storage key of each product's primary gallery image, for the list
+    thumbnail. Primary first, then sort order — the same ordering the storefront
+    card uses, so the admin thumbnail is the image shoppers actually see."""
+    product_ids = [product.id for product in products]
+    for product in products:
+        product.primary_image_key = None
+    if not product_ids:
+        return
+
+    rows = (
+        db.query(ProductMedia.product_id, Media.storage_key)
+        .join(Media, Media.id == ProductMedia.media_id)
+        .filter(ProductMedia.product_id.in_(product_ids))
+        .order_by(
+            ProductMedia.product_id,
+            ProductMedia.is_primary.desc(),
+            ProductMedia.sort_order,
+            ProductMedia.id,
+        )
+        .all()
+    )
+    first: dict[int, str] = {}
+    for product_id, key in rows:
+        first.setdefault(product_id, key)
+    for product in products:
+        product.primary_image_key = first.get(product.id)
+
+
+def attach_stock_totals(db: Session, products: list[Product]) -> None:
+    """Total stock across each product's active variants, plus the badge state,
+    for the list page's stock column. One query for the whole page rather than
+    one per row.
+
+    The state is worst-of: a product whose variants are 40 and 0 reads as out
+    of stock, because one of the things a shopper can pick genuinely is. Same
+    for low — the column exists to surface exactly that.
+    """
+    variant_ids = [
+        variant.id for product in products for variant in product.variants if variant.is_active
+    ]
+    quantities = inventory_service.stock_map(db, variant_ids)
+
+    for product in products:
+        active = [variant for variant in product.variants if variant.is_active]
+        product.stock_quantity = sum(quantities.get(variant.id, 0) for variant in active)
+        states = {
+            inventory_service.stock_state(
+                quantities.get(variant.id, 0),
+                variant.low_stock_threshold,
+                product.track_inventory,
+            )
+            for variant in active
+        }
+        product.stock_state = (
+            "out_of_stock" if "out_of_stock" in states
+            else "low_stock" if "low_stock" in states
+            else "in_stock"
+        )
 
 
 def _sync_product_translations(db: Session, existing: list[ProductTranslation], translations_in, product_id: int) -> None:
@@ -93,6 +161,7 @@ def create_product(db: Session, data, actor_user_id: int | None) -> Product:
         tax_class=data.tax_class,
         is_featured=data.is_featured,
         is_best_seller=data.is_best_seller,
+        track_inventory=data.track_inventory,
         rating_count=0,
     )
     db.add(product)
@@ -143,6 +212,7 @@ def _load(db: Session, product_id: int) -> Product:
 def get_product(db: Session, product_id: int) -> Product:
     product = _load(db, product_id)
     product.category_ids = get_product_category_ids(db, product_id)
+    attach_stock_totals(db, [product])
     return _set_derived_fields(product)
 
 
@@ -152,7 +222,14 @@ def update_product(db: Session, product_id: int, data, actor_user_id: int | None
     proposed = {}
     if "brand_id" in data.model_fields_set:
         proposed["brand_id"] = data.brand_id
-    for field in ("product_type", "base_price", "tax_class", "is_featured", "is_best_seller"):
+    for field in (
+        "product_type",
+        "base_price",
+        "tax_class",
+        "is_featured",
+        "is_best_seller",
+        "track_inventory",
+    ):
         if field in data.model_fields_set and (value := getattr(data, field)) is not None:
             proposed[field] = value
     before, after = audit_service.diff_changed_fields(product, proposed)
@@ -195,6 +272,38 @@ def update_product(db: Session, product_id: int, data, actor_user_id: int | None
     db.commit()
     db.refresh(product)
     product.category_ids = get_product_category_ids(db, product.id)
+    return _set_derived_fields(product)
+
+
+def set_product_stock(db: Session, product_id: int, items, actor_user_id: int | None) -> Product:
+    """Apply the product form's stock column in one transaction.
+
+    Editing these numbers here is the only way an admin changes stock — there
+    is no adjustment modal and no separate stock screen in this flow. Each
+    quantity still lands as a movement through inventory_service, so the ledger
+    stays complete and Hard Rule 2 holds.
+    """
+    product = _load(db, product_id)
+    owned = {variant.id for variant in product.variants}
+
+    foreign = [item.variant_id for item in items if item.variant_id not in owned]
+    if foreign:
+        raise BusinessRuleError(
+            "Those variants do not belong to this product.",
+            code="variant_not_on_product",
+            details={"variant_ids": foreign},
+        )
+
+    # Ascending variant_id for the same deadlock reason checkout sorts its
+    # lines (Hard Rule 3) — two admins saving overlapping products would
+    # otherwise be able to lock the same rows in opposite orders.
+    for item in sorted(items, key=lambda i: i.variant_id):
+        inventory_service.set_stock(db, item.variant_id, item.stock_quantity, actor_user_id)
+
+    db.commit()
+    db.refresh(product)
+    product.category_ids = get_product_category_ids(db, product.id)
+    attach_stock_totals(db, [product])
     return _set_derived_fields(product)
 
 

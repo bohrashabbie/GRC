@@ -47,6 +47,7 @@ def list_categories(
     if is_active is not None:
         stmt = stmt.where(Category.is_active == is_active)
     items, next_cursor = paginate(db, stmt, Category, cursor, limit)
+    catalog_service.attach_category_image_keys(db, items)
     return {"items": [CategoryOut.model_validate(c) for c in items], "next_cursor": next_cursor}
 
 

@@ -146,6 +146,11 @@ class Product(Base, TimestampMixin):
     # actual order volume would need an order_items aggregate the storefront
     # has no read path to, so the buyer curates this instead.
     is_best_seller: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # When false the product is always purchasable and its stock number is
+    # ignored entirely — made-to-order thobes and digital goods. Checkout skips
+    # the decrement for these, so the recorded quantity is left untouched
+    # rather than driven negative.
+    track_inventory: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     rating_avg: Mapped[float | None] = mapped_column(Numeric(3, 2), nullable=True)
     rating_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     published_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)

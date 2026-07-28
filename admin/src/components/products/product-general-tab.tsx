@@ -53,6 +53,7 @@ function useProductEditSchema() {
     base_price: z.string().regex(MONEY_PATTERN, p("hints.basePrice")),
     is_featured: z.boolean(),
     is_best_seller: z.boolean(),
+    track_inventory: z.boolean(),
     translations: z.object({
       ar: z.object({ name: z.string(), slug: z.string() }),
       en: z.object({ name: z.string(), slug: z.string() }),
@@ -93,6 +94,7 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
       base_price: product.base_price,
       is_featured: product.is_featured,
       is_best_seller: product.is_best_seller,
+      track_inventory: product.track_inventory,
       translations: {
         ar: {
           name: product.translations.find((x) => x.locale === "ar")?.name ?? "",
@@ -122,6 +124,7 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
         base_price: values.base_price,
         is_featured: values.is_featured,
         is_best_seller: values.is_best_seller,
+        track_inventory: values.track_inventory,
         category_ids: [...selectedCategories],
         translations,
       })
@@ -280,6 +283,36 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
                     <FormControl>
                       <Switch
                         id="prod-best-seller"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={!canManage}
+                      />
+                    </FormControl>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {/* One toggle for the whole product. Off means the per-variant
+                quantities on the Variants tab stop mattering entirely — the
+                item is always purchasable and checkout never decrements it. */}
+            <FormField
+              control={form.control}
+              name="track_inventory"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3">
+                    <div className="flex flex-col gap-0.5">
+                      <Label htmlFor="prod-track-inventory">
+                        {t("fields.trackInventory")}
+                      </Label>
+                      <span className="text-xs text-muted-foreground">
+                        {t("hints.trackInventory")}
+                      </span>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        id="prod-track-inventory"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         disabled={!canManage}

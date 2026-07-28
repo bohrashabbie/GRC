@@ -8,11 +8,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, NotFoundError
 from app.models.orders import Order, OrderAddress, OrderNote, OrderStatusHistory, Payment, PaymentRefund
-from app.services import audit_service
+from app.services import audit_service, inventory_service
 
 # Terminal states have no outgoing transitions — cancelled can never go back
 # to processing, completed can never be reopened.
@@ -73,6 +74,36 @@ def get_order(db: Session, order_id: int) -> Order:
     return order
 
 
+def _restore_stock_once(db: Session, order: Order) -> bool:
+    """Put an order's stock back exactly once, ever.
+
+    Two independent guards, because there are two ways in (cancellation and
+    refund) and they can be triggered by different people seconds apart:
+
+      1. stock_restored_at is checked and stamped inside this transaction, so a
+         second call finds it non-null and does nothing.
+      2. The row is re-read FOR UPDATE first, so two concurrent callers
+         serialise on it rather than both seeing NULL and both restocking.
+
+    Returns whether the restock actually ran, so callers can decide what to
+    record. Does not commit — the caller owns the transaction, which is what
+    makes the stamp and the movement rows atomic with each other.
+    """
+    locked = db.execute(
+        select(Order).where(Order.id == order.id).with_for_update()
+    ).scalar_one()
+    if locked.stock_restored_at is not None:
+        return False
+
+    locked.stock_restored_at = datetime.now(timezone.utc)
+    inventory_service.restore_for_order(
+        db,
+        lines=[(item.variant_id, item.qty) for item in order.items],
+        order_id=order.id,
+    )
+    return True
+
+
 def update_order_status(db: Session, order_id: int, field: str, to_value: str, reason: str | None, actor_user_id: int) -> Order:
     if field not in _TRANSITION_TABLES:
         raise BusinessRuleError(f"Unknown status field '{field}'. Must be one of {list(_TRANSITION_TABLES)}.")
@@ -90,9 +121,15 @@ def update_order_status(db: Session, order_id: int, field: str, to_value: str, r
         )
 
     setattr(order, field, to_value)
+    restocked = False
     if field == "status" and to_value == "cancelled":
         order.cancelled_at = datetime.now(timezone.utc)
         order.cancel_reason = reason
+        # Same transaction as the status change: the order cannot end up
+        # cancelled with its stock still held, or restocked without being
+        # cancelled. Cancelling twice is already blocked by the transition
+        # table above; this is the guard that survives the refund path too.
+        restocked = _restore_stock_once(db, order)
 
     db.add(
         OrderStatusHistory(
@@ -112,7 +149,7 @@ def update_order_status(db: Session, order_id: int, field: str, to_value: str, r
         entity_type="order",
         entity_id=order.id,
         before={field: from_value},
-        after={field: to_value},
+        after={field: to_value, **({"stock_restored": True} if restocked else {})},
     )
     db.commit()
     db.refresh(order)
@@ -158,7 +195,15 @@ def refund_payment(db: Session, order_id: int, payment_id: int, amount: Decimal,
     db.add(refund)
 
     new_total_refunded = already_refunded + amount
-    order.payment_status = "refunded" if new_total_refunded >= payment.amount else "partially_refunded"
+    is_full_refund = new_total_refunded >= payment.amount
+    order.payment_status = "refunded" if is_full_refund else "partially_refunded"
+
+    # Only a full refund puts stock back. A partial refund is a price
+    # adjustment on goods the customer still has, so restocking it would
+    # invent inventory that does not physically exist. The guard makes this
+    # safe alongside cancellation: refunding an already-cancelled order finds
+    # stock_restored_at set and adds nothing.
+    restocked = _restore_stock_once(db, order) if is_full_refund else False
 
     audit_service.record(
         db,
@@ -166,7 +211,12 @@ def refund_payment(db: Session, order_id: int, payment_id: int, amount: Decimal,
         action="order.refund",
         entity_type="order",
         entity_id=order.id,
-        after={"payment_id": payment.id, "amount": float(amount), "reason": reason},
+        after={
+            "payment_id": payment.id,
+            "amount": float(amount),
+            "reason": reason,
+            **({"stock_restored": True} if restocked else {}),
+        },
     )
     db.commit()
     db.refresh(refund)

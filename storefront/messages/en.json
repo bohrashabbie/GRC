@@ -106,7 +106,8 @@
     "galleryPrevious": "Previous image",
     "galleryNext": "Next image",
     "galleryThumb": "View image {number}",
-    "shippingBody": "Free delivery on orders over 200 SAR, 2–4 working days across the Kingdom. Returns accepted within 14 days, in store or by free pickup."
+    "shippingBody": "Free delivery on orders over 200 SAR, 2–4 working days across the Kingdom. Returns accepted within 14 days, in store or by free pickup.",
+    "outOfStockOption": "Out of stock"
   },
   "reviews": {
     "title": "Customer reviews",
@@ -182,7 +183,9 @@
     "invalidPhone": "Enter a valid Saudi mobile number",
     "invalidShortAddress": "Enter 4 letters followed by 4 digits",
     "paymentFailed": "Payment failed. No money has been taken.",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "stockChanged": "Only {count} left of {name}. Please adjust the quantity in your cart and try again.",
+    "stockGone": "{name} sold out while you were checking out. Please remove it from your cart to continue."
   },
   "confirmation": {
     "title": "Thank you — your order is confirmed",

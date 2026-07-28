@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useLocale } from "next-intl";
 
-import { checkCoupon, rebuildCart } from "@/app/actions";
+import { checkCoupon, checkStock, rebuildCart } from "@/app/actions";
 import type { Cart, LocaleCode } from "@/types/shop";
 import type { StoredLine } from "@/lib/shop-api";
 
@@ -75,11 +75,56 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const coupon = useRef<string | null>(null);
   const shippingPrice = useRef<string | null>(null);
 
+  /**
+   * Clamp stored quantities to what is actually available.
+   *
+   * The number on the product page can be minutes old by the time the cart is
+   * opened, so this trims the stored lines before the cart is priced — a line
+   * whose variant sold out drops to 0 and is removed. It is a courtesy, not a
+   * guarantee: the server re-checks inside the order transaction, which is the
+   * only place an oversell is actually prevented.
+   */
+  const clampToStock = useCallback(async () => {
+    const ids = stored.current
+      .map((line) => Number(line.variantId))
+      .filter((id) => Number.isFinite(id));
+    if (ids.length === 0) return false;
+
+    const levels = await checkStock(ids, locale);
+    if (levels.length === 0) return false;
+
+    const maxById = new Map(levels.map((level) => [level.variant_id, level.max_quantity]));
+    let changed = false;
+    const next: StoredLine[] = [];
+
+    for (const line of stored.current) {
+      const max = maxById.get(Number(line.variantId));
+      if (max === undefined || max === null) {
+        next.push(line);
+        continue;
+      }
+      if (max <= 0) {
+        changed = true;
+        continue;
+      }
+      if (line.quantity > max) {
+        changed = true;
+        next.push({ ...line, quantity: max });
+      } else {
+        next.push(line);
+      }
+    }
+
+    if (changed) stored.current = next;
+    return changed;
+  }, [locale]);
+
   const sync = useCallback(async () => {
+    if (await clampToStock()) persist();
     const next = await rebuildCart(stored.current, locale, coupon.current, shippingPrice.current);
     setCart(next);
     setIsLoading(false);
-  }, [locale]);
+  }, [clampToStock, locale]);
 
   function persist() {
     try {

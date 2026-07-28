@@ -14,7 +14,14 @@
  * in a total.
  */
 
-import type { AppliedCoupon, Cart, CartLine, CartTotals, LocaleCode } from "@/types/shop";
+import type {
+  AppliedCoupon,
+  Cart,
+  CartLine,
+  CartTotals,
+  LocaleCode,
+  ProductDetail,
+} from "@/types/shop";
 import { fixtureProductDetail } from "./catalog";
 import { img } from "./shared";
 
@@ -45,17 +52,24 @@ export function fixtureValidateCoupon(code: string): boolean {
  * Rebuilds the whole cart from stored ids. Prices are always re-read from the
  * catalogue rather than trusted from client storage — the same reason the real
  * endpoint will never accept a price from the browser.
+ *
+ * `resolve` supplies the product behind a stored slug. It is injected rather
+ * than hard-wired to `fixtureProductDetail` because the catalogue can be live
+ * while this arithmetic is still a stand-in: pricing a live product against
+ * fixture data would silently drop every real line from the cart. Callers pass
+ * the same resolver the product page uses.
  */
 export function fixtureBuildCart(
   stored: StoredLine[],
   locale: LocaleCode,
   couponCode: string | null,
   shippingMethodPrice: string | null,
+  resolve: (slug: string, locale: LocaleCode) => ProductDetail | null = fixtureProductDetail,
 ): Cart {
   const lines: CartLine[] = [];
 
   for (const entry of stored) {
-    const product = fixtureProductDetail(entry.productSlug, locale);
+    const product = resolve(entry.productSlug, locale);
     if (!product) continue;
 
     const variant = product.variants.find((v) => v.id === entry.variantId);
@@ -77,9 +91,12 @@ export function fixtureBuildCart(
       img(1, product.name);
 
     const unit = toHalalas(variant.price);
+    // Null means the product is not inventory-tracked, i.e. no ceiling. Zero is
+    // a real ceiling — the line stays visible at 0 so the shopper can see what
+    // sold out rather than having it disappear from under them.
     const maxQuantity = variant.available_quantity;
     const quantity =
-      maxQuantity !== null && maxQuantity > 0 ? Math.min(entry.quantity, maxQuantity) : entry.quantity;
+      maxQuantity !== null ? Math.min(entry.quantity, maxQuantity) : entry.quantity;
 
     lines.push({
       id: entry.variantId,

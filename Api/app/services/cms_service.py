@@ -12,6 +12,7 @@ from sqlalchemy import Select, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, NotFoundError
+from app.services import media_service
 from app.models.cms import (
     Banner,
     BannerTranslation,
@@ -86,6 +87,18 @@ def _sync_banner_translations(db: Session, banner: Banner, translations_in: list
             db.delete(row)
 
 
+def attach_banner_image_keys(db: Session, banners: list[Banner]) -> None:
+    """Resolve both artwork ids to storage keys, one query for the whole page.
+    Without this the edit form receives an id it cannot render and shows "No
+    image set" over a banner that has artwork."""
+    keys = media_service.storage_keys(
+        db, [b.media_desktop_id for b in banners] + [b.media_mobile_id for b in banners]
+    )
+    for banner in banners:
+        banner.media_desktop_key = keys.get(banner.media_desktop_id)
+        banner.media_mobile_key = keys.get(banner.media_mobile_id)
+
+
 def list_banners(
     db: Session,
     cursor: str | None,
@@ -98,13 +111,16 @@ def list_banners(
         stmt = stmt.where(Banner.placement == placement)
     if is_active is not None:
         stmt = stmt.where(Banner.is_active.is_(is_active))
-    return paginate(db, stmt, Banner, cursor, limit)
+    items, next_cursor = paginate(db, stmt, Banner, cursor, limit)
+    attach_banner_image_keys(db, items)
+    return items, next_cursor
 
 
 def get_banner(db: Session, banner_id: int) -> Banner:
     banner = db.get(Banner, banner_id, options=[selectinload(Banner.translations)])
     if banner is None:
         raise NotFoundError("Banner not found")
+    attach_banner_image_keys(db, [banner])
     return banner
 
 
@@ -133,6 +149,7 @@ def create_banner(db: Session, data) -> Banner:
     _sync_banner_translations(db, banner, data.translations)
     db.commit()
     db.refresh(banner)
+    attach_banner_image_keys(db, [banner])
     return banner
 
 
@@ -154,6 +171,7 @@ def update_banner(db: Session, banner_id: int, data) -> Banner:
 
     db.commit()
     db.refresh(banner)
+    attach_banner_image_keys(db, [banner])
     return banner
 
 

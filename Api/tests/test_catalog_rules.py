@@ -36,6 +36,17 @@ class FakeSession:
     def refresh(self, _value):
         pass
 
+    def execute(self, *_args, **_kwargs):
+        """Enough of a Result for the stock lookups that ride along on variant
+        reads. No online location means every quantity resolves to 0, which is
+        the right answer for a session that has no rows at all."""
+        return SimpleNamespace(
+            scalar_one_or_none=lambda: None,
+            scalar_one=lambda: None,
+            all=lambda: [],
+            first=lambda: None,
+        )
+
     def query(self, _model):
         return self
 

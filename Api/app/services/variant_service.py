@@ -13,9 +13,18 @@ from sqlalchemy.orm import Session
 
 from app.middleware.error import BusinessRuleError, NotFoundError
 from app.models.catalog import Product, Variant, VariantOptionValue
-from app.services import audit_service
+from app.services import audit_service, inventory_service
 
 MAX_VARIANTS_PER_PRODUCT = 300
+
+
+def attach_stock(db: Session, variants: list[Variant]) -> None:
+    """Hang the one stock number off each variant for serialisation. It is not
+    a column — see inventory_service's simple-stock section for why the number
+    lives at the default online location instead."""
+    quantities = inventory_service.stock_map(db, [variant.id for variant in variants])
+    for variant in variants:
+        variant.stock_quantity = quantities.get(variant.id, 0)
 
 
 def get_variant_option_value_ids(db: Session, variant_id: int) -> list[int]:
@@ -28,6 +37,7 @@ def get_variant(db: Session, variant_id: int) -> Variant:
     if variant is None:
         raise NotFoundError("Variant not found")
     variant.option_value_ids = get_variant_option_value_ids(db, variant_id)
+    attach_stock(db, [variant])
     return variant
 
 
@@ -35,10 +45,11 @@ def list_variants(db: Session, product_id: int) -> list[Variant]:
     variants = list(db.execute(select(Variant).where(Variant.product_id == product_id).order_by(Variant.position)).scalars().all())
     for v in variants:
         v.option_value_ids = get_variant_option_value_ids(db, v.id)
+    attach_stock(db, variants)
     return variants
 
 
-def update_variant(db: Session, variant_id: int, data) -> Variant:
+def update_variant(db: Session, variant_id: int, data, actor_user_id: int | None = None) -> Variant:
     variant = db.get(Variant, variant_id)
     if variant is None:
         raise NotFoundError("Variant not found")
@@ -48,9 +59,15 @@ def update_variant(db: Session, variant_id: int, data) -> Variant:
     for field in ("position", "is_active"):
         if field in data.model_fields_set and (value := getattr(data, field)) is not None:
             setattr(variant, field, value)
+    # Stock rides along on the same save so editing one variant row in the
+    # product form is a single request, and lands as a movement rather than a
+    # direct write (Hard Rule 2).
+    if data.stock_quantity is not None:
+        inventory_service.set_stock(db, variant_id, data.stock_quantity, actor_user_id)
     db.commit()
     db.refresh(variant)
     variant.option_value_ids = get_variant_option_value_ids(db, variant_id)
+    attach_stock(db, [variant])
     return variant
 
 
@@ -90,6 +107,7 @@ def update_variant_price(db: Session, variant_id: int, data, actor_user_id: int 
     db.commit()
     db.refresh(variant)
     variant.option_value_ids = get_variant_option_value_ids(db, variant_id)
+    attach_stock(db, [variant])
     return variant
 
 
@@ -148,6 +166,7 @@ def generate_variants(db: Session, product_id: int, combinations: list) -> list[
     if not new_combos:
         for v in real_existing:
             v.option_value_ids = get_variant_option_value_ids(db, v.id)
+        attach_stock(db, real_existing)
         return real_existing
 
     if placeholder is not None:
@@ -191,4 +210,6 @@ def generate_variants(db: Session, product_id: int, combinations: list) -> list[
         v.option_value_ids = get_variant_option_value_ids(db, v.id)
     for v in real_existing:
         v.option_value_ids = get_variant_option_value_ids(db, v.id)
-    return real_existing + created
+    result = real_existing + created
+    attach_stock(db, result)
+    return result

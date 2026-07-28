@@ -13,6 +13,7 @@ from app.schemas.catalog import (
     ProductMediaItemOut,
     ProductOut,
     ProductStatusUpdate,
+    ProductStockUpdate,
     ProductUpdate,
 )
 from app.services import media_service, product_service
@@ -96,6 +97,10 @@ def list_products(
     for p in items:
         p.category_ids = []
         p.is_on_offer = product_service.is_product_on_offer(p)
+    # One query each for the whole page's stock column and thumbnails, rather
+    # than one per row.
+    product_service.attach_stock_totals(db, items)
+    product_service.attach_primary_image_keys(db, items)
     return {"items": [ProductOut.model_validate(p) for p in items], "next_cursor": next_cursor}
 
 
@@ -112,6 +117,19 @@ def update_product(
     current_user: User = Depends(require("catalog.manage")),
 ) -> Product:
     return product_service.update_product(db, product_id, payload, current_user.id)
+
+
+@router.patch("/{product_id}/stock", response_model=ProductOut)
+def set_product_stock(
+    product_id: int,
+    payload: ProductStockUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require("stock.adjust")),
+) -> Product:
+    """Set every variant's stock quantity in one transaction — what the product
+    form's stock column saves. Each quantity still lands as a stock movement,
+    so the ledger stays the record of how the number got there."""
+    return product_service.set_product_stock(db, product_id, payload.items, current_user.id)
 
 
 @router.patch("/{product_id}/status", response_model=ProductOut)

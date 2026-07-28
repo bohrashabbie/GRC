@@ -37,8 +37,7 @@ from app.models.catalog import (
     StoreLocation,
     VariantOptionValue,
 )
-from app.models.inventory import Location, StockLevel
-from app.services import cms_service
+from app.services import cms_service, inventory_service
 
 
 def locale_from_header(value: str | None) -> str:
@@ -79,6 +78,9 @@ class CatalogData:
     options: dict[int, Option]
     availability: dict[int, int]
     product_attributes: dict[int, list[tuple[ProductAttribute, Attribute]]]
+    # product_id -> track_inventory. False means the product is always
+    # purchasable and its quantity is never consulted.
+    tracked: dict[int, bool]
 
 
 def _load_catalog(db: Session) -> CatalogData:
@@ -154,21 +156,10 @@ def _load_catalog(db: Session) -> CatalogData:
         item.id: item for item in db.execute(select(Media).where(Media.id.in_(media_ids))).scalars()
     } if media_ids else {}
 
-    availability: dict[int, int] = {variant_id: 0 for variant_id in variant_ids}
-    if variant_ids:
-        stock_rows = db.execute(
-            select(StockLevel, Location)
-            .join(Location, Location.id == StockLevel.location_id)
-            .where(
-                StockLevel.variant_id.in_(variant_ids),
-                Location.is_active.is_(True),
-                Location.is_sellable_online.is_(True),
-            )
-        ).all()
-        for level, _location in stock_rows:
-            availability[level.variant_id] += max(
-                level.on_hand - level.reserved - level.safety_stock, 0
-            )
+    # One number per variant, from the same single location checkout decrements.
+    # Summing several locations here would let the page advertise more than
+    # checkout could actually take.
+    availability = inventory_service.stock_map(db, variant_ids)
 
     attribute_rows = db.execute(
         select(ProductAttribute, Attribute)
@@ -190,6 +181,7 @@ def _load_catalog(db: Session) -> CatalogData:
         options=options,
         availability=availability,
         product_attributes=product_attributes,
+        tracked={product.id: product.track_inventory for product in products},
     )
 
 
@@ -221,12 +213,38 @@ def _sale_compare(product: Product, variant) -> Decimal | None:
     return compare if compare is not None and compare > _effective_price(product, variant) else None
 
 
-def _stock_state(quantity: int, threshold: int | None) -> str:
-    if quantity <= 0:
-        return "out_of_stock"
-    if threshold is not None and quantity <= threshold:
-        return "low_stock"
-    return "in_stock"
+def _is_on_offer(product: Product) -> bool:
+    return any(
+        _sale_compare(product, variant) is not None
+        for variant in product.variants
+        if variant.is_active
+    )
+
+
+# The merchandising collections the storefront can render as a full listing.
+# Membership is defined once here so a collection's rail on the home page and
+# its "view all" page can never disagree about what belongs in it — which they
+# did while every collection's href pointed at the category index.
+COLLECTION_CODES = ("best_sellers", "new_arrivals", "offers", "featured")
+
+
+def _in_collection(product: Product, code: str) -> bool:
+    if code == "best_sellers":
+        return product.is_best_seller
+    if code == "featured":
+        return product.is_featured
+    if code == "offers":
+        return _is_on_offer(product)
+    # new_arrivals is an ordering, not a membership test — every product is in
+    # it, newest first. Filtering by an age window instead would silently empty
+    # the home page rail as soon as the catalogue stopped being new.
+    return True
+
+
+def _stock_state(quantity: int, threshold: int | None, tracked: bool = True) -> str:
+    """Delegated so the storefront badge and the admin badge can never drift
+    apart on what counts as low."""
+    return inventory_service.stock_state(quantity, threshold, tracked)
 
 
 def _card(product: Product, data: CatalogData, locale: str, base_url: str) -> dict:
@@ -235,6 +253,7 @@ def _card(product: Product, data: CatalogData, locale: str, base_url: str) -> di
     chosen = variants[0] if variants else None
     price = _effective_price(product, chosen) if chosen else Decimal(product.base_price)
     compare = _sale_compare(product, chosen) if chosen else None
+    tracked = data.tracked.get(product.id, True)
     quantity = sum(data.availability.get(variant.id, 0) for variant in variants)
     thresholds = [variant.low_stock_threshold for variant in variants if variant.low_stock_threshold is not None]
     threshold = sum(thresholds) if thresholds else None
@@ -264,7 +283,7 @@ def _card(product: Product, data: CatalogData, locale: str, base_url: str) -> di
         badges.append("best_seller")
     if compare is not None:
         badges.append("sale")
-    if quantity > 0 and threshold is not None and quantity <= threshold:
+    if tracked and quantity > 0 and threshold is not None and quantity <= threshold:
         badges.append("limited")
 
     return {
@@ -280,7 +299,7 @@ def _card(product: Product, data: CatalogData, locale: str, base_url: str) -> di
         "hover_image": images[1] if len(images) > 1 else None,
         "price": _money(price),
         "compare_at_price": _money(compare) if compare is not None else None,
-        "stock_state": _stock_state(quantity, threshold),
+        "stock_state": _stock_state(quantity, threshold, tracked),
         "colour_swatches": [
             {
                 "option_value_id": str(value.id),
@@ -434,11 +453,17 @@ def product_list(
     min_price: Decimal | None = None,
     max_price: Decimal | None = None,
     sort: str | None = None,
+    collection: str | None = None,
     cursor: str | None = None,
     limit: int = 24,
 ) -> dict:
     data = _load_catalog(db)
     products = list(data.products)
+
+    if collection:
+        if collection not in COLLECTION_CODES:
+            raise NotFoundError("Collection not found")
+        products = [product for product in products if _in_collection(product, collection)]
 
     if category:
         categories = _category_rows(db)
@@ -658,6 +683,7 @@ def product_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
             ],
         })
 
+    tracked = data.tracked.get(product.id, True)
     variant_payloads = []
     for variant in variants:
         quantity = data.availability.get(variant.id, 0)
@@ -673,8 +699,13 @@ def product_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
             "sku": variant.sku,
             "price": _money(effective),
             "compare_at_price": _money(compare) if compare is not None else None,
-            "stock_state": _stock_state(quantity, variant.low_stock_threshold),
-            "available_quantity": quantity if variant.low_stock_threshold is not None and quantity <= variant.low_stock_threshold else None,
+            "stock_state": _stock_state(quantity, variant.low_stock_threshold, tracked),
+            # Always the real number when the product is tracked, so the
+            # quantity stepper has a ceiling to clamp to. It used to be sent
+            # only below the low-stock threshold, which left the stepper
+            # uncapped for exactly the variants that could still be oversold.
+            # Null means genuinely uncapped — made-to-order and digital.
+            "available_quantity": quantity if tracked else None,
             "option_values": coordinates,
         })
 
@@ -756,6 +787,31 @@ def product_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
     }
 
 
+def variant_stock(db: Session, variant_ids: list[int]) -> list[dict]:
+    """Live quantities for a set of variants, for the cart to clamp against
+    just before submit. The product page's number can be minutes old by the
+    time someone reaches checkout, and this is cheap enough to ask again."""
+    quantities = inventory_service.stock_map(db, variant_ids)
+    rows = db.execute(
+        select(Variant.id, Variant.low_stock_threshold, Product.track_inventory)
+        .join(Product, Product.id == Variant.product_id)
+        .where(Variant.id.in_(variant_ids))
+    ).all()
+    by_variant = {variant_id: (threshold, tracked) for variant_id, threshold, tracked in rows}
+
+    result = []
+    for variant_id in variant_ids:
+        threshold, tracked = by_variant.get(variant_id, (None, True))
+        quantity = quantities.get(variant_id, 0)
+        result.append({
+            "variant_id": variant_id,
+            "quantity": quantity,
+            "stock_state": inventory_service.stock_state(quantity, threshold, tracked),
+            "max_quantity": quantity if tracked else None,
+        })
+    return result
+
+
 def product_slugs(db: Session, locale: str) -> list[str]:
     return list(
         db.execute(
@@ -801,27 +857,27 @@ _COLLECTIONS = {
 
 
 def collection(db: Session, code: str, locale: str, base_url: str) -> dict:
-    data = _load_catalog(db)
-    products = list(data.products)
-    if code == "best_sellers":
-        products = [item for item in products if item.is_best_seller]
-    elif code == "offers":
-        products = [item for item in products if "sale" in _card(item, data, locale, base_url)["badges"]]
-    elif code == "new_arrivals":
-        products.sort(key=lambda item: (item.published_at or item.created_at, item.id), reverse=True)
-    elif code == "featured":
-        products = [item for item in products if item.is_featured]
-    else:
+    if code not in COLLECTION_CODES:
         raise NotFoundError("Collection not found")
-    products = products[:8]
+
+    data = _load_catalog(db)
+    products = [item for item in data.products if _in_collection(item, code)]
+    # Newest first for every collection, so the rail leads with the freshest
+    # stock rather than whatever order the catalogue happened to load in.
+    products.sort(key=lambda item: (item.published_at or item.created_at, item.id), reverse=True)
+    total = len(products)
+
     title, subtitle = _COLLECTIONS.get(code, {}).get(locale, (code.replace("_", " ").title(), None))
     return {
         "id": code,
         "code": code,
         "title": title,
         "subtitle": subtitle,
-        "href": "/c",
-        "products": [_card(item, data, locale, base_url) for item in products],
+        # Its own listing page. This used to be "/c" for every collection,
+        # which sent "view all best sellers" to the category index.
+        "href": f"/collections/{code}",
+        "total_count": total,
+        "products": [_card(item, data, locale, base_url) for item in products[:8]],
     }
 
 

@@ -48,7 +48,11 @@ export default async function CategoryIndexPage({ params }: PageProps) {
                     src={category.image.url}
                     alt=""
                     loading="lazy"
-                    className="aspect-[4/3] w-full object-cover transition-transform duration-500 ease-out-soft group-hover:scale-105"
+                    decoding="async"
+                    // A 4:3 window onto a 2:3 portrait cuts even harder than the
+                    // circular tiles do, so the same upper-third focal point
+                    // applies — a centred crop lands on torsos.
+                    className="aspect-[4/3] w-full object-cover object-[50%_22%] transition-transform duration-500 ease-out-soft group-hover:scale-105"
                   />
                 )}
               </span>

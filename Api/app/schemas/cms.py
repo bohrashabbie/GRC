@@ -63,6 +63,10 @@ class BannerRead(BaseModel):
     placement: str
     media_desktop_id: int | None
     media_mobile_id: int | None
+    # Resolved keys so the edit form can show the artwork it already has. With
+    # only the ids, a configured banner rendered as "No image set".
+    media_desktop_key: str | None = None
+    media_mobile_key: str | None = None
     link_type: str | None
     link_target_id: int | None
     link_url: str | None

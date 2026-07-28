@@ -29,6 +29,11 @@ class Order(Base, TimestampMixin):
     placed_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     cancelled_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
     cancel_reason: Mapped[str | None] = mapped_column(nullable=True)
+    # Set the first time this order's stock is put back (cancellation or full
+    # refund) and never cleared. The idempotency guard: a restock only runs
+    # while this is NULL, and stamping it happens in the same transaction as
+    # the movement rows, so no order can ever restock twice.
+    stock_restored_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
 
     items: Mapped[list["OrderItem"]] = relationship(back_populates="order", cascade="all, delete-orphan")
 

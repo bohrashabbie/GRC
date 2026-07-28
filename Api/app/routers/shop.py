@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Header, Query, Request
+from fastapi import APIRouter, Depends, Header, Query, Request, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.config import settings
-from app.services import shop_service
+from app.schemas.shop import CheckoutIn, CheckoutOut, StockCheckIn, VariantStockOut
+from app.services import checkout_service, shop_service
 
 router = APIRouter(tags=["shop"])
 
@@ -51,6 +52,9 @@ def products(
     min_price: Decimal | None = Query(None, ge=0),
     max_price: Decimal | None = Query(None, ge=0),
     sort: str | None = None,
+    collection: str | None = Query(
+        None, description="best_sellers | new_arrivals | offers | featured"
+    ),
     cursor: str | None = None,
     limit: int = Query(24, ge=1, le=100),
     accept_language: str | None = Header(None),
@@ -69,6 +73,7 @@ def products(
         min_price=min_price,
         max_price=max_price,
         sort=sort,
+        collection=collection,
         cursor=cursor,
         limit=limit,
     )
@@ -99,6 +104,44 @@ def product(slug: str, request: Request, accept_language: str | None = Header(No
 def collection(code: str, request: Request, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     locale, base_url = _context(request, accept_language)
     return shop_service.collection(db, code, locale, base_url)
+
+
+@router.post("/stock/check", response_model=list[VariantStockOut])
+def check_stock(payload: StockCheckIn, db: Session = Depends(get_db)) -> list[dict]:
+    """Live quantities for the cart to clamp its steppers against. Advisory
+    only — the authoritative check is the conditional decrement inside
+    POST /checkout, which is what actually stops an oversell."""
+    return shop_service.variant_stock(db, payload.variant_ids)
+
+
+@router.post("/checkout", response_model=CheckoutOut, status_code=status.HTTP_201_CREATED)
+def checkout(
+    payload: CheckoutIn,
+    accept_language: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Create the order and take its stock in one transaction.
+
+    Returns 409 with code=insufficient_stock and details.available when a line
+    cannot be filled, so the cart can say "only N left" and correct itself
+    rather than failing blankly. No order is created in that case.
+    """
+    order = checkout_service.create_order(
+        db, payload, locale=shop_service.locale_from_header(accept_language)
+    )
+    return {
+        "order_number": order.order_number,
+        "status": order.status,
+        "payment_status": order.payment_status,
+        "email": order.email,
+        "totals": {
+            "subtotal": order.subtotal,
+            "discount_total": order.discount_total,
+            "shipping_total": order.shipping_total,
+            "tax_total": order.tax_total,
+            "grand_total": order.grand_total,
+        },
+    }
 
 
 @router.get("/stores")

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -39,6 +39,14 @@ export function MediaPicker({
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(storageKey ?? null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // useState only seeds on first mount, and these pickers are mounted inside a
+  // dialog that opens before its record has loaded — so the key almost always
+  // arrives *after* the initial render. Without this, an existing image stayed
+  // invisible and the field read "No image set" over artwork that was there.
+  useEffect(() => {
+    if (storageKey) setPreview(storageKey)
+  }, [storageKey])
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]

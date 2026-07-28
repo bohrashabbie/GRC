@@ -132,7 +132,10 @@ function ProductDetailContent() {
               <ProductMediaTab productId={product.id} />
             </TabsContent>
             <TabsContent value="variants">
-              <ProductVariantsTab productId={product.id} />
+              <ProductVariantsTab
+                productId={product.id}
+                trackInventory={product.track_inventory}
+              />
             </TabsContent>
           </Tabs>
         </>

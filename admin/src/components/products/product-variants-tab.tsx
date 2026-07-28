@@ -2,10 +2,11 @@
 
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/table"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { StatusBadge } from "@/components/status-badge"
+import { StockBadge } from "@/components/stock-badge"
 import { RequirePermission } from "@/components/permission/require-permission"
 import {
   ListEmptyState,
@@ -31,6 +33,7 @@ import {
 } from "@/components/states/list-states"
 import { VariantMatrixBuilder } from "./variant-matrix-builder"
 import { VariantPriceDialog } from "./variant-price-dialog"
+import { usePermission } from "@/hooks/use-permission"
 import { optionsApi, optionValuesApi, productsApi, variantsApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { formatMoney, translatedLabel } from "@/lib/format"
@@ -38,14 +41,26 @@ import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import type { OptionValueOut, VariantOut } from "@/lib/api/types"
 
-export function ProductVariantsTab({ productId }: { productId: number }) {
+export function ProductVariantsTab({
+  productId,
+  trackInventory,
+}: {
+  productId: number
+  trackInventory: boolean
+}) {
   const t = useTranslations("products")
   const c = useTranslations("common")
   const locale = useLocale()
   const queryClient = useQueryClient()
+  const canAdjustStock = usePermission(PERMISSIONS.stockAdjust)
 
   const [pricing, setPricing] = useState<VariantOut | null>(null)
   const [discontinuing, setDiscontinuing] = useState<VariantOut | null>(null)
+  // Draft quantities, keyed by variant id. The inputs are controlled from here
+  // rather than from the query data so typing does not fight a refetch, and so
+  // the whole column can be saved as one transaction.
+  const [draft, setDraft] = useState<Record<number, string>>({})
+  const [savingStock, setSavingStock] = useState(false)
 
   const variantsQuery = useQuery({
     queryKey: queryKeys.products.variants(productId),
@@ -78,6 +93,59 @@ export function ProductVariantsTab({ productId }: { productId: number }) {
     return map
   }, [valueQueries, locale])
 
+  const variantsData = variantsQuery.data
+
+  // Re-seed the draft whenever the server's numbers change, so a save (or
+  // someone else's edit landing on a refetch) is reflected instead of leaving
+  // stale text in the boxes.
+  useEffect(() => {
+    if (!variantsData) return
+    setDraft(
+      Object.fromEntries(variantsData.map((v) => [v.id, String(v.stock_quantity)]))
+    )
+  }, [variantsData])
+
+  const dirtyStock = useMemo(() => {
+    if (!variantsData) return []
+    return variantsData.filter((variant) => {
+      const value = draft[variant.id]
+      return (
+        value !== undefined &&
+        value.trim() !== "" &&
+        Number(value) !== variant.stock_quantity
+      )
+    })
+  }, [variantsData, draft])
+
+  const hasInvalidStock = Object.values(draft).some(
+    (value) => value.trim() !== "" && !/^\d+$/.test(value.trim())
+  )
+
+  async function handleSaveStock() {
+    if (dirtyStock.length === 0) return
+    setSavingStock(true)
+    try {
+      await productsApi.setStock(productId, {
+        items: dirtyStock.map((variant) => ({
+          variant_id: variant.id,
+          stock_quantity: Number(draft[variant.id]),
+        })),
+      })
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.products.variants(productId),
+        }),
+        // The list page's stock column is derived from these numbers.
+        queryClient.invalidateQueries({ queryKey: queryKeys.products.all }),
+      ])
+      toast.success(t("variants.stockSaved"))
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
+    } finally {
+      setSavingStock(false)
+    }
+  }
+
   async function handleDiscontinue(variant: VariantOut) {
     try {
       await variantsApi.discontinue(variant.id)
@@ -99,6 +167,11 @@ export function ProductVariantsTab({ productId }: { productId: number }) {
         <CardHeader>
           <CardTitle>{t("variants.title")}</CardTitle>
           <CardDescription>{t("variants.description")}</CardDescription>
+          {!trackInventory && (
+            <p className="text-xs text-muted-foreground">
+              {t("variants.trackingOffNotice")}
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           {variantsQuery.isLoading && <ListLoadingSkeleton rows={4} />}
@@ -120,6 +193,9 @@ export function ProductVariantsTab({ productId }: { productId: number }) {
                     <TableHead>{t("variants.columns.options")}</TableHead>
                     <TableHead>{t("variants.columns.price")}</TableHead>
                     <TableHead>{t("variants.columns.comparePrice")}</TableHead>
+                    <TableHead className="w-40">
+                      {t("variants.columns.stock")}
+                    </TableHead>
                     <TableHead>{t("variants.columns.status")}</TableHead>
                     <TableHead />
                   </TableRow>
@@ -140,6 +216,35 @@ export function ProductVariantsTab({ productId }: { productId: number }) {
                       <TableCell>{formatMoney(variant.price, locale)}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {formatMoney(variant.compare_at_price, locale)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min={0}
+                            step={1}
+                            dir="ltr"
+                            inputMode="numeric"
+                            className="h-8 w-20"
+                            aria-label={t("variants.columns.stock")}
+                            value={draft[variant.id] ?? ""}
+                            onChange={(event) =>
+                              setDraft((current) => ({
+                                ...current,
+                                [variant.id]: event.target.value,
+                              }))
+                            }
+                            disabled={!canAdjustStock || !variant.is_active}
+                          />
+                          <StockBadge
+                            quantity={variant.stock_quantity}
+                            threshold={variant.low_stock_threshold}
+                            tracked={trackInventory}
+                            outOfStockLabel={t("variants.outOfStock")}
+                            lowStockLabel={t("variants.lowStock")}
+                            untrackedLabel={t("variants.untracked")}
+                          />
+                        </div>
                       </TableCell>
                       <TableCell>
                         <StatusBadge
@@ -177,6 +282,27 @@ export function ProductVariantsTab({ productId }: { productId: number }) {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {variants.length > 0 && canAdjustStock && (
+            <div className="mt-3 flex items-center justify-end gap-3">
+              {hasInvalidStock && (
+                <span className="text-xs text-destructive">
+                  {t("variants.stockInvalid")}
+                </span>
+              )}
+              <Button
+                size="sm"
+                onClick={handleSaveStock}
+                disabled={
+                  savingStock || hasInvalidStock || dirtyStock.length === 0
+                }
+              >
+                {savingStock
+                  ? c("saving")
+                  : t("variants.saveStock", { count: dirtyStock.length })}
+              </Button>
             </div>
           )}
         </CardContent>

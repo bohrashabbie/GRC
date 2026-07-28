@@ -32,11 +32,16 @@ function readString(value: string | string[] | undefined): string | undefined {
   return raw && raw.trim() ? raw.trim() : undefined;
 }
 
-export function parseListQuery(params: RawSearchParams, category?: string): ListQuery {
+export function parseListQuery(
+  params: RawSearchParams,
+  category?: string,
+  collection?: string,
+): ListQuery {
   const sort = readString(params.sort);
 
   return {
     category,
+    collection,
     q: readString(params.q),
     colour: readList(params.colour),
     size: readList(params.size),
@@ -55,6 +60,7 @@ export function parseListQuery(params: RawSearchParams, category?: string): List
 export function queryKey(query: ListQuery): string {
   return JSON.stringify({
     category: query.category ?? null,
+    collection: query.collection ?? null,
     q: query.q ?? null,
     colour: [...(query.colour ?? [])].sort(),
     size: [...(query.size ?? [])].sort(),

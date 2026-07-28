@@ -12,6 +12,7 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, NotFoundError
+from app.services import media_service
 from app.models.catalog import (
     Brand,
     BrandTranslation,
@@ -144,6 +145,15 @@ def _rewrite_subtree_paths(db: Session, old_path: str, new_path: str) -> None:
     )
 
 
+def attach_category_image_keys(db: Session, categories: list[Category]) -> None:
+    """Resolve each category's image_media_id to a storage key, in one query for
+    the whole page. Without it a category that has an image renders as though it
+    has none, because the client only ever received the id."""
+    keys = media_service.storage_keys(db, [c.image_media_id for c in categories])
+    for category in categories:
+        category.image_key = keys.get(category.image_media_id)
+
+
 def create_category(db: Session, data) -> Category:
     path, depth = _compute_path(db, data.parent_id, data.code)
     category = Category(
@@ -162,6 +172,7 @@ def create_category(db: Session, data) -> Category:
     _sync_seo_translations(db, [], data.translations, "category_id", category.id, CategoryTranslation)
     db.commit()
     db.refresh(category)
+    attach_category_image_keys(db, [category])
     return category
 
 
@@ -169,6 +180,7 @@ def get_category(db: Session, category_id: int) -> Category:
     category = db.get(Category, category_id, options=[selectinload(Category.translations)])
     if category is None:
         raise NotFoundError("Category not found")
+    attach_category_image_keys(db, [category])
     return category
 
 
@@ -206,6 +218,7 @@ def update_category(db: Session, category_id: int, data) -> Category:
         )
     db.commit()
     db.refresh(category)
+    attach_category_image_keys(db, [category])
     return category
 
 

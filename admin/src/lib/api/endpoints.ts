@@ -42,6 +42,7 @@ import type {
   ProductMediaItemOut,
   ProductMediaOut,
   ProductOut,
+  ProductStockUpdate,
   ProductUpdate,
   PurchaseOrderCreate,
   PurchaseOrderOut,
@@ -311,6 +312,9 @@ export const productsApi = {
     api.patch<ProductOut>(`/products/${productId}`, payload),
   setStatus: (productId: number, status: string) =>
     api.patch<ProductOut>(`/products/${productId}/status`, { status }),
+  /** Saves the whole stock column in one transaction. Needs stock.adjust. */
+  setStock: (productId: number, payload: ProductStockUpdate) =>
+    api.patch<ProductOut>(`/products/${productId}/stock`, payload),
   listVariants: (productId: number, signal?: AbortSignal) =>
     api.get<VariantOut[]>(`/products/${productId}/variants`, { signal }),
   /** The product's gallery, primary first, with each file inlined. */

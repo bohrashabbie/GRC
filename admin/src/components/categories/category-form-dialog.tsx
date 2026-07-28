@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -38,7 +38,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { MediaPicker } from "@/components/media/media-picker"
 import { TranslationNameFields } from "@/components/translations-fields"
-import { categoriesApi, mediaApi } from "@/lib/api/endpoints"
+import { categoriesApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { translatedName } from "@/lib/format"
@@ -113,18 +113,11 @@ export function CategoryFormDialog({
   const [imageMediaId, setImageMediaId] = useState<number | null>(
     category?.image_media_id ?? null
   )
-  const [imageKey, setImageKey] = useState<string | null>(null)
-
-  // CategoryOut carries only the id, so the preview needs one lookup.
-  const imageQuery = useQuery({
-    queryKey: ["media", category?.image_media_id],
-    queryFn: ({ signal }) => mediaApi.get(category!.image_media_id!, signal),
-    enabled: open && !!category?.image_media_id,
-  })
-
-  useEffect(() => {
-    if (imageQuery.data) setImageKey(imageQuery.data.storage_key)
-  }, [imageQuery.data])
+  // CategoryOut now resolves the storage key alongside the id, so the preview
+  // renders straight from the record instead of a follow-up request per form.
+  const [imageKey, setImageKey] = useState<string | null>(
+    category?.image_key ?? null
+  )
 
   const dimension = form.watch("dimension")
 

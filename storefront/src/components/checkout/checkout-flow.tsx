@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { AddressForm, validateAddress, type AddressFormErrors } from "./address-form";
+import { submitOrder } from "@/app/actions";
 import { useCart } from "@/components/cart/cart-provider";
 import { CartTotalsBlock } from "@/components/cart/cart-totals";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import type {
   AddressInput,
   City,
   PaymentMethod,
+  PaymentMethodCode,
   Region,
   ShippingMethod,
 } from "@/types/shop";
@@ -57,6 +59,13 @@ export function CheckoutFlow({
   const [paymentCode, setPaymentCode] = useState(paymentMethods[0]?.code ?? "mada");
   const [isPaying, setIsPaying] = useState(false);
   const [paymentFailed, setPaymentFailed] = useState(false);
+  // Someone else took the last one while this shopper was typing. Not a
+  // payment failure, and it needs its own wording plus a route back to the
+  // cart to fix the quantity.
+  const [stockProblem, setStockProblem] = useState<{
+    name: string;
+    available: number;
+  } | null>(null);
 
   const selectedShipping = shippingMethods.find((method) => method.id === shippingId);
 
@@ -102,29 +111,62 @@ export function CheckoutFlow({
   }
 
   /**
-   * Stubbed payment. The backend has no gateway yet, so this fakes the two
-   * states the UI actually has to handle — a processing spell and a terminal
-   * result — rather than pretending a card was charged.
+   * Creates the real order. There is still no payment gateway, so nothing is
+   * charged — but the order and its stock decrement are real, and they happen
+   * together in one server transaction.
+   *
+   * Stock is re-checked server-side at this point on purpose: the quantity the
+   * product page showed could be many minutes old by now, and the quantity
+   * this browser sends is never trusted.
    */
   async function placeOrder() {
+    if (!cart) return;
     setIsPaying(true);
     setPaymentFailed(false);
+    setStockProblem(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 1800));
+    const result = await submitOrder(
+      {
+        lines: cart.lines.map((line) => ({
+          variant_id: Number(line.variant_id),
+          quantity: line.quantity,
+        })),
+        email: email.trim(),
+        shipping_address: {
+          full_name: address.full_name ?? "",
+          phone: address.phone ?? "",
+          street: address.street ?? "",
+          district: address.district ?? "",
+          city_name: cities.find((city) => city.id === address.city_id)?.name ?? "",
+          region_name: regions.find((region) => region.id === address.region_id)?.name ?? "",
+          building_number: address.building_number ?? null,
+          short_address: address.short_address ?? null,
+          postal_code: address.postal_code ?? null,
+          additional_number: address.additional_number ?? null,
+        },
+        shipping_method_id: shippingId,
+        payment_method_code: paymentCode as PaymentMethodCode,
+      },
+      locale,
+    );
 
-    // Deterministic failure path so the error state is reachable in review:
-    // cash on delivery always succeeds, everything else succeeds too unless
-    // the coupon FAILPAY is applied.
-    if (cart?.coupon?.code === "FAILPAY") {
-      setIsPaying(false);
-      setPaymentFailed(true);
+    setIsPaying(false);
+
+    if (!result.ok) {
+      if (result.reason === "insufficient_stock") {
+        setStockProblem({
+          name: result.detail?.variant_name ?? "",
+          available: result.detail?.available ?? 0,
+        });
+      } else {
+        setPaymentFailed(true);
+      }
       return;
     }
 
-    const orderNumber = `GRC-${Math.floor(10_600 + Math.random() * 400)}`;
     await clear();
     router.push(
-      `/checkout/confirmation?order=${orderNumber}&email=${encodeURIComponent(email)}`,
+      `/checkout/confirmation?order=${result.order.order_number}&email=${encodeURIComponent(email)}`,
     );
   }
 
@@ -307,6 +349,25 @@ export function CheckoutFlow({
                       {paymentFailed && (
                         <div className="border-s-2 border-brick-600 bg-sand-100 px-4 py-3">
                           <p className="text-sm text-brick-600">{t("paymentFailed")}</p>
+                        </div>
+                      )}
+
+                      {stockProblem && (
+                        <div className="border-s-2 border-brick-600 bg-sand-100 px-4 py-3">
+                          <p className="text-sm font-medium text-brick-600">
+                            {stockProblem.available > 0
+                              ? t("stockChanged", {
+                                  name: stockProblem.name,
+                                  count: stockProblem.available,
+                                })
+                              : t("stockGone", { name: stockProblem.name })}
+                          </p>
+                          <Link
+                            href="/cart"
+                            className="mt-1.5 inline-block text-xs text-gold-700 underline underline-offset-4"
+                          >
+                            {t("backToCart")}
+                          </Link>
                         </div>
                       )}
 

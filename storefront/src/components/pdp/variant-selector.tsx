@@ -89,9 +89,16 @@ export function VariantSelector({
                   exists && candidates.every((v) => v.stock_state === "out_of_stock");
                 const isSelected = selection[option.id] === value.id;
 
-                const label = `${value.name}${
-                  !exists ? ` — ${t("unavailableCombination")}` : ""
-                }`;
+                // A sold-out option stays clickable on purpose. Disabling it
+                // would make it indistinguishable from a combination that was
+                // never built, and the shopper would get no explanation —
+                // selecting it surfaces the out-of-stock panel instead.
+                const suffix = !exists
+                  ? ` — ${t("unavailableCombination")}`
+                  : allSoldOut
+                    ? ` — ${t("outOfStockOption")}`
+                    : "";
+                const label = `${value.name}${suffix}`;
 
                 if (option.input_type === "swatch") {
                   return (
@@ -137,6 +144,7 @@ export function VariantSelector({
                       onClick={() => exists && onSelect(option.id, value.id)}
                       disabled={!exists}
                       aria-pressed={isSelected}
+                      title={label}
                       className={cn(
                         "tabular relative min-w-14 border px-4 py-2.5 text-sm transition-colors",
                         isSelected
@@ -148,9 +156,7 @@ export function VariantSelector({
                       )}
                     >
                       {value.name}
-                      <span className="sr-only">
-                        {!exists ? ` — ${t("unavailableCombination")}` : ""}
-                      </span>
+                      <span className="sr-only">{suffix}</span>
                     </button>
                   </li>
                 );

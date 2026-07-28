@@ -40,9 +40,14 @@ def get_variant(variant_id: int, db: Session = Depends(get_db), _user=Depends(re
 
 @router.patch("/variants/{variant_id}", response_model=VariantOut)
 def update_variant(
-    variant_id: int, payload: VariantUpdate, db: Session = Depends(get_db), _user=Depends(require("catalog.manage"))
+    variant_id: int,
+    payload: VariantUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require("catalog.manage")),
 ) -> Variant:
-    return variant_service.update_variant(db, variant_id, payload)
+    """Also accepts stock_quantity — editing the number on a variant row in the
+    product form is the only way stock changes by hand."""
+    return variant_service.update_variant(db, variant_id, payload, current_user.id)
 
 
 @router.patch("/variants/{variant_id}/price", response_model=VariantOut)

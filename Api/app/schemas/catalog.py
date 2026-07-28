@@ -109,6 +109,9 @@ class CategoryOut(BaseModel):
     depth: int
     code: str
     image_media_id: int | None
+    # Resolved alongside the id so a form can render the current image and a
+    # list can show a thumbnail, without a request per row.
+    image_key: str | None = None
     sort_order: int
     show_in_menu: bool
     is_active: bool
@@ -229,6 +232,7 @@ class ProductCreate(BaseModel):
     tax_class: str = "standard"
     is_featured: bool = False
     is_best_seller: bool = False
+    track_inventory: bool = True
     category_ids: list[int] = []
     translations: list[ProductTranslationIn] = Field(min_length=1)
 
@@ -240,6 +244,7 @@ class ProductUpdate(BaseModel):
     tax_class: str | None = None
     is_featured: bool | None = None
     is_best_seller: bool | None = None
+    track_inventory: bool | None = None
     category_ids: list[int] | None = None
     translations: list[ProductTranslationIn] | None = None
 
@@ -259,12 +264,21 @@ class ProductOut(BaseModel):
     is_featured: bool
     is_best_seller: bool
     is_on_offer: bool = False
+    track_inventory: bool = True
     rating_avg: Decimal | None
     rating_count: int
     published_at: datetime | None
     created_at: datetime
     translations: list[ProductTranslationOut]
     category_ids: list[int] = []
+    # Summed across the product's active variants, for the list page's stock
+    # column. Null on detail responses, where the per-variant numbers are the
+    # useful thing and this would only be their sum.
+    stock_quantity: int | None = None
+    stock_state: str | None = None
+    # Storage key of the product's primary gallery image, for the list
+    # thumbnail. Null when nothing has been uploaded yet.
+    primary_image_key: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -288,6 +302,10 @@ class VariantOut(BaseModel):
     discontinued_at: datetime | None
     created_at: datetime
     option_value_ids: list[int] = []
+    # The one stock number. Not a column on variants — resolved from the
+    # default online location's stock level, so the simple product-form input
+    # and the inventory ledger can never disagree.
+    stock_quantity: int = 0
 
     model_config = {"from_attributes": True}
 
@@ -295,9 +313,23 @@ class VariantOut(BaseModel):
 class VariantUpdate(BaseModel):
     barcode: str | None = None
     weight_grams: int | None = None
-    low_stock_threshold: int | None = None
+    low_stock_threshold: int | None = Field(default=None, ge=0)
     position: int | None = None
     is_active: bool | None = None
+    stock_quantity: int | None = Field(default=None, ge=0)
+
+
+class VariantStockIn(BaseModel):
+    variant_id: int
+    stock_quantity: int = Field(ge=0)
+
+
+class ProductStockUpdate(BaseModel):
+    """Saving the product form's stock column: every variant's quantity in one
+    request, so one transaction covers the whole edit rather than leaving a
+    half-applied grid behind if the tab is closed mid-save."""
+
+    items: list[VariantStockIn] = Field(min_length=1)
 
 
 class VariantPriceUpdate(BaseModel):

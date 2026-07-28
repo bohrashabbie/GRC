@@ -25,7 +25,7 @@ import { ProductCreateDialog } from "@/components/products/product-create-dialog
 import { useCursorList } from "@/hooks/use-cursor-list"
 import { useQueryParam } from "@/hooks/use-query-param"
 import { brandsApi, productsApi } from "@/lib/api/endpoints"
-import { formatMoney, translatedName } from "@/lib/format"
+import { formatMoney, mediaUrl, translatedName } from "@/lib/format"
 import {
   PRODUCT_STATUS_VALUES,
   PRODUCT_TYPE_VALUES,
@@ -103,6 +103,27 @@ function ProductsContent() {
 
   const columns: ColumnDef<ProductOut, unknown>[] = [
     {
+      id: "image",
+      header: "",
+      cell: ({ row }) =>
+        row.original.primary_image_key ? (
+          // Served from the API's own origin, outside Next's image optimiser,
+          // so this stays a plain img like the rest of the admin.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={mediaUrl(row.original.primary_image_key)}
+            alt=""
+            loading="lazy"
+            className="h-11 w-11 rounded-md border border-border object-cover"
+          />
+        ) : (
+          <div
+            className="h-11 w-11 rounded-md border border-dashed border-border"
+            aria-hidden="true"
+          />
+        ),
+    },
+    {
       id: "name",
       header: t("columns.name"),
       cell: ({ row }) => (
@@ -140,6 +161,38 @@ function ProductsContent() {
       header: t("columns.offer"),
       cell: ({ row }) =>
         row.original.is_on_offer ? <Badge variant="secondary">{t("offer")}</Badge> : "—",
+    },
+    {
+      id: "stock",
+      header: t("columns.stock"),
+      // Total across the product's variants, with the badge reflecting the
+      // worst variant rather than the total — 40 in stock is no comfort when
+      // the size the customer wants is the one at zero.
+      cell: ({ row }) => {
+        const product = row.original
+        if (!product.track_inventory) {
+          return (
+            <Badge variant="outline" className="whitespace-nowrap">
+              {t("variants.untracked")}
+            </Badge>
+          )
+        }
+        return (
+          <div className="flex items-center gap-2">
+            <span className="tabular-nums">{product.stock_quantity ?? 0}</span>
+            {product.stock_state === "out_of_stock" && (
+              <Badge variant="destructive" className="whitespace-nowrap">
+                {t("variants.outOfStock")}
+              </Badge>
+            )}
+            {product.stock_state === "low_stock" && (
+              <Badge variant="secondary" className="whitespace-nowrap">
+                {t("variants.lowStock")}
+              </Badge>
+            )}
+          </div>
+        )
+      },
     },
     {
       accessorKey: "created_at",

@@ -247,6 +247,8 @@ export type CategoryOut = {
   depth: number
   code: string
   image_media_id: number | null
+  /** Resolved storage key for image_media_id, so a preview needs no extra fetch. */
+  image_key: string | null
   sort_order: number
   show_in_menu: boolean
   is_active: boolean
@@ -399,13 +401,23 @@ export type ProductOut = {
   is_featured: boolean
   is_best_seller: boolean
   is_on_offer: boolean
+  /** False means always purchasable and the stock number is ignored. */
+  track_inventory: boolean
   rating_avg: string | null
   rating_count: number
   published_at: string | null
   created_at: string
   translations: ProductTranslationOut[]
   category_ids: number[]
+  /** Summed across active variants. Null on responses that do not compute it. */
+  stock_quantity: number | null
+  /** Worst-of across active variants, so one sold-out size shows on the row. */
+  stock_state: StockState | null
+  /** Storage key of the primary gallery image, for the list thumbnail. */
+  primary_image_key: string | null
 }
+
+export type StockState = "in_stock" | "low_stock" | "out_of_stock"
 
 export type ProductCreate = {
   brand_id?: number | null
@@ -414,6 +426,7 @@ export type ProductCreate = {
   tax_class?: string
   is_featured?: boolean
   is_best_seller?: boolean
+  track_inventory?: boolean
   category_ids?: number[]
   translations: ProductTranslationIn[]
 }
@@ -425,6 +438,7 @@ export type ProductUpdate = {
   tax_class?: string | null
   is_featured?: boolean | null
   is_best_seller?: boolean | null
+  track_inventory?: boolean | null
   category_ids?: number[] | null
   translations?: ProductTranslationIn[] | null
 }
@@ -456,6 +470,8 @@ export type VariantOut = {
   discontinued_at: string | null
   created_at: string
   option_value_ids: number[]
+  /** The one stock number, resolved from the default online location. */
+  stock_quantity: number
 }
 
 export type VariantUpdate = {
@@ -464,6 +480,13 @@ export type VariantUpdate = {
   low_stock_threshold?: number | null
   position?: number | null
   is_active?: boolean | null
+  stock_quantity?: number | null
+}
+
+/** Every variant's quantity in one request, so a product form save is one
+ *  transaction rather than a row-at-a-time trickle. */
+export type ProductStockUpdate = {
+  items: { variant_id: number; stock_quantity: number }[]
 }
 
 export type VariantPriceUpdate = {
@@ -1017,6 +1040,9 @@ export type BannerOut = {
   placement: BannerPlacement
   media_desktop_id: number | null
   media_mobile_id: number | null
+  /** Resolved storage keys, so the edit form can show existing artwork. */
+  media_desktop_key: string | null
+  media_mobile_key: string | null
   link_type: BannerLinkType | null
   link_target_id: number | null
   link_url: string | null

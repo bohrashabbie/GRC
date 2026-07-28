@@ -127,7 +127,9 @@ export function fixtureCollection(code: string, locale: LocaleCode): Collection 
     code,
     title: meta ? meta.title[locale] : code,
     subtitle: meta ? meta.subtitle[locale] : null,
-    href: `/c/thobes`,
+    // Its own listing page, matching the API. Pointing every collection at a
+    // category sent "view all best sellers" to a category listing instead.
+    href: `/collections/${code}`,
     products,
   };
 }

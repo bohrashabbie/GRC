@@ -16,6 +16,22 @@ _EXTENSIONS = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 
 
+def storage_keys(db: Session, media_ids) -> dict[int, str]:
+    """{media_id: storage_key} for a batch of ids, skipping None.
+
+    Every record that points at media (a category's image, a banner's desktop
+    artwork, a product's primary shot) needs this to render a preview. Returning
+    only the id forces the client to either fire one request per row or show
+    nothing — and showing nothing is what made a set image read as "No image
+    set" on every edit form.
+    """
+    wanted = {media_id for media_id in media_ids if media_id is not None}
+    if not wanted:
+        return {}
+    rows = db.query(Media.id, Media.storage_key).filter(Media.id.in_(wanted)).all()
+    return {media_id: key for media_id, key in rows}
+
+
 def upload_media(db: Session, file: UploadFile, uploaded_by_user_id: int) -> Media:
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise BusinessRuleError(

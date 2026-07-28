@@ -369,13 +369,15 @@
       "categories": "Categories",
       "shortDescription": "Short description",
       "description": "Description",
-      "status": "Status"
+      "status": "Status",
+      "trackInventory": "Track inventory"
     },
     "hints": {
       "basePrice": "VAT-inclusive price in SAR. Variants can override it.",
       "categories": "A product can sit in several categories across dimensions.",
       "isBestSeller": "Shows the best-seller badge and includes this product in the storefront's Best Sellers rail.",
-      "defaultVariant": "Every product has at least one variant — a default one is created automatically."
+      "defaultVariant": "Every product has at least one variant — a default one is created automatically.",
+      "trackInventory": "Off for made-to-order or digital items — always purchasable, and the per-variant quantities below are ignored."
     },
     "columns": {
       "name": "Product",
@@ -384,7 +386,8 @@
       "status": "Status",
       "basePrice": "Base price",
       "offer": "Offer",
-      "created": "Created"
+      "created": "Created",
+      "stock": "Stock"
     },
     "filters": {
       "status": "Status",
@@ -435,8 +438,16 @@
         "comparePrice": "Compare at",
         "costPrice": "Cost",
         "barcode": "Barcode",
-        "status": "Status"
-      }
+        "status": "Status",
+        "stock": "Stock"
+      },
+      "outOfStock": "Out of stock",
+      "lowStock": "Low",
+      "untracked": "Not tracked",
+      "saveStock": "Save stock ({count})",
+      "stockSaved": "Stock updated.",
+      "stockInvalid": "Quantities must be whole numbers, zero or more.",
+      "trackingOffNotice": "Inventory tracking is off for this product, so these quantities are recorded but never checked at checkout."
     }
   },
   "locations": {

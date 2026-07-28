@@ -11,6 +11,8 @@ import type {
   OrderDetail,
   OrderSummary,
   PaymentMethod,
+  PlaceOrderInput,
+  PlacedOrder,
   ProductCard,
   ProductDetail,
   ProductListResponse,
@@ -19,6 +21,7 @@ import type {
   ShippingMethod,
   StaticPage,
   StoreLocation,
+  VariantStock,
 } from "@/types/shop";
 import {
   fixtureAddresses,
@@ -186,6 +189,7 @@ export async function getProductList(
       revalidate: 300,
       searchParams: {
         category: query.category,
+        collection: query.collection,
         q: query.q,
         colour: query.colour?.join(","),
         size: query.size?.join(","),
@@ -306,7 +310,7 @@ export async function getPage(slug: string, locale: LocaleCode): Promise<StaticP
 export async function getPageSlugs(): Promise<string[]> {
   try {
     return await shopFetch<string[]>("/pages/slugs", { locale: "ar", revalidate: 3600 });
-  } catch (error) {
+  } catch {
     // Build-time only: an unreachable API must not fail the build.
     if (!USE_FIXTURES || !ALLOW_CATALOG_FALLBACK) return [];
     return fixturePageSlugs();
@@ -365,6 +369,12 @@ export async function getPaymentMethods(locale: LocaleCode): Promise<PaymentMeth
  * The real endpoint takes a cart id from a cookie and returns the server's
  * view. The fixture path rebuilds it from ids the browser persisted — but the
  * arithmetic still happens outside any component, in `mocks/cart-engine.ts`.
+ *
+ * The *products* behind those ids are fetched live whenever the catalogue is
+ * live, even though the totals are still computed by the stand-in engine.
+ * Pricing a live catalogue against fixture products would find no match for a
+ * real variant and quietly drop the line, which is how a cart ends up empty
+ * one click after something was added to it.
  */
 export async function getCart(
   stored: StoredLine[],
@@ -372,8 +382,19 @@ export async function getCart(
   couponCode: string | null = null,
   shippingPrice: string | null = null,
 ): Promise<Cart> {
-  if (USE_FIXTURES) return fixtureBuildCart(stored, locale, couponCode, shippingPrice);
-  return shopFetch<Cart>("/cart", { locale, revalidate: false });
+  if (!USE_FIXTURES) return shopFetch<Cart>("/cart", { locale, revalidate: false });
+
+  const slugs = [...new Set(stored.map((line) => line.productSlug))];
+  const resolved = await Promise.all(slugs.map((slug) => getProduct(slug, locale)));
+  const bySlug = new Map(slugs.map((slug, index) => [slug, resolved[index]]));
+
+  return fixtureBuildCart(
+    stored,
+    locale,
+    couponCode,
+    shippingPrice,
+    (slug) => bySlug.get(slug) ?? null,
+  );
 }
 
 export async function validateCoupon(code: string, locale: LocaleCode): Promise<boolean> {
@@ -384,6 +405,49 @@ export async function validateCoupon(code: string, locale: LocaleCode): Promise<
   } catch {
     return false;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Checkout                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Live stock for the ids the browser is holding.
+ *
+ * Advisory: it lets the cart correct itself before the shopper commits. The
+ * check that actually prevents an oversell is the conditional decrement inside
+ * `placeOrder`, which runs in the same transaction as the order insert.
+ */
+export async function getVariantStock(
+  variantIds: number[],
+  locale: LocaleCode,
+): Promise<VariantStock[]> {
+  if (variantIds.length === 0) return [];
+  return shopFetch<VariantStock[]>("/stock/check", {
+    locale,
+    revalidate: false,
+    method: "POST",
+    body: { variant_ids: variantIds },
+  });
+}
+
+/**
+ * Places the order. Never cached, never retried automatically — a retry after
+ * an ambiguous failure could double-charge and double-decrement.
+ *
+ * Throws ShopApiError with code `insufficient_stock` and a populated `details`
+ * when a line cannot be filled; no order is created in that case.
+ */
+export async function placeOrder(
+  input: PlaceOrderInput,
+  locale: LocaleCode,
+): Promise<PlacedOrder> {
+  return shopFetch<PlacedOrder>("/checkout", {
+    locale,
+    revalidate: false,
+    method: "POST",
+    body: input,
+  });
 }
 
 /* -------------------------------------------------------------------------- */

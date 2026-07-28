@@ -103,6 +103,14 @@ export function BannerFormDialog({
   const [mobileId, setMobileId] = useState<number | null>(
     banner?.media_mobile_id ?? null
   )
+  // The API resolves these alongside the ids. Holding only the id is what made
+  // a banner with artwork render as "No image set".
+  const [desktopKey, setDesktopKey] = useState<string | null>(
+    banner?.media_desktop_key ?? null
+  )
+  const [mobileKey, setMobileKey] = useState<string | null>(
+    banner?.media_mobile_key ?? null
+  )
 
   const [text, setText] = useState<Record<string, TextFields>>({
     ar: banner ? textFrom(banner, "ar") : emptyText(),
@@ -214,13 +222,21 @@ export function BannerFormDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <MediaPicker
               value={desktopId}
-              onChange={(id) => setDesktopId(id)}
+              storageKey={desktopKey}
+              onChange={(id, key) => {
+                setDesktopId(id)
+                setDesktopKey(key)
+              }}
               label={t("fields.desktopImage")}
               hint={t("fields.desktopHint")}
             />
             <MediaPicker
               value={mobileId}
-              onChange={(id) => setMobileId(id)}
+              storageKey={mobileKey}
+              onChange={(id, key) => {
+                setMobileId(id)
+                setMobileKey(key)
+              }}
               label={t("fields.mobileImage")}
               hint={t("fields.mobileHint")}
             />
