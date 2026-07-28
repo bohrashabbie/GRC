@@ -56,7 +56,12 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </div>
         </Link>
 
-        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-2.5">
+        {/* z-10 matters: the product name below carries a stretched link whose
+            ::after covers the whole card. That pseudo-element comes later in
+            the DOM, so without a stacking context here it paints over the
+            heart and swallows the click — the button looked dead and the page
+            navigated to the product instead. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between p-2.5">
           <ul className="flex flex-col items-start gap-1.5">
             {percent !== null && (
               // `dir="ltr"` isolates the badge: the leading U+2212 is
@@ -86,7 +91,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             )}
           </ul>
 
-          <WishlistButton className="pointer-events-auto" />
+          <WishlistButton productId={product.id} className="pointer-events-auto" />
         </div>
 
         {isSoldOut && (

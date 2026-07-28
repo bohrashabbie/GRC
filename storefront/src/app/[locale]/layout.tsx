@@ -9,6 +9,9 @@ import { Footer } from "@/components/layout/footer";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { MobileMenuProvider } from "@/components/layout/mobile-menu";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { SessionProvider } from "@/components/account/session-provider";
+import { WishlistProvider } from "@/components/product/wishlist-provider";
+import { currentCustomer, loadWishlist } from "@/app/actions";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { fontVariables } from "@/lib/fonts";
 import { getCategoryTree } from "@/lib/shop-api";
@@ -51,13 +54,21 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const typedLocale = locale as Locale;
-  const categories = await getCategoryTree(typedLocale);
+  // Fetched here so the first paint already knows who is signed in and which
+  // hearts are filled, instead of every card flashing empty and correcting.
+  const [categories, customer, wishlist] = await Promise.all([
+    getCategoryTree(typedLocale),
+    currentCustomer(typedLocale),
+    loadWishlist(typedLocale),
+  ]);
 
   return (
     <html lang={locale} dir={localeDirection[typedLocale]} className={fontVariables}>
       <body className="flex min-h-dvh flex-col">
         <NextIntlClientProvider>
-          <CartProvider>
+          <SessionProvider customer={customer}>
+            <WishlistProvider initialProductIds={wishlist}>
+              <CartProvider>
             <MobileMenuProvider categories={categories}>
               <Header locale={typedLocale} />
               {/* The bottom nav is fixed and ~64px tall, so the last section of
@@ -67,7 +78,9 @@ export default async function LocaleLayout({
               <MobileBottomNav />
               <CartDrawer />
             </MobileMenuProvider>
-          </CartProvider>
+              </CartProvider>
+            </WishlistProvider>
+          </SessionProvider>
         </NextIntlClientProvider>
       </body>
     </html>

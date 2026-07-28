@@ -476,11 +476,30 @@ export interface VariantStock {
 /* -------------------------------------------------------------------------- */
 
 export interface Customer {
-  id: string;
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
+export interface RegisterInput {
   first_name: string;
   last_name: string;
   email: string;
-  phone: string | null;
+  password: string;
+  phone?: string | null;
+  locale?: string;
+  accepts_marketing?: boolean;
+}
+
+/**
+ * The token comes back in the body so a Server Action can put it in an
+ * httpOnly cookie. It is never exposed to browser JavaScript.
+ */
+export interface CustomerSession {
+  token: string;
+  customer: Customer;
 }
 
 export type OrderStatus =

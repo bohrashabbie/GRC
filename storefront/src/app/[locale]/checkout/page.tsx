@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { redirect } from "next/navigation";
+
+import { currentCustomer } from "@/app/actions";
 import { CheckoutFlow } from "@/components/checkout/checkout-flow";
 import { getCities, getPaymentMethods, getRegions, getShippingMethods } from "@/lib/shop-api";
 import type { Locale } from "@/i18n/routing";
@@ -18,6 +21,12 @@ export default async function CheckoutPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const typedLocale = locale as Locale;
+
+  // Shopping requires an account, so an unauthenticated shopper cannot have a
+  // cart to check out. Redirecting rather than rendering a dead form.
+  const customer = await currentCustomer(typedLocale);
+  if (!customer) redirect(`/${locale}/account/login`);
+
   const [t, regions, cities, shippingMethods, paymentMethods] = await Promise.all([
     getTranslations("checkout"),
     getRegions(typedLocale),
@@ -30,6 +39,7 @@ export default async function CheckoutPage({ params }: PageProps) {
     <div className="container-site py-10 lg:py-14">
       <h1 className="mb-10 font-display text-h1 text-ink-900">{t("title")}</h1>
       <CheckoutFlow
+        email={customer.email ?? ""}
         regions={regions}
         cities={cities}
         shippingMethods={shippingMethods}

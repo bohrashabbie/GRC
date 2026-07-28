@@ -148,8 +148,6 @@
     "stepAddress": "عنوان التوصيل",
     "stepShipping": "طريقة الشحن",
     "stepPayment": "الدفع",
-    "guestOrLogin": "أتمم الشراء كزائر، أو سجّل الدخول لتجربة أسرع.",
-    "continueAsGuest": "المتابعة كزائر",
     "signIn": "تسجيل الدخول",
     "email": "البريد الإلكتروني",
     "fullName": "الاسم الكامل",
@@ -232,7 +230,18 @@
     "deleteAddress": "حذف",
     "defaultAddress": "الافتراضي",
     "setDefault": "تعيين كافتراضي",
-    "notSignedIn": "سجّل الدخول لعرض هذه الصفحة."
+    "notSignedIn": "سجّل الدخول لعرض هذه الصفحة.",
+    "loginRequired": "سجل الدخول للمتابعة",
+    "loginForWishlist": "احفظ القطع في المفضلة واعثر عليها من أي جهاز.",
+    "loginForCart": "تحتاج إلى حساب لإضافة المنتجات إلى السلة.",
+    "loginForCheckout": "سجل الدخول لإتمام طلبك.",
+    "notNow": "ليس الآن",
+    "addToWishlist": "أضف إلى المفضلة",
+    "removeFromWishlist": "إزالة من المفضلة",
+    "passwordTooShort": "استخدم 8 أحرف على الأقل",
+    "emailTaken": "يوجد حساب بهذا البريد بالفعل",
+    "badCredentials": "البريد أو كلمة المرور غير صحيحة",
+    "submitting": "انتظر قليلاً…"
   },
   "orders": {
     "orderNumber": "الطلب {number}",

@@ -148,8 +148,6 @@
     "stepAddress": "Delivery address",
     "stepShipping": "Shipping method",
     "stepPayment": "Payment",
-    "guestOrLogin": "Checkout as guest, or sign in for a faster checkout.",
-    "continueAsGuest": "Continue as guest",
     "signIn": "Sign in",
     "email": "Email address",
     "fullName": "Full name",
@@ -232,7 +230,18 @@
     "deleteAddress": "Delete",
     "defaultAddress": "Default",
     "setDefault": "Set as default",
-    "notSignedIn": "Sign in to see this page."
+    "notSignedIn": "Sign in to see this page.",
+    "loginRequired": "Sign in to continue",
+    "loginForWishlist": "Save pieces to your wishlist and find them on any device.",
+    "loginForCart": "You need an account to add items to your bag.",
+    "loginForCheckout": "Sign in to complete your order.",
+    "notNow": "Not now",
+    "addToWishlist": "Save to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
+    "passwordTooShort": "Use at least 8 characters",
+    "emailTaken": "An account with this email already exists",
+    "badCredentials": "Email or password is incorrect",
+    "submitting": "Please wait…"
   },
   "orders": {
     "orderNumber": "Order {number}",

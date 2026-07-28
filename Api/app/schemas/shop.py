@@ -74,3 +74,46 @@ class VariantStockOut(BaseModel):
     stock_state: str
     """Null when the product is not inventory-tracked, i.e. no ceiling at all."""
     max_quantity: int | None
+
+
+# --------------------------------------------------------------------------
+# Customer accounts
+# --------------------------------------------------------------------------
+
+class RegisterIn(BaseModel):
+    first_name: str = Field(min_length=1, max_length=80)
+    last_name: str = Field(min_length=1, max_length=80)
+    email: EmailStr
+    # Validated for length in the service, not here, so the failure comes back
+    # as a branchable code rather than a Pydantic field error.
+    password: str = Field(min_length=1, max_length=200)
+    phone: str | None = Field(default=None, max_length=20)
+    locale: str | None = None
+    accepts_marketing: bool = False
+
+
+class LoginIn(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=200)
+
+
+class CustomerOut(BaseModel):
+    id: int
+    email: str | None
+    first_name: str | None
+    last_name: str | None
+    phone: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class SessionOut(BaseModel):
+    """The token is returned in the body so the storefront's route handler can
+    put it in an httpOnly cookie. It is never handed to browser JavaScript."""
+
+    token: str
+    customer: CustomerOut
+
+
+class WishlistOut(BaseModel):
+    product_ids: list[int]

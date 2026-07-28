@@ -3,14 +3,46 @@ from __future__ import annotations
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Header, Query, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.config import settings
-from app.schemas.shop import CheckoutIn, CheckoutOut, StockCheckIn, VariantStockOut
-from app.services import checkout_service, shop_service
+from app.middleware.error import AuthenticationError
+from app.middleware.security import decode_customer_access_token
+from app.models.customers import Customer
+from app.schemas.shop import (
+    CheckoutIn,
+    CheckoutOut,
+    CustomerOut,
+    LoginIn,
+    RegisterIn,
+    SessionOut,
+    StockCheckIn,
+    VariantStockOut,
+    WishlistOut,
+)
+from app.services import account_service, checkout_service, shop_service
 
 router = APIRouter(tags=["shop"])
+
+_customer_bearer = HTTPBearer(auto_error=False)
+
+
+def get_current_customer(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_customer_bearer),
+    db: Session = Depends(get_db),
+) -> Customer:
+    """Resolves a shopper from a customer-typed token.
+
+    decode_customer_access_token refuses a staff token outright, so this can
+    never hand back a Customer for someone holding admin credentials, and the
+    admin's get_current_user refuses a customer token in the same way.
+    """
+    if credentials is None:
+        raise AuthenticationError("Sign in to continue.", code="login_required")
+    payload = decode_customer_access_token(credentials.credentials)
+    return account_service.get_customer(db, int(payload["sub"]))
 
 
 def _context(request: Request, accept_language: str | None) -> tuple[str, str]:
@@ -191,3 +223,65 @@ def page_slugs(accept_language: str | None = Header(None), db: Session = Depends
 @router.get("/pages/{slug}")
 def page(slug: str, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     return shop_service.page(db, slug, shop_service.locale_from_header(accept_language))
+
+
+# --------------------------------------------------------------------------
+# Customer accounts and wishlist
+# --------------------------------------------------------------------------
+
+
+@router.post("/account/register", response_model=SessionOut, status_code=status.HTTP_201_CREATED)
+def register(payload: RegisterIn, db: Session = Depends(get_db)):
+    """Creates the account and signs the shopper straight in — making someone
+    who just chose a password type it again immediately is friction with no
+    security benefit."""
+    customer, token = account_service.register(db, payload)
+    return {"token": token, "customer": _customer_payload(customer)}
+
+
+@router.post("/account/login", response_model=SessionOut)
+def login(payload: LoginIn, db: Session = Depends(get_db)):
+    customer, token = account_service.login(db, payload.email, payload.password)
+    return {"token": token, "customer": _customer_payload(customer)}
+
+
+@router.get("/account/me", response_model=CustomerOut)
+def me(customer: Customer = Depends(get_current_customer)):
+    return _customer_payload(customer)
+
+
+@router.get("/wishlist", response_model=WishlistOut)
+def get_wishlist(
+    customer: Customer = Depends(get_current_customer), db: Session = Depends(get_db)
+):
+    return {"product_ids": account_service.wishlist_product_ids(db, customer.id)}
+
+
+@router.post("/wishlist/{product_id}", response_model=WishlistOut)
+def add_to_wishlist(
+    product_id: int,
+    customer: Customer = Depends(get_current_customer),
+    db: Session = Depends(get_db),
+):
+    account_service.add_to_wishlist(db, customer.id, product_id)
+    return {"product_ids": account_service.wishlist_product_ids(db, customer.id)}
+
+
+@router.delete("/wishlist/{product_id}", response_model=WishlistOut)
+def remove_from_wishlist(
+    product_id: int,
+    customer: Customer = Depends(get_current_customer),
+    db: Session = Depends(get_db),
+):
+    account_service.remove_from_wishlist(db, customer.id, product_id)
+    return {"product_ids": account_service.wishlist_product_ids(db, customer.id)}
+
+
+def _customer_payload(customer: Customer) -> dict:
+    return {
+        "id": customer.id,
+        "email": customer.email,
+        "first_name": customer.first_name,
+        "last_name": customer.last_name,
+        "phone": customer.phone_e164,
+    }

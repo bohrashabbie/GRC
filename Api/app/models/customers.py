@@ -4,7 +4,7 @@ from sqlalchemy import CHAR, Boolean, ForeignKey, Index, BigInteger, TIMESTAMP
 from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampMixin
+from app.models.base import Base, CreatedAtMixin, TimestampMixin
 
 
 class Customer(Base, TimestampMixin):
@@ -54,3 +54,28 @@ class CustomerAddress(Base, TimestampMixin):
     customer: Mapped["Customer"] = relationship(back_populates="addresses")
 
     __table_args__ = (Index("ix_customer_addresses_customer_id", "customer_id"),)
+
+
+class WishlistItem(Base, CreatedAtMixin):
+    """One row per (customer, product) the shopper has saved.
+
+    The workbook models this as wishlists + wishlist_items, a named-list design
+    that only earns its keep when a shopper can keep several lists. There is one
+    heart on a product card and one wishlist page, so a single join table says
+    the same thing with half the moving parts. Splitting it later is an additive
+    migration, not a rewrite.
+
+    Rows are hard-deleted when un-hearted: no order can reference a wishlist
+    entry, so the soft-delete rule has nothing to protect here.
+    """
+
+    __tablename__ = "wishlist_items"
+
+    customer_id: Mapped[int] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), primary_key=True
+    )
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), primary_key=True
+    )
+
+    __table_args__ = (Index("ix_wishlist_items_customer_id", "customer_id"),)

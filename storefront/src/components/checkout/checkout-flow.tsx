@@ -8,7 +8,6 @@ import { submitOrder } from "@/app/actions";
 import { useCart } from "@/components/cart/cart-provider";
 import { CartTotalsBlock } from "@/components/cart/cart-totals";
 import { Button } from "@/components/ui/button";
-import { TextField } from "@/components/ui/field";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import { formatPrice } from "@/lib/format";
@@ -22,23 +21,27 @@ import type {
 } from "@/types/shop";
 import { cn } from "@/lib/utils";
 
-type Step = "contact" | "address" | "shipping" | "payment";
+type Step = "address" | "shipping" | "payment";
 
-const STEPS: Step[] = ["contact", "address", "shipping", "payment"];
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const STEPS: Step[] = ["address", "shipping", "payment"];
 
 /**
- * Four-step checkout on one page — each step collapses to a summary line once
+ * Three-step checkout on one page — each step collapses to a summary line once
  * completed, so the shopper can always see how far along they are without a
  * multi-page flow that loses state on a back button.
+ *
+ * There is no guest step: the cart itself requires an account, so anyone who
+ * reaches this page is signed in and their email is already known. Asking for
+ * it again would be a form field with one possible answer.
  */
 export function CheckoutFlow({
+  email,
   regions,
   cities,
   shippingMethods,
   paymentMethods,
 }: {
+  email: string;
   regions: Region[];
   cities: City[];
   shippingMethods: ShippingMethod[];
@@ -50,9 +53,7 @@ export function CheckoutFlow({
   const router = useRouter();
   const { cart, setShippingPrice, clear } = useCart();
 
-  const [step, setStep] = useState<Step>("contact");
-  const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState<string>();
+  const [step, setStep] = useState<Step>("address");
   const [address, setAddress] = useState<Partial<AddressInput>>({});
   const [addressErrors, setAddressErrors] = useState<AddressFormErrors>({});
   const [shippingId, setShippingId] = useState(shippingMethods[0]?.id ?? "");
@@ -91,15 +92,6 @@ export function CheckoutFlow({
     );
   }
 
-  function completeContact() {
-    if (!EMAIL_PATTERN.test(email.trim())) {
-      setEmailError(t("invalidEmail"));
-      return;
-    }
-    setEmailError(undefined);
-    setStep("address");
-  }
-
   function completeAddress() {
     const errors = validateAddress(address, {
       required: t("required"),
@@ -130,7 +122,7 @@ export function CheckoutFlow({
           variant_id: Number(line.variant_id),
           quantity: line.quantity,
         })),
-        email: email.trim(),
+        email,
         // Slugs, not names: the server resolves the labels so an order can
         // never be snapshotted with a governorate name that disagrees with the
         // code the shopper picked.
@@ -200,13 +192,11 @@ export function CheckoutFlow({
                     {index + 1}
                   </span>
                   {t(
-                    current === "contact"
-                      ? "stepContact"
-                      : current === "address"
-                        ? "stepAddress"
-                        : current === "shipping"
-                          ? "stepShipping"
-                          : "stepPayment",
+                    current === "address"
+                      ? "stepAddress"
+                      : current === "shipping"
+                        ? "stepShipping"
+                        : "stepPayment",
                   )}
                 </h2>
 
@@ -223,30 +213,6 @@ export function CheckoutFlow({
 
               {isActive && (
                 <div className="border-t border-hairline px-5 py-6">
-                  {current === "contact" && (
-                    <div className="space-y-5">
-                      <p className="text-sm text-ink-500">{t("guestOrLogin")}</p>
-                      <TextField
-                        label={t("email")}
-                        type="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.currentTarget.value)}
-                        error={emailError}
-                        autoComplete="email"
-                        dir="ltr"
-                      />
-                      <div className="flex flex-wrap gap-3">
-                        <Button onClick={completeContact}>{t("continueAsGuest")}</Button>
-                        <Link
-                          href="/account/login"
-                          className="inline-flex h-11 items-center px-2 text-sm text-ink-700 underline underline-offset-4"
-                        >
-                          {t("signIn")}
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-
                   {current === "address" && (
                     <div className="space-y-6">
                       <AddressForm

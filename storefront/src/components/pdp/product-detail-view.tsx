@@ -154,7 +154,7 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
           <Button size="lg" className="flex-1" onClick={onAdd} disabled={!canAdd || isPending}>
             {isPending ? t("adding") : t("addToCart")}
           </Button>
-          <WishlistButton className="size-13 border border-hairline-strong" />
+          <WishlistButton productId={product.id} className="size-13 border border-hairline-strong" />
         </div>
 
         <ProductAccordion product={product} locale={locale} />

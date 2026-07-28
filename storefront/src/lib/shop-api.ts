@@ -23,6 +23,7 @@ import type {
   StoreLocation,
   VariantStock,
 } from "@/types/shop";
+import type { Customer, CustomerSession, RegisterInput } from "@/types/shop";
 import {
   fixtureAddresses,
   fixtureBanners,
@@ -90,6 +91,9 @@ interface FetchOptions {
   searchParams?: Record<string, string | number | undefined>;
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
+  /** Customer session token. Read from an httpOnly cookie by the caller — it
+   *  never originates in browser JavaScript. */
+  token?: string | null;
 }
 
 async function shopFetch<T>(path: string, options: FetchOptions): Promise<T> {
@@ -113,6 +117,7 @@ async function shopFetch<T>(path: string, options: FetchOptions): Promise<T> {
     headers: {
       "Accept-Language": options.locale,
       ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
     next: live ? undefined : { revalidate: window },
@@ -458,6 +463,87 @@ export async function placeOrder(
     revalidate: false,
     method: "POST",
     body: input,
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Customer accounts and wishlist                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * These four are the only calls that carry a credential, and none of them is
+ * ever cached — `revalidate: false` on every one, because a wishlist shared
+ * between two shoppers via the ISR cache would be a data leak, not a stale
+ * page.
+ */
+
+export async function registerCustomer(
+  input: RegisterInput,
+  locale: LocaleCode,
+): Promise<CustomerSession> {
+  return shopFetch<CustomerSession>("/account/register", {
+    locale,
+    revalidate: false,
+    method: "POST",
+    body: input,
+  });
+}
+
+export async function loginCustomer(
+  email: string,
+  password: string,
+  locale: LocaleCode,
+): Promise<CustomerSession> {
+  return shopFetch<CustomerSession>("/account/login", {
+    locale,
+    revalidate: false,
+    method: "POST",
+    body: { email, password },
+  });
+}
+
+export async function fetchCustomer(
+  token: string,
+  locale: LocaleCode,
+): Promise<Customer> {
+  return shopFetch<Customer>("/account/me", { locale, revalidate: false, token });
+}
+
+export async function fetchWishlist(
+  token: string,
+  locale: LocaleCode,
+): Promise<{ product_ids: number[] }> {
+  return shopFetch<{ product_ids: number[] }>("/wishlist", {
+    locale,
+    revalidate: false,
+    token,
+  });
+}
+
+export async function saveToWishlist(
+  productId: string,
+  token: string,
+  locale: LocaleCode,
+): Promise<{ product_ids: number[] }> {
+  return shopFetch<{ product_ids: number[] }>(`/wishlist/${productId}`, {
+    locale,
+    revalidate: false,
+    method: "POST",
+    body: {},
+    token,
+  });
+}
+
+export async function removeFromWishlist(
+  productId: string,
+  token: string,
+  locale: LocaleCode,
+): Promise<{ product_ids: number[] }> {
+  return shopFetch<{ product_ids: number[] }>(`/wishlist/${productId}`, {
+    locale,
+    revalidate: false,
+    method: "DELETE",
+    token,
   });
 }
 

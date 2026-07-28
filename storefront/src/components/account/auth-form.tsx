@@ -1,21 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useState, useTransition } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
-import { Link } from "@/i18n/navigation";
+import { registerAccount, signIn } from "@/app/actions";
+import { Link, useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/field";
+import type { LocaleCode } from "@/types/shop";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Sign-in and registration.
  *
- * `customer_sessions` and `verification_tokens` do not exist yet, so these
- * forms validate and show their pending state but do not authenticate. The
- * layout, validation and error handling are final; only the submit handler
- * changes when `POST /shop/v1/auth/login` lands.
+ * Both submit through a Server Action so the session token lands in an httpOnly
+ * cookie and never touches browser JavaScript. On success the router is
+ * refreshed as well as pushed: the layout resolves the customer and their
+ * wishlist server-side, so without a refresh the header and every heart would
+ * still render signed-out until the next full load.
  */
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const t = useTranslations("account");
@@ -30,7 +33,10 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     confirm: "",
   });
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
-  const [isPending, setIsPending] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const locale = useLocale() as LocaleCode;
+  const router = useRouter();
 
   const isRegister = mode === "register";
 
@@ -40,6 +46,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
+    setFormError(null);
 
     const next: Record<string, string | undefined> = {};
     if (!EMAIL_PATTERN.test(values.email.trim())) next.email = tCheckout("invalidEmail");
@@ -48,14 +55,47 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     if (isRegister) {
       if (!values.first_name.trim()) next.first_name = tCheckout("required");
       if (!values.last_name.trim()) next.last_name = tCheckout("required");
+      if (values.password.length < 8) next.password = t("passwordTooShort");
       if (values.password !== values.confirm) next.confirm = t("passwordMismatch");
     }
 
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
-    setIsPending(true);
-    setTimeout(() => setIsPending(false), 900);
+    startTransition(async () => {
+      const result = isRegister
+        ? await registerAccount(
+            {
+              first_name: values.first_name.trim(),
+              last_name: values.last_name.trim(),
+              email: values.email.trim(),
+              password: values.password,
+              phone: values.phone.trim() || null,
+              locale,
+            },
+            locale,
+          )
+        : await signIn(values.email.trim(), values.password, locale);
+
+      if (result.ok) {
+        router.push("/account");
+        // The layout reads the session on the server, so a push alone would
+        // leave the header and the hearts rendering as signed out.
+        router.refresh();
+        return;
+      }
+
+      // Field-level where the server points at a field, banner otherwise.
+      if (result.code === "email_already_registered") {
+        setErrors({ email: t("emailTaken") });
+      } else if (result.code === "password_too_short") {
+        setErrors({ password: t("passwordTooShort") });
+      } else if (result.code === "authentication_failed") {
+        setFormError(t("badCredentials"));
+      } else {
+        setFormError(result.message);
+      }
+    });
   }
 
   return (
@@ -69,6 +109,12 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-5">
+          {formError && (
+            <div role="alert" className="border-s-2 border-brick-600 bg-sand-100 px-4 py-3">
+              <p className="text-sm text-brick-600">{formError}</p>
+            </div>
+          )}
+
           {isRegister && (
             <div className="grid gap-5 sm:grid-cols-2">
               <TextField
@@ -139,7 +185,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           )}
 
           <Button type="submit" size="lg" className="w-full" disabled={isPending}>
-            {isRegister ? t("register") : t("signIn")}
+            {isPending ? t("submitting") : isRegister ? t("register") : t("signIn")}
           </Button>
         </form>
 
