@@ -438,28 +438,19 @@ export function fixtureShippingMethods(locale: LocaleCode): ShippingMethod[] {
 
 export function fixturePaymentMethods(locale: LocaleCode): PaymentMethod[] {
   const isAr = locale === "ar";
+  // Cash on delivery only. There is no payment gateway wired up, so offering
+  // mada, card, Apple Pay or Tamara would take a card number the backend has
+  // nowhere to send — a checkout that cannot succeed is worse than one option
+  // that can. The others come back when a gateway does; the backend keeps its
+  // own allowlist so the two cannot drift.
   return [
-    { code: "mada", name: "mada", description: null, surcharge: null, is_available: true },
-    {
-      code: "card",
-      name: isAr ? "بطاقة ائتمانية" : "Credit card",
-      description: "Visa · Mastercard",
-      surcharge: null,
-      is_available: true,
-    },
-    { code: "apple_pay", name: "Apple Pay", description: null, surcharge: null, is_available: true },
-    {
-      code: "tamara",
-      name: "Tamara",
-      description: isAr ? "قسّمها على 4 دفعات" : "Split into 4 payments",
-      surcharge: null,
-      is_available: true,
-    },
     {
       code: "cod",
       name: isAr ? "الدفع عند الاستلام" : "Cash on delivery",
-      description: isAr ? "رسوم إضافية 15 ريال" : "15 SAR surcharge",
-      surcharge: "15.00",
+      description: isAr
+        ? "ادفع نقدًا عند وصول طلبك"
+        : "Pay in cash when your order arrives",
+      surcharge: null,
       is_available: true,
     },
   ];

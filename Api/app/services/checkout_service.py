@@ -54,6 +54,12 @@ FREE_SHIPPING_METHOD = "standard"
 
 MAX_LINES_PER_ORDER = 50
 
+# Cash on delivery is the only method that can actually complete. There is no
+# gateway, so accepting a card method would record an order as placed against a
+# payment that was never attempted. Add to this set when a gateway lands — the
+# storefront reads the same shortlist, so the two cannot drift.
+ENABLED_PAYMENT_METHODS = {"cod"}
+
 
 def _money(value: Decimal) -> Decimal:
     return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -133,6 +139,13 @@ def create_order(
     """
     if not data.lines:
         raise BusinessRuleError("Cannot place an order with an empty cart.", code="empty_cart")
+    if data.payment_method_code not in ENABLED_PAYMENT_METHODS:
+        raise BusinessRuleError(
+            f"'{data.payment_method_code}' is not available yet. "
+            f"Please choose {', '.join(sorted(ENABLED_PAYMENT_METHODS))}.",
+            code="payment_method_unavailable",
+            details={"enabled": sorted(ENABLED_PAYMENT_METHODS)},
+        )
     if len(data.lines) > MAX_LINES_PER_ORDER:
         raise BusinessRuleError(
             f"An order can hold at most {MAX_LINES_PER_ORDER} lines (got {len(data.lines)}).",
@@ -286,16 +299,18 @@ def create_order(
             reason="Order placed",
         )
     )
-    # No gateway in this build: the payment is recorded as initiated so the
-    # admin can see the intent, and is never marked captured by this code.
+    # Cash on delivery: nothing is charged online, so the payment row records
+    # an amount that is *pending collection on delivery* rather than a capture
+    # that was attempted and succeeded. The admin marks it captured when the
+    # driver hands the cash over.
     db.add(
         Payment(
             order_id=order_id,
-            provider="manual",
+            provider="cash_on_delivery",
             method=data.payment_method_code,
             amount=grand_total,
             currency="SAR",
-            status="initiated",
+            status="pending",
             idempotency_key=f"order-{order_id}-initial",
         )
     )

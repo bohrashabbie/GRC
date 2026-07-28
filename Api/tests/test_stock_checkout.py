@@ -39,7 +39,9 @@ def _checkout(lines: list[tuple[int, int]]):
             extra_directions="Second floor, flat 5",
         ),
         shipping_method_id="standard",
-        payment_method_code="mada",
+        # Cash on delivery is the only method checkout_service accepts while
+        # there is no gateway; see ENABLED_PAYMENT_METHODS.
+        payment_method_code="cod",
     )
 
 
@@ -148,6 +150,30 @@ def test_cancelling_twice_restores_stock_only_once(factory, session):
     assert order_service._restore_stock_once(session, reloaded) is False
     session.commit()
     assert _on_hand(session, variant_id) == 10
+
+
+def test_only_cash_on_delivery_can_complete_a_checkout(factory, session):
+    """No gateway exists, so a card method must be refused outright rather than
+    recording an order against a payment nobody ever attempted."""
+    from app.middleware.error import BusinessRuleError
+
+    product = factory.product(stock=5)
+    variant_id = product.variants[0].id
+
+    for method in ("mada", "card", "apple_pay", "tamara"):
+        payload = _checkout([(variant_id, 1)])
+        payload.payment_method_code = method
+        with pytest.raises(BusinessRuleError) as exc:
+            checkout_service.create_order(session, payload)
+        assert exc.value.code == "payment_method_unavailable"
+        session.rollback()
+
+    # And nothing was taken for any of those refusals.
+    assert _on_hand(session, variant_id) == 5
+
+    order = checkout_service.create_order(session, _checkout([(variant_id, 1)]))
+    assert order.status == "pending"
+    assert _on_hand(session, variant_id) == 4
 
 
 def test_untracked_product_sells_at_zero_and_leaves_the_number_alone(factory, session):

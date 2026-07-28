@@ -59,7 +59,10 @@ export function CheckoutFlow({
   const [shippingId, setShippingId] = useState(shippingMethods[0]?.id ?? "");
   const [paymentCode, setPaymentCode] = useState(paymentMethods[0]?.code ?? "mada");
   const [isPaying, setIsPaying] = useState(false);
-  const [paymentFailed, setPaymentFailed] = useState(false);
+  // The server's own message, not a blanket "payment failed". Cash on delivery
+  // takes no money at checkout, so claiming a payment failed would describe
+  // something that never happened and hide the actual reason.
+  const [orderError, setOrderError] = useState<string | null>(null);
   // Someone else took the last one while this shopper was typing. Not a
   // payment failure, and it needs its own wording plus a route back to the
   // cart to fix the quantity.
@@ -113,7 +116,7 @@ export function CheckoutFlow({
   async function placeOrder() {
     if (!cart) return;
     setIsPaying(true);
-    setPaymentFailed(false);
+    setOrderError(null);
     setStockProblem(null);
 
     const result = await submitOrder(
@@ -151,7 +154,7 @@ export function CheckoutFlow({
           available: result.detail?.available ?? 0,
         });
       } else {
-        setPaymentFailed(true);
+        setOrderError(result.message);
       }
       return;
     }
@@ -312,9 +315,12 @@ export function CheckoutFlow({
                           ))}
                       </ul>
 
-                      {paymentFailed && (
-                        <div className="border-s-2 border-brick-600 bg-sand-100 px-4 py-3">
-                          <p className="text-sm text-brick-600">{t("paymentFailed")}</p>
+                      {orderError && (
+                        <div
+                          role="alert"
+                          className="border-s-2 border-brick-600 bg-sand-100 px-4 py-3"
+                        >
+                          <p className="text-sm text-brick-600">{orderError}</p>
                         </div>
                       )}
 

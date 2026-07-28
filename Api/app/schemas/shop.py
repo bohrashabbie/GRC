@@ -46,7 +46,9 @@ class CheckoutIn(BaseModel):
     email: EmailStr
     shipping_address: CheckoutAddressIn
     shipping_method_id: str
-    payment_method_code: Literal["mada", "card", "apple_pay", "tamara", "cod"] = "mada"
+    # Widened again when a gateway lands; checkout_service holds the
+    # authoritative allowlist of what can actually complete today.
+    payment_method_code: Literal["mada", "card", "apple_pay", "tamara", "cod"] = "cod"
 
 
 class CheckoutTotalsOut(BaseModel):
