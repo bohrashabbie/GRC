@@ -453,6 +453,44 @@ export function fixturePaymentMethods(locale: LocaleCode): PaymentMethod[] {
       surcharge: null,
       is_available: true,
     },
+    {
+      code: "mada",
+      name: isAr ? "\u0645\u062f\u0649" : "Mada",
+      description: isAr
+        ? "\u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u062d\u0627\u0644\u064a\u0627\u064b"
+        : "Currently unavailable",
+      surcharge: null,
+      is_available: false,
+    },
+    {
+      code: "card",
+      name: isAr
+        ? "\u0628\u0637\u0627\u0642\u0629 \u0627\u0626\u062a\u0645\u0627\u0646\u064a\u0629"
+        : "Credit or debit card",
+      description: isAr
+        ? "\u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u062d\u0627\u0644\u064a\u0627\u064b"
+        : "Currently unavailable",
+      surcharge: null,
+      is_available: false,
+    },
+    {
+      code: "apple_pay",
+      name: "Apple Pay",
+      description: isAr
+        ? "\u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u062d\u0627\u0644\u064a\u0627\u064b"
+        : "Currently unavailable",
+      surcharge: null,
+      is_available: false,
+    },
+    {
+      code: "tamara",
+      name: "Tamara",
+      description: isAr
+        ? "\u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u062d\u0627\u0644\u064a\u0627\u064b"
+        : "Currently unavailable",
+      surcharge: null,
+      is_available: false,
+    },
   ];
 }
 

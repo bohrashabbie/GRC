@@ -461,6 +461,7 @@ export async function getVariantStock(
  */
 export async function placeOrder(
   input: PlaceOrderInput,
+  token: string | null,
   locale: LocaleCode,
 ): Promise<PlacedOrder> {
   return shopFetch<PlacedOrder>("/checkout", {
@@ -468,6 +469,7 @@ export async function placeOrder(
     revalidate: false,
     method: "POST",
     body: input,
+    token,
   });
 }
 

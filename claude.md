@@ -4,7 +4,7 @@ This file is context for Claude Code across sessions. Read it before making any 
 
 ## What this project is
 
-**GRC** — Saudi men's traditional-wear ecommerce, thobes-focused. Bilingual
+**GR8** — Saudi men's traditional-wear ecommerce, thobes-focused. Bilingual
 Arabic/English, Arabic default, RTL primary layout. Originally scaffolded as an
 "AlShiaka clone"; the product was renamed to GRC and the catalog is thobes only.
 Two repos, siblings, not nested:

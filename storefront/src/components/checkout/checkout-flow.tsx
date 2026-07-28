@@ -57,7 +57,9 @@ export function CheckoutFlow({
   const [address, setAddress] = useState<Partial<AddressInput>>({});
   const [addressErrors, setAddressErrors] = useState<AddressFormErrors>({});
   const [shippingId, setShippingId] = useState(shippingMethods[0]?.id ?? "");
-  const [paymentCode, setPaymentCode] = useState(paymentMethods[0]?.code ?? "mada");
+  const [paymentCode, setPaymentCode] = useState(
+    paymentMethods.find((method) => method.is_available)?.code ?? "cod",
+  );
   const [isPaying, setIsPaying] = useState(false);
   // The server's own message, not a blanket "payment failed". Cash on delivery
   // takes no money at checkout, so claiming a payment failed would describe
@@ -282,16 +284,16 @@ export function CheckoutFlow({
                   {current === "payment" && (
                     <div className="space-y-5">
                       <ul className="space-y-3">
-                        {paymentMethods
-                          .filter((method) => method.is_available)
-                          .map((method) => (
+                        {paymentMethods.map((method) => (
                             <li key={method.code}>
                               <label
                                 className={cn(
-                                  "flex cursor-pointer items-center gap-3 border p-4 transition-colors",
-                                  paymentCode === method.code
-                                    ? "border-ink-900 bg-sand-100"
-                                    : "border-hairline-strong hover:border-ink-400",
+                                  "flex items-center gap-3 border p-4 transition-colors",
+                                  !method.is_available
+                                    ? "cursor-not-allowed border-hairline bg-sand-50 opacity-50"
+                                    : paymentCode === method.code
+                                      ? "cursor-pointer border-ink-900 bg-sand-100"
+                                      : "cursor-pointer border-hairline-strong hover:border-ink-400",
                                 )}
                               >
                                 <input
@@ -299,8 +301,9 @@ export function CheckoutFlow({
                                   name="payment"
                                   value={method.code}
                                   checked={paymentCode === method.code}
+                                  disabled={!method.is_available}
                                   onChange={() => setPaymentCode(method.code)}
-                                  className="size-4 accent-palm-600"
+                                  className="size-4 accent-palm-600 disabled:cursor-not-allowed"
                                 />
                                 <span className="flex-1">
                                   <span className="text-sm text-ink-900">{method.name}</span>

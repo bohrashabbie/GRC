@@ -122,8 +122,9 @@ export async function submitOrder(
   input: PlaceOrderInput,
   locale: LocaleCode,
 ): Promise<PlaceOrderResult> {
+  const token = await getSessionToken();
   try {
-    return { ok: true, order: await placeOrder(input, locale) };
+    return { ok: true, order: await placeOrder(input, token, locale) };
   } catch (error) {
     if (error instanceof ShopApiError && error.code === "insufficient_stock") {
       return {
