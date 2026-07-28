@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { OrderStatusBadge, STATUS_KEY } from "@/components/account/order-status";
 import { ChevronForwardIcon } from "@/components/ui/icons";
 import { getOrder } from "@/lib/shop-api";
-import { formatDate, formatPrice } from "@/lib/format";
+import { addressLines, formatDate, formatPrice } from "@/lib/format";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
@@ -139,11 +139,11 @@ export default async function OrderDetailPage({ params }: PageProps) {
           <h3 className="eyebrow mb-3">{t("deliveryAddress")}</h3>
           <address className="text-sm not-italic leading-relaxed text-ink-600">
             {order.shipping_address.full_name}
-            <br />
-            {order.shipping_address.street}, {order.shipping_address.district}
-            <br />
-            {order.shipping_address.city_name}, {order.shipping_address.region_name}
-            <br />
+            {addressLines(order.shipping_address).map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
             <span dir="ltr">{order.shipping_address.phone}</span>
           </address>
 

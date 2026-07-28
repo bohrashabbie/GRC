@@ -20,6 +20,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
+from app import kuwait
 from app.middleware.error import BusinessRuleError, NotFoundError
 from app.models.catalog import (
     Option,
@@ -225,20 +226,35 @@ def create_order(db: Session, data, *, locale: str = "ar") -> Order:
     order.grand_total = grand_total
 
     address = data.shipping_address
+    # Governorate and area names are resolved from their slugs rather than
+    # taken from the request, so the snapshot can never carry a label that
+    # disagrees with the code the shopper actually picked.
+    governorate_name = kuwait.governorate_name(address.governorate_id, locale)
+    area_name = kuwait.area_name(address.area_id, locale)
+    if governorate_name is None or area_name is None:
+        raise BusinessRuleError(
+            "Unknown governorate or area for this delivery address.",
+            code="unknown_delivery_area",
+            details={"governorate_id": address.governorate_id, "area_id": address.area_id},
+        )
+
     db.add(
         OrderAddress(
             order_id=order_id,
             type="shipping",
             recipient_name=address.full_name,
             phone_e164=address.phone,
-            line1=address.street,
-            line2=address.building_number,
-            district=address.district,
-            city=address.city_name,
-            region_name=address.region_name,
-            postal_code=address.postal_code,
-            country_code="SA",
-            national_short_address=address.short_address,
+            # Kuwait addresses have no street numbering to speak of, so the
+            # building and the street are the two lines that matter, and the
+            # block is the district-level division above them.
+            line1=f"Street {address.street}, Building {address.building}",
+            line2=address.extra_directions,
+            district=f"Block {address.block}",
+            city=area_name,
+            region_name=governorate_name,
+            postal_code=None,
+            country_code="KW",
+            national_short_address=None,
         )
     )
     db.add(

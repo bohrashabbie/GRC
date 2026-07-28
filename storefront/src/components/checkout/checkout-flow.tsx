@@ -104,7 +104,6 @@ export function CheckoutFlow({
     const errors = validateAddress(address, {
       required: t("required"),
       invalidPhone: t("invalidPhone"),
-      invalidShortAddress: t("invalidShortAddress"),
     });
     setAddressErrors(errors);
     if (Object.keys(errors).length === 0) setStep("shipping");
@@ -132,17 +131,18 @@ export function CheckoutFlow({
           quantity: line.quantity,
         })),
         email: email.trim(),
+        // Slugs, not names: the server resolves the labels so an order can
+        // never be snapshotted with a governorate name that disagrees with the
+        // code the shopper picked.
         shipping_address: {
           full_name: address.full_name ?? "",
           phone: address.phone ?? "",
+          governorate_id: address.governorate_id ?? "",
+          area_id: address.area_id ?? "",
+          block: address.block ?? "",
           street: address.street ?? "",
-          district: address.district ?? "",
-          city_name: cities.find((city) => city.id === address.city_id)?.name ?? "",
-          region_name: regions.find((region) => region.id === address.region_id)?.name ?? "",
-          building_number: address.building_number ?? null,
-          short_address: address.short_address ?? null,
-          postal_code: address.postal_code ?? null,
-          additional_number: address.additional_number ?? null,
+          building: address.building ?? "",
+          extra_directions: address.extra_directions ?? null,
         },
         shipping_method_id: shippingId,
         payment_method_code: paymentCode as PaymentMethodCode,

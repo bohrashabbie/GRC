@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { getAddresses } from "@/lib/shop-api";
+import { addressLines } from "@/lib/format";
 import type { Locale } from "@/i18n/routing";
 
 type PageProps = { params: Promise<{ locale: string }> };
@@ -44,36 +45,15 @@ export default async function AddressesPage({ params }: PageProps) {
             <p className="font-medium text-ink-900">{address.full_name}</p>
 
             <address className="mt-2 not-italic leading-relaxed">
-              {address.building_number && `${address.building_number}, `}
-              {address.street}
-              <br />
-              {address.district}
-              <br />
-              {address.city_name}, {address.region_name}
-              {address.postal_code && (
-                <>
-                  <br />
-                  <span className="tabular" dir="ltr">
-                    {address.postal_code}
-                    {address.additional_number ? `-${address.additional_number}` : ""}
-                  </span>
-                </>
-              )}
-              <br />
-              <span className="tabular" dir="ltr">
+              {addressLines(address).map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))}
+              <span className="tabular block" dir="ltr">
                 {address.phone}
               </span>
             </address>
-
-            {address.short_address && (
-              <p className="mt-3 border-t border-hairline pt-3">
-                <span className="text-2xs text-ink-400">{tCheckout("shortAddress")}</span>
-                <br />
-                <span className="tabular tracking-widest text-ink-900" dir="ltr">
-                  {address.short_address}
-                </span>
-              </p>
-            )}
 
             {/* Editing needs `POST/PATCH /shop/v1/account/addresses`, which
                 does not exist. Rendering live buttons that silently do nothing

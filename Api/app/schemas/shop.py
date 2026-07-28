@@ -16,16 +16,24 @@ class CheckoutLineIn(BaseModel):
 
 
 class CheckoutAddressIn(BaseModel):
+    """A Kuwaiti delivery address: Governorate → Area → Block → Street →
+    Building. No postal code and no national short code — Kuwait uses neither
+    for delivery, and asking for them was friction with no payoff.
+
+    The client sends governorate/area *slugs*; the names are resolved
+    server-side so the order snapshot cannot be given a label that does not
+    match the code it was picked from.
+    """
+
     full_name: str = Field(min_length=2, max_length=120)
     phone: str = Field(min_length=8, max_length=20)
-    street: str = Field(min_length=3, max_length=200)
-    district: str = Field(min_length=2, max_length=120)
-    city_name: str = Field(min_length=2, max_length=120)
-    region_name: str = Field(min_length=2, max_length=120)
-    building_number: str | None = None
-    short_address: str | None = Field(default=None, max_length=8)
-    postal_code: str | None = Field(default=None, max_length=12)
-    additional_number: str | None = None
+    governorate_id: str = Field(min_length=2, max_length=40)
+    area_id: str = Field(min_length=2, max_length=60)
+    block: str = Field(min_length=1, max_length=20)
+    street: str = Field(min_length=1, max_length=120)
+    building: str = Field(min_length=1, max_length=60)
+    # Floor / flat / extra directions, one free-text line.
+    extra_directions: str | None = Field(default=None, max_length=200)
 
 
 class CheckoutIn(BaseModel):

@@ -151,7 +151,20 @@ def stores(accept_language: str | None = Header(None), db: Session = Depends(get
 
 @router.get("/regions")
 def regions(accept_language: str | None = Header(None), db: Session = Depends(get_db)):
+    """Kuwait's governorates. Ids are slugs shared with /cities."""
     return shop_service.regions(db, shop_service.locale_from_header(accept_language))
+
+
+@router.get("/cities")
+def cities(
+    region_id: str | None = Query(None, description="Governorate slug from /regions"),
+    accept_language: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """Areas, optionally within one governorate."""
+    return shop_service.cities(
+        db, shop_service.locale_from_header(accept_language), region_id
+    )
 
 
 @router.get("/banners")

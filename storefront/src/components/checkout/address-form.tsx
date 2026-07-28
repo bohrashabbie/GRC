@@ -1,23 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
 import { SelectField, TextField } from "@/components/ui/field";
 import type { AddressInput, City, Region } from "@/types/shop";
 
 /**
- * Saudi National Address form.
+ * Kuwaiti delivery address: Governorate → Area → Block → Street → Building.
  *
- * `short_address` is the 8-character building code (4 letters + 4 digits, e.g.
- * RRRD2929). It is the field most Saudi customers actually know, so it leads —
- * and once it validates, the detailed fields collapse to optional. The real
- * backend will resolve the rest from the code via the National Address API;
- * until then they stay visible and editable.
+ * That is the whole address a Kuwaiti courier needs, and it is how people here
+ * actually give directions. The form used to ask for a Saudi National Address
+ * short code, a postal code and an additional number — none of which exist in
+ * Kuwaiti addressing — so three of the nine fields could never be filled in
+ * meaningfully. They are gone.
+ *
+ * Governorate and area are both slugs from the same server vocabulary
+ * (/regions and /cities). They used to come from different sources with
+ * different id schemes, so no area ever matched the selected governorate and
+ * the dropdown stayed empty.
  */
 
-const SHORT_ADDRESS_PATTERN = /^[A-Za-z]{4}\d{4}$/;
-const SAUDI_MOBILE_PATTERN = /^05\d{8}$/;
+// Kuwaiti mobiles are 8 digits starting 5, 6 or 9. Accepted with or without
+// the +965 country code, and with any spacing, because that is how people type
+// a number they are reading off a phone.
+const KUWAIT_MOBILE_PATTERN = /^(?:\+?965)?[569]\d{7}$/;
 
 export interface AddressFormErrors {
   [key: string]: string | undefined;
@@ -25,23 +32,21 @@ export interface AddressFormErrors {
 
 export function validateAddress(
   value: Partial<AddressInput>,
-  messages: { required: string; invalidPhone: string; invalidShortAddress: string },
+  messages: { required: string; invalidPhone: string },
 ): AddressFormErrors {
   const errors: AddressFormErrors = {};
 
   if (!value.full_name?.trim()) errors.full_name = messages.required;
 
   if (!value.phone?.trim()) errors.phone = messages.required;
-  else if (!SAUDI_MOBILE_PATTERN.test(value.phone.replace(/\s+/g, "")))
+  else if (!KUWAIT_MOBILE_PATTERN.test(value.phone.replace(/[\s-]+/g, "")))
     errors.phone = messages.invalidPhone;
 
-  if (value.short_address && !SHORT_ADDRESS_PATTERN.test(value.short_address.trim()))
-    errors.short_address = messages.invalidShortAddress;
-
+  if (!value.governorate_id) errors.governorate_id = messages.required;
+  if (!value.area_id) errors.area_id = messages.required;
+  if (!value.block?.trim()) errors.block = messages.required;
   if (!value.street?.trim()) errors.street = messages.required;
-  if (!value.district?.trim()) errors.district = messages.required;
-  if (!value.region_id) errors.region_id = messages.required;
-  if (!value.city_id) errors.city_id = messages.required;
+  if (!value.building?.trim()) errors.building = messages.required;
 
   return errors;
 }
@@ -61,11 +66,13 @@ export function AddressForm({
 }) {
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
-  const [shortAddressTouched, setShortAddressTouched] = useState(false);
 
-  const citiesInRegion = useMemo(
-    () => cities.filter((city) => !value.region_id || city.region_id === value.region_id),
-    [cities, value.region_id],
+  const areasInGovernorate = useMemo(
+    () =>
+      cities.filter(
+        (city) => !value.governorate_id || city.region_id === value.governorate_id,
+      ),
+    [cities, value.governorate_id],
   );
 
   function set<K extends keyof AddressInput>(key: K, next: AddressInput[K]) {
@@ -94,27 +101,50 @@ export function AddressForm({
         />
       </div>
 
-      <TextField
-        label={t("shortAddress")}
-        hint={t("shortAddressHint")}
-        optional={tCommon("optional")}
-        value={value.short_address ?? ""}
-        onChange={(event) => set("short_address", event.currentTarget.value.toUpperCase())}
-        onBlur={() => setShortAddressTouched(true)}
-        error={shortAddressTouched ? errors.short_address : undefined}
-        maxLength={8}
-        // Always LTR: the code is Latin letters plus digits, and it reorders
-        // badly if it inherits the Arabic paragraph direction.
-        dir="ltr"
-        className="uppercase tracking-widest"
-      />
-
       <div className="grid gap-5 sm:grid-cols-2">
+        <SelectField
+          label={t("governorate")}
+          value={value.governorate_id ?? ""}
+          error={errors.governorate_id}
+          onChange={(event) => {
+            // Changing governorate invalidates the area beneath it.
+            onChange({
+              ...value,
+              governorate_id: event.currentTarget.value,
+              area_id: "",
+            });
+          }}
+        >
+          <option value="">{t("selectGovernorate")}</option>
+          {regions.map((region) => (
+            <option key={region.id} value={region.id}>
+              {region.name}
+            </option>
+          ))}
+        </SelectField>
+
+        <SelectField
+          label={t("area")}
+          value={value.area_id ?? ""}
+          error={errors.area_id}
+          disabled={!value.governorate_id}
+          onChange={(event) => set("area_id", event.currentTarget.value)}
+        >
+          <option value="">{t("selectArea")}</option>
+          {areasInGovernorate.map((city) => (
+            <option key={city.id} value={city.id}>
+              {city.name}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-3">
         <TextField
-          label={t("buildingNumber")}
-          optional={tCommon("optional")}
-          value={value.building_number ?? ""}
-          onChange={(event) => set("building_number", event.currentTarget.value)}
+          label={t("block")}
+          value={value.block ?? ""}
+          onChange={(event) => set("block", event.currentTarget.value)}
+          error={errors.block}
           inputMode="numeric"
           dir="ltr"
         />
@@ -125,68 +155,23 @@ export function AddressForm({
           error={errors.street}
           autoComplete="address-line1"
         />
+        <TextField
+          label={t("building")}
+          value={value.building ?? ""}
+          onChange={(event) => set("building", event.currentTarget.value)}
+          error={errors.building}
+          dir="ltr"
+        />
       </div>
 
       <TextField
-        label={t("district")}
-        value={value.district ?? ""}
-        onChange={(event) => set("district", event.currentTarget.value)}
-        error={errors.district}
-        autoComplete="address-level3"
+        label={t("extraDirections")}
+        hint={t("extraDirectionsHint")}
+        optional={tCommon("optional")}
+        value={value.extra_directions ?? ""}
+        onChange={(event) => set("extra_directions", event.currentTarget.value)}
+        autoComplete="address-line2"
       />
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <SelectField
-          label={t("region")}
-          value={value.region_id ?? ""}
-          error={errors.region_id}
-          onChange={(event) => {
-            // Changing region invalidates the city beneath it.
-            onChange({ ...value, region_id: event.currentTarget.value, city_id: "" });
-          }}
-        >
-          <option value="">{t("selectRegion")}</option>
-          {regions.map((region) => (
-            <option key={region.id} value={region.id}>
-              {region.name}
-            </option>
-          ))}
-        </SelectField>
-
-        <SelectField
-          label={t("city")}
-          value={value.city_id ?? ""}
-          error={errors.city_id}
-          disabled={!value.region_id}
-          onChange={(event) => set("city_id", event.currentTarget.value)}
-        >
-          <option value="">{t("selectCity")}</option>
-          {citiesInRegion.map((city) => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </SelectField>
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <TextField
-          label={t("postalCode")}
-          optional={tCommon("optional")}
-          value={value.postal_code ?? ""}
-          onChange={(event) => set("postal_code", event.currentTarget.value)}
-          inputMode="numeric"
-          dir="ltr"
-        />
-        <TextField
-          label={t("additionalNumber")}
-          optional={tCommon("optional")}
-          value={value.additional_number ?? ""}
-          onChange={(event) => set("additional_number", event.currentTarget.value)}
-          inputMode="numeric"
-          dir="ltr"
-        />
-      </div>
     </div>
   );
 }

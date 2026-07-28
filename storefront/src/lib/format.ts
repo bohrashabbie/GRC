@@ -66,3 +66,34 @@ export function discountPercent(price: Money, compareAt: Money): number | null {
   }
   return Math.round(((was - now) / was) * 100);
 }
+
+/**
+ * A Kuwaiti address as lines, ready to render inside an <address>.
+ *
+ * Kuwait writes an address as Block / Street / Building within an area, so the
+ * three number fields belong on one line together — splitting them across
+ * lines reads as three separate pieces of information rather than one location.
+ * Empty parts are dropped so a missing optional never leaves a blank line.
+ */
+export function addressLines(address: {
+  block: string;
+  street: string;
+  building: string;
+  extra_directions?: string | null;
+  area_name: string;
+  governorate_name: string;
+}): string[] {
+  const where = [
+    address.block && `Block ${address.block}`,
+    address.street && `Street ${address.street}`,
+    address.building && `Building ${address.building}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return [
+    where,
+    address.extra_directions ?? "",
+    [address.area_name, address.governorate_name].filter(Boolean).join(", "),
+  ].filter((line) => line.trim().length > 0);
+}

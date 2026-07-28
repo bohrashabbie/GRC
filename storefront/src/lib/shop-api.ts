@@ -342,13 +342,24 @@ export async function getRegions(locale: LocaleCode): Promise<Region[]> {
   );
 }
 
+/**
+ * Areas, from the same source as the governorates above.
+ *
+ * This used to short-circuit to fixtures whenever USE_FIXTURES was on, while
+ * getRegions read live — so the governorate ids were database rows and the area
+ * ids were fixture slugs, nothing ever matched, and the area dropdown was
+ * permanently empty. Both now go through liveCatalog against one vocabulary.
+ */
 export async function getCities(locale: LocaleCode, regionId?: string): Promise<City[]> {
-  if (USE_FIXTURES) return fixtureCities(locale, regionId);
-  return shopFetch<City[]>("/cities", {
-    locale,
-    revalidate: 3600,
-    searchParams: { region_id: regionId },
-  });
+  return liveCatalog(
+    () =>
+      shopFetch<City[]>("/cities", {
+        locale,
+        revalidate: 3600,
+        searchParams: { region_id: regionId },
+      }),
+    () => fixtureCities(locale, regionId),
+  );
 }
 
 export async function getShippingMethods(locale: LocaleCode): Promise<ShippingMethod[]> {

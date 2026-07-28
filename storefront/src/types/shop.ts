@@ -339,6 +339,7 @@ export interface Region {
   name: string;
 }
 
+/** An area within a governorate. `region_id` is the governorate slug. */
 export interface City {
   id: string;
   region_id: string;
@@ -346,28 +347,34 @@ export interface City {
 }
 
 /**
- * Saudi National Address. `short_address` is the 8-character code (4 letters +
- * 4 digits, e.g. "RRRD2929") that uniquely identifies a building; when the
- * customer supplies it the rest can be resolved from it.
+ * A Kuwaiti delivery address: Governorate -> Area -> Block -> Street ->
+ * Building. Kuwait uses no postal code for delivery and has no equivalent of
+ * the Saudi National Address short code, so neither is collected.
+ *
+ * `governorate_id` and `area_id` are slugs from /regions and /cities. Both
+ * dropdowns read the same vocabulary, which is what keeps the area list from
+ * coming back empty for a selected governorate.
  */
 export interface Address {
   id: string;
   full_name: string;
   phone: string;
-  short_address: string | null;
-  building_number: string | null;
+  governorate_id: string;
+  governorate_name: string;
+  area_id: string;
+  area_name: string;
+  block: string;
   street: string;
-  district: string;
-  city_id: string;
-  city_name: string;
-  region_id: string;
-  region_name: string;
-  postal_code: string | null;
-  additional_number: string | null;
+  building: string;
+  /** Floor, flat number or landmark directions — one free-text line. */
+  extra_directions: string | null;
   is_default: boolean;
 }
 
-export type AddressInput = Omit<Address, "id" | "city_name" | "region_name">;
+export type AddressInput = Omit<
+  Address,
+  "id" | "governorate_name" | "area_name"
+>;
 
 export interface ShippingMethod {
   id: string;
@@ -418,14 +425,12 @@ export interface PlaceOrderInput {
   shipping_address: {
     full_name: string;
     phone: string;
+    governorate_id: string;
+    area_id: string;
+    block: string;
     street: string;
-    district: string;
-    city_name: string;
-    region_name: string;
-    building_number: string | null;
-    short_address: string | null;
-    postal_code: string | null;
-    additional_number: string | null;
+    building: string;
+    extra_directions: string | null;
   };
   shipping_method_id: string;
   payment_method_code: PaymentMethodCode;

@@ -17,6 +17,7 @@ from typing import Iterable
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app import kuwait
 from app.middleware.error import NotFoundError
 from app.models.cms import PageTranslation
 from app.models.catalog import (
@@ -905,13 +906,20 @@ def stores(db: Session, locale: str) -> list[dict]:
 
 
 def regions(db: Session, locale: str) -> list[dict]:
-    rows = db.execute(
-        select(Region).where(Region.is_active.is_(True)).order_by(Region.code)
-    ).scalars()
-    return [
-        {"id": str(row.id), "name": row.name_en if locale == "en" else row.name_ar}
-        for row in rows
-    ]
+    """Kuwait's six governorates, keyed by slug.
+
+    Served from the reference list rather than the regions table because the
+    table's numeric ids never matched the area list's slugs, which left the
+    city dropdown permanently empty and checkout impossible to complete. One
+    vocabulary for both dropdowns is the fix.
+    """
+    return kuwait.governorates(locale)
+
+
+def cities(db: Session, locale: str, region_id: str | None = None) -> list[dict]:
+    """Areas within a governorate. `region_id` is the governorate slug that
+    regions() returns."""
+    return kuwait.areas(locale, region_id)
 
 
 # --------------------------------------------------------------------------- #
