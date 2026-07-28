@@ -1,5 +1,4 @@
 import {
-  ClipboardCheck,
   FileText,
   Images,
   Menu as MenuIcon,
@@ -14,10 +13,8 @@ import {
   SlidersHorizontal,
   Store,
   Tags,
-  Truck,
   Users,
   UsersRound,
-  Warehouse,
 } from "lucide-react"
 
 import { PERMISSIONS } from "@/lib/permissions"
@@ -74,35 +71,6 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: "options",
         icon: SlidersHorizontal,
         permission: PERMISSIONS.catalogView,
-      },
-    ],
-  },
-  {
-    labelKey: "sectionInventory",
-    items: [
-      {
-        href: "/stock",
-        labelKey: "stock",
-        icon: Warehouse,
-        permission: PERMISSIONS.inventoryView,
-      },
-      {
-        href: "/locations",
-        labelKey: "locations",
-        icon: Store,
-        permission: PERMISSIONS.inventoryView,
-      },
-      {
-        href: "/transfers",
-        labelKey: "transfers",
-        icon: Truck,
-        permission: PERMISSIONS.stockTransfer,
-      },
-      {
-        href: "/counts",
-        labelKey: "counts",
-        icon: ClipboardCheck,
-        permission: PERMISSIONS.stockCount,
       },
     ],
   },
@@ -188,6 +156,15 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: "settings",
         icon: Settings,
         permission: PERMISSIONS.settingsView,
+      },
+      // Stock is set on the product form, so locations are no longer a stock
+      // screen — they survive as the thing role scoping and purchase orders
+      // point at, which puts them here rather than under an inventory heading.
+      {
+        href: "/locations",
+        labelKey: "locations",
+        icon: Store,
+        permission: PERMISSIONS.inventoryView,
       },
       {
         href: "/audit",

@@ -51,19 +51,9 @@ import type {
   RoleDetailOut,
   SettingOut,
   SettingUpdate,
-  StockAdjustRequest,
-  StockCountCreate,
-  StockCountOut,
-  StockCountRecordRequest,
-  StockLevelOut,
-  StockMovementOut,
   SupplierCreate,
   SupplierOut,
   SupplierUpdate,
-  TransferCreate,
-  TransferDispatchRequest,
-  TransferOut,
-  TransferReceiveRequest,
   UserCreate,
   UserListParams,
   UserOut,
@@ -339,8 +329,11 @@ export const variantsApi = {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Inventory — locations                                                       */
+/* Locations                                                                   */
 /* -------------------------------------------------------------------------- */
+/* Stock is set per variant on the product form (productsApi.setStock). There is
+   no per-location adjustment, transfer or count surface; locations remain only
+   because role scoping and purchasing reference them. */
 
 export const locationsApi = {
   list: (
@@ -368,40 +361,6 @@ export const locationsApi = {
   update: (locationId: number, payload: LocationUpdate) =>
     api.patch<LocationOut>(`/locations/${locationId}`, payload),
   deactivate: (locationId: number) => api.del(`/locations/${locationId}`),
-}
-
-/* -------------------------------------------------------------------------- */
-/* Inventory — stock, transfers, counts                                        */
-/* -------------------------------------------------------------------------- */
-
-export const stockApi = {
-  /** Levels across every location for one variant. */
-  levels: (variantId: number, signal?: AbortSignal) =>
-    api.get<StockLevelOut[]>("/stock", { query: { variant_id: variantId }, signal }),
-  /** Always writes a stock_movements ledger row in the same transaction. */
-  adjust: (payload: StockAdjustRequest) =>
-    api.post<StockMovementOut>("/stock/adjust", payload),
-}
-
-export const transfersApi = {
-  get: (transferId: number, signal?: AbortSignal) =>
-    api.get<TransferOut>(`/transfers/${transferId}`, { signal }),
-  create: (payload: TransferCreate) =>
-    api.post<TransferOut>("/transfers", payload),
-  dispatch: (transferId: number, payload: TransferDispatchRequest) =>
-    api.post<TransferOut>(`/transfers/${transferId}/dispatch`, payload),
-  receive: (transferId: number, payload: TransferReceiveRequest) =>
-    api.post<TransferOut>(`/transfers/${transferId}/receive`, payload),
-}
-
-export const countsApi = {
-  get: (countId: number, signal?: AbortSignal) =>
-    api.get<StockCountOut>(`/counts/${countId}`, { signal }),
-  create: (payload: StockCountCreate) =>
-    api.post<StockCountOut>("/counts", payload),
-  record: (countId: number, payload: StockCountRecordRequest) =>
-    api.post<StockCountOut>(`/counts/${countId}/record`, payload),
-  apply: (countId: number) => api.post<StockCountOut>(`/counts/${countId}/apply`),
 }
 
 /* -------------------------------------------------------------------------- */

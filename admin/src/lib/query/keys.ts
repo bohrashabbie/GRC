@@ -66,21 +66,6 @@ export const queryKeys = {
     detail: (locationId: number) => ["locations", "detail", locationId] as const,
   },
 
-  stock: {
-    all: ["stock"] as const,
-    levels: (variantId: number) => ["stock", "levels", variantId] as const,
-  },
-
-  transfers: {
-    all: ["transfers"] as const,
-    detail: (transferId: number) => ["transfers", "detail", transferId] as const,
-  },
-
-  counts: {
-    all: ["counts"] as const,
-    detail: (countId: number) => ["counts", "detail", countId] as const,
-  },
-
   suppliers: {
     all: ["suppliers"] as const,
     list: (params: { is_active?: boolean | null }) =>

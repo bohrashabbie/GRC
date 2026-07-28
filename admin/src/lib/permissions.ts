@@ -27,8 +27,6 @@ export const PERMISSIONS = {
   // inventory
   inventoryView: "inventory.view",
   stockAdjust: "stock.adjust",
-  stockTransfer: "stock.transfer",
-  stockCount: "stock.count",
   locationManage: "location.manage",
   supplierManage: "supplier.manage",
   purchaseOrderManage: "purchase_order.manage",

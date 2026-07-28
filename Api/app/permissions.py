@@ -37,9 +37,7 @@ PERMISSIONS: list[PermissionDef] = [
     PermissionDef("variant.price_edit", "catalog", "Edit variant price, compare-at price, cost price", is_dangerous=True),
     # inventory & purchasing
     PermissionDef("inventory.view", "inventory", "View stock levels and movements"),
-    PermissionDef("stock.adjust", "inventory", "Manually adjust stock levels", is_dangerous=True),
-    PermissionDef("stock.transfer", "inventory", "Create and receive stock transfers"),
-    PermissionDef("stock.count", "inventory", "Run and apply stock counts"),
+    PermissionDef("stock.adjust", "inventory", "Set a variant's stock on the product form", is_dangerous=True),
     PermissionDef("location.manage", "inventory", "Create/edit locations"),
     PermissionDef("supplier.manage", "inventory", "Create/edit suppliers"),
     PermissionDef("purchase_order.manage", "inventory", "Create/edit/approve purchase orders"),
@@ -141,8 +139,6 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
     "inventory_clerk": [
         "inventory.view",
         "stock.adjust",
-        "stock.transfer",
-        "stock.count",
         "location.manage",
         "supplier.manage",
         "purchase_order.manage",
