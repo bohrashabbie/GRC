@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
 /**
- * GRC brand mark: the monogram tile from public/logo-mark.svg plus the
+ * GR8 brand mark: the monogram tile from public/logo-mark.svg plus the
  * wordmark. The wordmark is live text rather than part of the SVG so it picks
  * up the app font and stays sharp at any zoom.
  *

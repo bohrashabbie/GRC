@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "GRC Admin",
-    "shortName": "GRC"
+    "name": "GR8 Admin",
+    "shortName": "GR8"
   },
   "common": {
     "save": "Save",
@@ -50,7 +50,6 @@
   "nav": {
     "sectionOverview": "Overview",
     "sectionCatalog": "Catalog",
-    "sectionInventory": "Inventory",
     "sectionPurchasing": "Purchasing",
     "sectionSales": "Sales",
     "sectionIdentity": "Identity",
@@ -60,10 +59,7 @@
     "brands": "Brands",
     "categories": "Categories",
     "options": "Options",
-    "stock": "Stock",
     "locations": "Locations",
-    "transfers": "Transfers",
-    "counts": "Stock counts",
     "suppliers": "Suppliers",
     "purchaseOrders": "Purchase orders",
     "orders": "Orders",
@@ -82,7 +78,7 @@
   },
   "auth": {
     "loginTitle": "Sign in",
-    "loginSubtitle": "Admin panel access for GRC staff.",
+    "loginSubtitle": "Admin panel access for GR8 staff.",
     "email": "Email",
     "emailPlaceholder": "you@grc.sa",
     "password": "Password",
@@ -488,109 +484,6 @@
       "priority": "Priority",
       "status": "Status"
     }
-  },
-  "stock": {
-    "title": "Stock",
-    "description": "Stock levels per variant across every location.",
-    "pickProduct": "Product",
-    "pickVariant": "Variant",
-    "pickProductFirst": "Choose a product to list its variants.",
-    "pickVariantPrompt": "Choose a variant to see its stock across locations.",
-    "noSearchHint": "The API has no SKU search endpoint, so variants are found via their product.",
-    "empty": "This variant has no stock records yet.",
-    "columns": {
-      "location": "Location",
-      "onHand": "On hand",
-      "reserved": "Reserved",
-      "incoming": "Incoming",
-      "available": "Available",
-      "updated": "Updated"
-    },
-    "adjust": {
-      "title": "Adjust stock",
-      "description": "Writes a stock movement in the same transaction — the ledger is the source of truth.",
-      "open": "Adjust",
-      "location": "Location",
-      "qtyDelta": "Quantity change",
-      "qtyHint": "Positive adds stock, negative removes it. Zero is not allowed.",
-      "note": "Reason",
-      "noteHint": "Required — this is recorded in the movement ledger.",
-      "submit": "Apply adjustment",
-      "applied": "Stock adjusted. New balance: {balance}.",
-      "qtyRequired": "Enter a non-zero quantity.",
-      "noteRequired": "A reason is required."
-    }
-  },
-  "transfers": {
-    "title": "Transfers",
-    "description": "Move stock between locations.",
-    "newTransfer": "New transfer",
-    "createTitle": "Create transfer",
-    "created": "Transfer created.",
-    "detailTitle": "Transfer",
-    "noListHint": "The API has no transfer list endpoint yet, so open a transfer by its ID or create a new one.",
-    "lookup": "Open transfer by ID",
-    "lookupPlaceholder": "Transfer ID",
-    "open": "Open",
-    "fields": {
-      "fromLocation": "From location",
-      "toLocation": "To location",
-      "note": "Note",
-      "sameLocation": "Source and destination must be different."
-    },
-    "items": {
-      "title": "Items",
-      "addItem": "Add item",
-      "empty": "Add at least one item to transfer.",
-      "qtyRequested": "Requested",
-      "qtyDispatched": "Dispatched",
-      "qtyReceived": "Received",
-      "variant": "Variant"
-    },
-    "dispatch": {
-      "action": "Dispatch",
-      "title": "Dispatch this transfer?",
-      "description": "Stock leaves the source location now. Quantities default to what was requested.",
-      "done": "Transfer dispatched."
-    },
-    "receive": {
-      "action": "Receive",
-      "title": "Receive transfer",
-      "description": "Enter what actually arrived at the destination.",
-      "done": "Transfer received."
-    }
-  },
-  "counts": {
-    "title": "Stock counts",
-    "description": "Count stock at a location and apply the variance.",
-    "newCount": "New count",
-    "createTitle": "Start a stock count",
-    "created": "Stock count started.",
-    "detailTitle": "Stock count",
-    "noListHint": "The API has no count list endpoint yet, so open a count by its ID or start a new one.",
-    "lookup": "Open count by ID",
-    "lookupPlaceholder": "Count ID",
-    "open": "Open",
-    "fields": {
-      "location": "Location",
-      "scope": "Scope",
-      "variants": "Variants to count"
-    },
-    "scopeFull": "Full count",
-    "scopePartial": "Partial count",
-    "items": {
-      "title": "Counted quantities",
-      "systemQty": "System",
-      "countedQty": "Counted",
-      "variance": "Variance",
-      "empty": "No items in this count."
-    },
-    "record": "Save counted quantities",
-    "recorded": "Counted quantities saved.",
-    "applyAction": "Apply count",
-    "applyTitle": "Apply this count?",
-    "applyDescription": "Stock levels at this location are adjusted to the counted quantities and movements are written for every variance. This can't be undone.",
-    "applied": "Stock count applied."
   },
   "suppliers": {
     "title": "Suppliers",

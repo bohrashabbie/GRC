@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     smtp_password: str | None = None
     smtp_use_tls: bool = True
     mail_from: str = "no-reply@grc.local"
-    mail_from_name: str = "GRC"
+    mail_from_name: str = "GR8"
 
     password_reset_token_expire_minutes: int = 60
 

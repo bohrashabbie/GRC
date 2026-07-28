@@ -1,5 +1,5 @@
 """Remove the seeded demo catalog, orders, inventory and purchasing rows so the
-database can be reseeded as a real GRC store.
+database can be reseeded as a real GR8 store.
 
 Deliberately KEPT:
   users, roles, permissions, role_permissions, user_roles, user_sessions

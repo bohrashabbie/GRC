@@ -135,7 +135,7 @@ export default async function DesignPage({ params }: { params: Promise<{ locale:
     <div className="container-site py-14">
       <header className="pb-10">
         <p className="eyebrow">Design direction</p>
-        <h1 className="mt-3 font-display text-display-2 text-ink-900">GRC storefront</h1>
+        <h1 className="mt-3 font-display text-display-2 text-ink-900">GR8 storefront</h1>
         <p className="mt-4 max-w-2xl text-base text-ink-500">
           Switch the locale in the top bar to see this page flip direction and swap display
           typeface. Both readings are part of the review — a decision that only works in one

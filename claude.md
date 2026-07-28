@@ -6,7 +6,7 @@ This file is context for Claude Code across sessions. Read it before making any 
 
 **GR8** — Saudi men's traditional-wear ecommerce, thobes-focused. Bilingual
 Arabic/English, Arabic default, RTL primary layout. Originally scaffolded as an
-"AlShiaka clone"; the product was renamed to GRC and the catalog is thobes only.
+"AlShiaka clone"; the product was renamed to GR8 and the catalog is thobes only.
 Two repos, siblings, not nested:
 
 ```
