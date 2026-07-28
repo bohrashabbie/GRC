@@ -1,17 +1,19 @@
 import type { ReactNode } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { redirect } from "next/navigation";
-
 import { currentCustomer } from "@/app/actions";
 import { AccountNav } from "@/components/account/account-nav";
 import type { Locale } from "@/i18n/routing";
 
 /**
- * Chrome shared by every signed-in account page. The auth pages sit at
- * `/account/login` and `/account/register` and deliberately live outside this
- * layout — showing an account sidebar to someone who isn't signed in yet is
- * just noise.
+ * Chrome shared by every signed-in account page.
+ *
+ * `/account/login` and `/account/register` nest inside this layout — their own
+ * layout strips the sidebar but a child layout cannot escape its parent — so
+ * this must never redirect. Doing so pointed the sign-in page at itself and
+ * looped until Next.js gave up, rendering a blank page. Pages that require a
+ * session call `requireCustomer` individually; signed out, this renders the
+ * children bare so the auth forms come through untouched.
  */
 export default async function AccountLayout({
   children,
@@ -25,10 +27,10 @@ export default async function AccountLayout({
 
   const t = await getTranslations("account");
 
-  // Every page under here is personal. Guarding once in the layout means no
-  // individual page can forget to.
   const customer = await currentCustomer(locale as Locale);
-  if (!customer) redirect(`/${locale}/account/login`);
+  // Signed out: no heading, no sidebar, just whatever the route renders — which
+  // for the auth routes is the form itself.
+  if (!customer) return <>{children}</>;
 
   const fullName = [customer.first_name, customer.last_name].filter(Boolean).join(" ");
 

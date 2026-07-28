@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { OrderStatusBadge } from "@/components/account/order-status";
 import { ChevronForwardIcon } from "@/components/ui/icons";
 import { accountOrders } from "@/app/actions";
+import { requireCustomer } from "@/lib/require-customer";
 import { formatDate, formatPrice } from "@/lib/format";
 import type { Locale } from "@/i18n/routing";
 
@@ -21,6 +22,7 @@ export default async function OrdersPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const typedLocale = locale as Locale;
+  await requireCustomer(typedLocale);
   const [t, tOrders, orders] = await Promise.all([
     getTranslations("account"),
     getTranslations("orders"),

@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { notFound } from "next/navigation";
-
-import { currentCustomer } from "@/app/actions";
 import { ProfileForm } from "@/components/account/profile-form";
+import { requireCustomer } from "@/lib/require-customer";
 import type { Locale } from "@/i18n/routing";
 
 type PageProps = { params: Promise<{ locale: string }> };
@@ -19,10 +17,6 @@ export default async function ProfilePage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // The layout already redirects a signed-out visitor; this is belt and braces
-  // so the component can take a non-null customer.
-  const customer = await currentCustomer(locale as Locale);
-  if (!customer) notFound();
-
+  const customer = await requireCustomer(locale as Locale);
   return <ProfileForm customer={customer} />;
 }

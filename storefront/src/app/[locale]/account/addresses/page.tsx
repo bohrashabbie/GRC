@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { accountAddresses } from "@/app/actions";
+import { requireCustomer } from "@/lib/require-customer";
 import { addressLines } from "@/lib/format";
 import type { Locale } from "@/i18n/routing";
 
@@ -18,6 +19,7 @@ export default async function AddressesPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const typedLocale = locale as Locale;
+  await requireCustomer(typedLocale);
   const [t, tCheckout, addresses] = await Promise.all([
     getTranslations("account"),
     getTranslations("checkout"),

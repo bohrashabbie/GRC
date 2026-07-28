@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { accountSummary, currentCustomer } from "@/app/actions";
+import { accountSummary } from "@/app/actions";
+import { requireCustomer } from "@/lib/require-customer";
 import { Link } from "@/i18n/navigation";
 import { ChevronForwardIcon } from "@/components/ui/icons";
 import type { Locale } from "@/i18n/routing";
@@ -26,9 +27,9 @@ export default async function AccountPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const typedLocale = locale as Locale;
-  const [t, customer, summary] = await Promise.all([
+  const customer = await requireCustomer(typedLocale);
+  const [t, summary] = await Promise.all([
     getTranslations("account"),
-    currentCustomer(typedLocale),
     accountSummary(typedLocale),
   ]);
 
