@@ -23,8 +23,11 @@ export function CartDrawer() {
     useCart();
 
   function onCheckout() {
-    if (!requireLogin("checkout")) return;
+    // Close first regardless of outcome — the login prompt (if it opens)
+    // should appear over the page, not stacked on top of the still-open
+    // drawer.
     close();
+    if (!requireLogin("checkout")) return;
     router.push("/checkout");
   }
 
