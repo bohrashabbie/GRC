@@ -52,10 +52,6 @@ def list_products(
     stmt = select(Product).options(selectinload(Product.translations), selectinload(Product.variants))
 
     if q and q.strip():
-        # EXISTS rather than a JOIN: a product has one translation row per
-        # locale and many variants, so joining would emit the same product
-        # several times and break the (created_at, id) cursor. EXISTS keeps it
-        # to one row per product with no DISTINCT.
         pattern = f"%{q.strip()}%"
         stmt = stmt.where(
             or_(
@@ -71,6 +67,9 @@ def list_products(
             )
         )
 
+    # Deleted products never surface in the listing, regardless of the status
+    # filter — distinct from "archived", which stays browsable.
+    stmt = stmt.where(Product.status != "deleted")
     if status_ is not None:
         stmt = stmt.where(Product.status == status_)
     if brand_id is not None:

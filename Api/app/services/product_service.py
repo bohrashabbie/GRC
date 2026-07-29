@@ -330,10 +330,12 @@ def update_product_status(db: Session, product_id: int, new_status: str, actor_u
 
 
 def delete_product(db: Session, product_id: int, actor_user_id: int | None) -> None:
-    """Archive rather than remove a product that historical orders may reference."""
+    """Soft-delete: distinct from archiving. A deleted product never shows in
+    the listing again, whereas an archived one can still be filtered into
+    view. Never hard-removed — historical orders may reference it."""
     product = _load(db, product_id)
     proposed = {
-        "status": "archived",
+        "status": "deleted",
         "is_featured": False,
         "is_best_seller": False,
     }

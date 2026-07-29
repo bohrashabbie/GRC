@@ -134,7 +134,7 @@ def test_product_brand_can_be_cleared(monkeypatch):
     assert result.brand_id is None
 
 
-def test_delete_product_archives_without_hard_deleting(monkeypatch):
+def test_delete_product_marks_deleted_without_hard_deleting(monkeypatch):
     product = SimpleNamespace(
         id=1,
         status="active",
@@ -152,7 +152,7 @@ def test_delete_product_archives_without_hard_deleting(monkeypatch):
 
     product_service.delete_product(db, product.id, actor_user_id=7)
 
-    assert product.status == "archived"
+    assert product.status == "deleted"
     assert product.is_featured is False
     assert product.is_best_seller is False
     assert db.deleted == []
@@ -168,7 +168,7 @@ def test_delete_product_archives_without_hard_deleting(monkeypatch):
                 "is_best_seller": True,
             },
             "after": {
-                "status": "archived",
+                "status": "deleted",
                 "is_featured": False,
                 "is_best_seller": False,
             },
