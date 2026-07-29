@@ -25,9 +25,7 @@ from app.models.cms import (
 from app.schemas.cms import (
     BANNER_LINK_TYPES,
     BANNER_PLACEMENTS,
-    MENU_LINK_TYPES,
     PAGE_STATUSES,
-    PAGE_TEMPLATES,
 )
 from app.utils import paginate, slugify
 
@@ -228,14 +226,6 @@ def get_menu_by_code(db: Session, code: str) -> Menu:
     return menu
 
 
-def create_menu(db: Session, data) -> Menu:
-    menu = Menu(code=data.code, is_active=data.is_active)
-    db.add(menu)
-    db.commit()
-    db.refresh(menu)
-    return menu
-
-
 def update_menu(db: Session, menu_id: int, data) -> Menu:
     menu = get_menu(db, menu_id)
     for field, value in data.model_dump(exclude_unset=True).items():
@@ -243,12 +233,6 @@ def update_menu(db: Session, menu_id: int, data) -> Menu:
     db.commit()
     db.refresh(menu)
     return menu
-
-
-def deactivate_menu(db: Session, menu_id: int) -> None:
-    menu = get_menu(db, menu_id)
-    menu.is_active = False
-    db.commit()
 
 
 def _sync_menu_item_translations(db: Session, item: MenuItem, translations_in: list) -> None:
@@ -277,56 +261,19 @@ def get_menu_item(db: Session, item_id: int) -> MenuItem:
     return item
 
 
-def create_menu_item(db: Session, menu_id: int, data) -> MenuItem:
-    menu = get_menu(db, menu_id)
-    _check_choice(data.link_type, MENU_LINK_TYPES, "link_type")
-    _check_link(data.link_type, data.link_target_id, data.link_url)
-    if data.parent_id is not None:
-        parent = get_menu_item(db, data.parent_id)
-        if parent.menu_id != menu.id:
-            raise BusinessRuleError("parent_id belongs to a different menu")
-
-    item = MenuItem(
-        menu_id=menu.id,
-        parent_id=data.parent_id,
-        link_type=data.link_type,
-        link_target_id=data.link_target_id,
-        link_url=data.link_url,
-        icon_media_id=data.icon_media_id,
-        badge_code=data.badge_code,
-        sort_order=data.sort_order,
-        is_active=data.is_active,
-    )
-    db.add(item)
-    db.flush()
-    _sync_menu_item_translations(db, item, data.translations)
-    db.commit()
-    db.refresh(item)
-    return item
-
-
 def update_menu_item(db: Session, item_id: int, data) -> MenuItem:
+    """Items are seeded, not staff-created — only is_active and translations
+    (the label text) are ever in `data`, per MenuItemUpdate."""
     item = get_menu_item(db, item_id)
-    _check_choice(data.link_type, MENU_LINK_TYPES, "link_type")
-    if data.parent_id is not None and data.parent_id == item.id:
-        raise BusinessRuleError("A menu item cannot be its own parent")
-
     for field, value in data.model_dump(exclude_unset=True, exclude={"translations"}).items():
         setattr(item, field, value)
 
-    _check_link(item.link_type, item.link_target_id, item.link_url)
     if data.translations is not None:
         _sync_menu_item_translations(db, item, data.translations)
 
     db.commit()
     db.refresh(item)
     return item
-
-
-def deactivate_menu_item(db: Session, item_id: int) -> None:
-    item = get_menu_item(db, item_id)
-    item.is_active = False
-    db.commit()
 
 
 # --------------------------------------------------------------------------- #
@@ -406,27 +353,8 @@ def published_page_slugs(db: Session, locale: str) -> list[str]:
     return list(db.execute(stmt).scalars().all())
 
 
-def create_page(db: Session, data) -> Page:
-    _check_choice(data.template, PAGE_TEMPLATES, "template")
-    _check_choice(data.status, PAGE_STATUSES, "status")
-
-    page = Page(
-        code=data.code,
-        template=data.template,
-        status=data.status,
-        published_at=datetime.now(timezone.utc) if data.status == "published" else None,
-    )
-    db.add(page)
-    db.flush()
-    _sync_page_translations(db, page, data.translations)
-    db.commit()
-    db.refresh(page)
-    return page
-
-
 def update_page(db: Session, page_id: int, data) -> Page:
     page = get_page(db, page_id)
-    _check_choice(data.template, PAGE_TEMPLATES, "template")
     _check_choice(data.status, PAGE_STATUSES, "status")
 
     was_published = page.status == "published"

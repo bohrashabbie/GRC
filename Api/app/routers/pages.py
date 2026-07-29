@@ -6,19 +6,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.deps import require
 from app.models.cms import Page
-from app.schemas.cms import PageCreate, PageRead, PageUpdate
+from app.schemas.cms import PageRead, PageUpdate
 from app.services import cms_service
 
 router = APIRouter()
-
-
-@router.post("", response_model=PageRead, status_code=status.HTTP_201_CREATED)
-def create_page(
-    payload: PageCreate,
-    db: Session = Depends(get_db),
-    _user=Depends(require("cms.page.manage")),
-) -> Page:
-    return cms_service.create_page(db, payload)
 
 
 @router.get("")

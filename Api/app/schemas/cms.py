@@ -6,8 +6,6 @@ from pydantic import BaseModel, Field
 
 BANNER_PLACEMENTS = {"home_hero"}
 BANNER_LINK_TYPES = {"category", "product", "collection", "url"}
-MENU_LINK_TYPES = {"category", "brand", "collection", "page", "url"}
-PAGE_TEMPLATES = {"default", "full_width", "contact"}
 PAGE_STATUSES = {"draft", "published"}
 
 
@@ -94,26 +92,10 @@ class MenuItemTranslationOut(MenuItemTranslationIn):
     model_config = {"from_attributes": True}
 
 
-class MenuItemCreate(BaseModel):
-    parent_id: int | None = None
-    link_type: str
-    link_target_id: int | None = None
-    link_url: str | None = None
-    icon_media_id: int | None = None
-    badge_code: str | None = None
-    sort_order: int = 0
-    is_active: bool = True
-    translations: list[MenuItemTranslationIn] = Field(min_length=1)
-
-
 class MenuItemUpdate(BaseModel):
-    parent_id: int | None = None
-    link_type: str | None = None
-    link_target_id: int | None = None
-    link_url: str | None = None
-    icon_media_id: int | None = None
-    badge_code: str | None = None
-    sort_order: int | None = None
+    """Menu items are seeded, not staff-created — only the label text (and
+    is_active, to hide a link without deleting it) can change here."""
+
     is_active: bool | None = None
     translations: list[MenuItemTranslationIn] | None = None
 
@@ -134,13 +116,7 @@ class MenuItemRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class MenuCreate(BaseModel):
-    code: str
-    is_active: bool = True
-
-
 class MenuUpdate(BaseModel):
-    code: str | None = None
     is_active: bool | None = None
 
 
@@ -178,16 +154,10 @@ class PageTranslationOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class PageCreate(BaseModel):
-    code: str
-    template: str = "default"
-    status: str = "draft"
-    translations: list[PageTranslationIn] = Field(min_length=1)
-
-
 class PageUpdate(BaseModel):
-    code: str | None = None
-    template: str | None = None
+    """Pages are seeded, not staff-created — code and template are fixed at
+    seed time; staff can only change the translation text and publish status."""
+
     status: str | None = None
     translations: list[PageTranslationIn] | None = None
 

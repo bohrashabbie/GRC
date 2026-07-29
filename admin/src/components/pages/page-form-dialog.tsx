@@ -27,21 +27,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { pagesApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { queryKeys } from "@/lib/query/keys"
-import type {
-  PageOut,
-  PageStatus,
-  PageTemplate,
-  PageTranslationIn,
-} from "@/lib/api/types"
+import type { PageOut, PageStatus, PageTranslationIn } from "@/lib/api/types"
 
-const TEMPLATES: PageTemplate[] = ["default", "full_width", "contact"]
 const STATUSES: PageStatus[] = ["draft", "published"]
 const LOCALES = ["ar", "en"] as const
 
 type Text = { title: string; slug: string; body: string; meta_title: string; meta_description: string }
 
-function textFrom(page: PageOut | undefined, locale: string): Text {
-  const row = page?.translations.find((t) => t.locale === locale)
+function textFrom(page: PageOut, locale: string): Text {
+  const row = page.translations.find((t) => t.locale === locale)
   return {
     title: row?.title ?? "",
     slug: row?.slug ?? "",
@@ -51,23 +45,23 @@ function textFrom(page: PageOut | undefined, locale: string): Text {
   }
 }
 
+/** Pages are seeded, not staff-created (see CLAUDE.md / cms_service.py) — this
+ * dialog only ever edits an existing page's text and publish status. code and
+ * template are fixed at seed time and shown read-only for identification. */
 export function PageFormDialog({
   page,
   open,
   onOpenChange,
 }: {
-  page?: PageOut
+  page: PageOut
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
   const t = useTranslations("pages")
   const c = useTranslations("common")
   const queryClient = useQueryClient()
-  const isEdit = !!page
 
-  const [code, setCode] = useState(page?.code ?? "")
-  const [template, setTemplate] = useState<PageTemplate>(page?.template ?? "default")
-  const [status, setStatus] = useState<PageStatus>(page?.status ?? "draft")
+  const [status, setStatus] = useState<PageStatus>(page.status)
   const [text, setText] = useState<Record<string, Text>>({
     ar: textFrom(page, "ar"),
     en: textFrom(page, "en"),
@@ -79,10 +73,6 @@ export function PageFormDialog({
   }
 
   async function onSubmit() {
-    if (!code.trim()) {
-      toast.error(t("validation.codeRequired"))
-      return
-    }
     // Every locale needs a title; the slug is derived from it server-side when
     // left blank, so only the title is genuinely required.
     const missing = LOCALES.filter((l) => !text[l].title.trim())
@@ -102,14 +92,9 @@ export function PageFormDialog({
 
     setSaving(true)
     try {
-      const payload = { code: code.trim(), template, status, translations }
-      if (isEdit) {
-        await pagesApi.update(page.id, payload)
-      } else {
-        await pagesApi.create(payload)
-      }
+      await pagesApi.update(page.id, { status, translations })
       await queryClient.invalidateQueries({ queryKey: queryKeys.pages.all })
-      toast.success(isEdit ? t("updated") : t("created"))
+      toast.success(t("updated"))
       onOpenChange(false)
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
@@ -122,7 +107,7 @@ export function PageFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? t("editTitle") : t("createTitle")}</DialogTitle>
+          <DialogTitle>{t("editTitle")}</DialogTitle>
           <DialogDescription>{t("formDescription")}</DialogDescription>
         </DialogHeader>
 
@@ -130,29 +115,11 @@ export function PageFormDialog({
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-2">
               <Label>{t("fields.code")}</Label>
-              <Input
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="returns_policy"
-              />
+              <Input value={page.code} disabled dir="ltr" />
             </div>
             <div className="flex flex-col gap-2">
               <Label>{t("fields.template")}</Label>
-              <Select
-                value={template}
-                onValueChange={(v) => setTemplate((v ?? "default") as PageTemplate)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TEMPLATES.map((tpl) => (
-                    <SelectItem key={tpl} value={tpl}>
-                      {t(`templates.${tpl}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input value={t(`templates.${page.template}`)} disabled />
             </div>
             <div className="flex flex-col gap-2">
               <Label>{t("fields.status")}</Label>

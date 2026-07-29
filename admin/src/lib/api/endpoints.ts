@@ -67,13 +67,10 @@ import type {
   BannerCreate,
   BannerUpdate,
   MenuOut,
-  MenuCreate,
   MenuUpdate,
   MenuItemOut,
-  MenuItemCreate,
   MenuItemUpdate,
   PageOut,
-  PageCreate,
   PageUpdate,
 } from "./types"
 
@@ -543,15 +540,10 @@ export const menusApi = {
     }),
   get: (menuId: number, signal?: AbortSignal) =>
     api.get<MenuOut>(`/menus/${menuId}`, { signal }),
-  create: (payload: MenuCreate) => api.post<MenuOut>("/menus", payload),
   update: (menuId: number, payload: MenuUpdate) =>
     api.patch<MenuOut>(`/menus/${menuId}`, payload),
-  deactivate: (menuId: number) => api.del(`/menus/${menuId}`),
-  createItem: (menuId: number, payload: MenuItemCreate) =>
-    api.post<MenuItemOut>(`/menus/${menuId}/items`, payload),
   updateItem: (itemId: number, payload: MenuItemUpdate) =>
     api.patch<MenuItemOut>(`/menus/items/${itemId}`, payload),
-  deactivateItem: (itemId: number) => api.del(`/menus/items/${itemId}`),
 }
 
 /* -------------------------------------------------------------------------- */
@@ -573,7 +565,6 @@ export const pagesApi = {
     }),
   get: (pageId: number, signal?: AbortSignal) =>
     api.get<PageOut>(`/pages/${pageId}`, { signal }),
-  create: (payload: PageCreate) => api.post<PageOut>("/pages", payload),
   update: (pageId: number, payload: PageUpdate) =>
     api.patch<PageOut>(`/pages/${pageId}`, payload),
   unpublish: (pageId: number) => api.del(`/pages/${pageId}`),

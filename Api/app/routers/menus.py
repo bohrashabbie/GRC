@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.deps import require
 from app.models.cms import Menu, MenuItem
 from app.schemas.cms import (
-    MenuCreate,
-    MenuItemCreate,
     MenuItemRead,
     MenuItemUpdate,
     MenuRead,
@@ -17,15 +15,6 @@ from app.schemas.cms import (
 from app.services import cms_service
 
 router = APIRouter()
-
-
-@router.post("", response_model=MenuRead, status_code=status.HTTP_201_CREATED)
-def create_menu(
-    payload: MenuCreate,
-    db: Session = Depends(get_db),
-    _user=Depends(require("cms.menu.manage")),
-) -> Menu:
-    return cms_service.create_menu(db, payload)
 
 
 @router.get("")
@@ -59,26 +48,6 @@ def update_menu(
     return cms_service.update_menu(db, menu_id, payload)
 
 
-@router.delete("/{menu_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_menu(
-    menu_id: int, db: Session = Depends(get_db), _user=Depends(require("cms.menu.manage"))
-) -> Response:
-    cms_service.deactivate_menu(db, menu_id)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@router.post(
-    "/{menu_id}/items", response_model=MenuItemRead, status_code=status.HTTP_201_CREATED
-)
-def create_menu_item(
-    menu_id: int,
-    payload: MenuItemCreate,
-    db: Session = Depends(get_db),
-    _user=Depends(require("cms.menu.manage")),
-) -> MenuItem:
-    return cms_service.create_menu_item(db, menu_id, payload)
-
-
 @router.patch("/items/{item_id}", response_model=MenuItemRead)
 def update_menu_item(
     item_id: int,
@@ -86,12 +55,6 @@ def update_menu_item(
     db: Session = Depends(get_db),
     _user=Depends(require("cms.menu.manage")),
 ) -> MenuItem:
+    """Menu items are seeded, not staff-created — this can only relabel an
+    item's translations or flip is_active to hide it."""
     return cms_service.update_menu_item(db, item_id, payload)
-
-
-@router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_menu_item(
-    item_id: int, db: Session = Depends(get_db), _user=Depends(require("cms.menu.manage"))
-) -> Response:
-    cms_service.deactivate_menu_item(db, item_id)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -43,6 +43,8 @@ function PagesContent() {
   const [editing, setEditing] = useState<PageOut | undefined>()
   const [unpublishing, setUnpublishing] = useState<PageOut | undefined>()
 
+  // Pages are seeded, not staff-created — there is no "new page" action.
+
   const pagesQuery = useQuery({
     queryKey: queryKeys.pages.list({ status: null }),
     queryFn: ({ signal }) => pagesApi.list({ limit: 100 }, signal),
@@ -79,22 +81,7 @@ function PagesContent() {
     <div className="flex flex-col gap-6">
       <Breadcrumbs items={[{ label: t("title") }]} />
 
-      <PageHeader
-        title={t("title")}
-        description={t("description")}
-        action={
-          <RequirePermission permission={PERMISSIONS.cmsPageManage}>
-            <Button
-              onClick={() => {
-                setEditing(undefined)
-                setFormOpen(true)
-              }}
-            >
-              {t("newPage")}
-            </Button>
-          </RequirePermission>
-        }
-      />
+      <PageHeader title={t("title")} description={t("description")} />
 
       {pagesQuery.isLoading ? (
         <ListLoadingSkeleton />
@@ -152,9 +139,9 @@ function PagesContent() {
         </Card>
       )}
 
-      {formOpen && (
+      {formOpen && editing && (
         <PageFormDialog
-          key={editing?.id ?? "new"}
+          key={editing.id}
           page={editing}
           open={formOpen}
           onOpenChange={setFormOpen}

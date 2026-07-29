@@ -1,13 +1,10 @@
 "use client"
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
-import { toast } from "sonner"
 
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { ConfirmDialog } from "@/components/confirm-dialog"
-import { MenuFormDialog } from "@/components/menus/menu-form-dialog"
 import { MenuItemFormDialog } from "@/components/menus/menu-item-form-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
@@ -21,10 +18,9 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { menusApi } from "@/lib/api/endpoints"
-import { getErrorMessage } from "@/lib/api/error-message"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
-import type { MenuItemOut, MenuOut } from "@/lib/api/types"
+import type { MenuItemOut } from "@/lib/api/types"
 
 export default function MenusPage() {
   return (
@@ -38,14 +34,8 @@ function MenusContent() {
   const t = useTranslations("menus")
   const c = useTranslations("common")
   const locale = useLocale()
-  const queryClient = useQueryClient()
 
-  const [menuFormOpen, setMenuFormOpen] = useState(false)
-  const [editingMenu, setEditingMenu] = useState<MenuOut | undefined>()
-  const [itemForm, setItemForm] = useState<
-    { menu: MenuOut; item?: MenuItemOut } | undefined
-  >()
-  const [removingItem, setRemovingItem] = useState<MenuItemOut | undefined>()
+  const [editingItem, setEditingItem] = useState<MenuItemOut | undefined>()
 
   const menusQuery = useQuery({
     queryKey: queryKeys.menus.list(),
@@ -69,7 +59,7 @@ function MenusContent() {
   }
 
   /** Top-level entries in order, each followed by its children. */
-  function ordered(menu: MenuOut): { item: MenuItemOut; depth: number }[] {
+  function ordered(menu: (typeof menus)[number]): { item: MenuItemOut; depth: number }[] {
     const byParent = new Map<number | null, MenuItemOut[]>()
     for (const item of menu.items) {
       const list = byParent.get(item.parent_id) ?? []
@@ -89,39 +79,11 @@ function MenusContent() {
     return rows
   }
 
-  async function confirmRemoveItem() {
-    if (!removingItem) return
-    try {
-      await menusApi.deactivateItem(removingItem.id)
-      await queryClient.invalidateQueries({ queryKey: queryKeys.menus.all })
-      toast.success(t("itemDeactivated"))
-    } catch (error) {
-      toast.error(getErrorMessage(error, c("unknownError")))
-    } finally {
-      setRemovingItem(undefined)
-    }
-  }
-
   return (
     <div className="flex flex-col gap-6">
       <Breadcrumbs items={[{ label: t("title") }]} />
 
-      <PageHeader
-        title={t("title")}
-        description={t("description")}
-        action={
-          <RequirePermission permission={PERMISSIONS.cmsMenuManage}>
-            <Button
-              onClick={() => {
-                setEditingMenu(undefined)
-                setMenuFormOpen(true)
-              }}
-            >
-              {t("newMenu")}
-            </Button>
-          </RequirePermission>
-        }
-      />
+      <PageHeader title={t("title")} description={t("description")} />
 
       {menusQuery.isLoading ? (
         <ListLoadingSkeleton />
@@ -143,23 +105,6 @@ function MenusContent() {
                       label={menu.is_active ? c("active") : c("inactive")}
                     />
                   </div>
-                  <RequirePermission permission={PERMISSIONS.cmsMenuManage}>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingMenu(menu)
-                          setMenuFormOpen(true)
-                        }}
-                      >
-                        {c("edit")}
-                      </Button>
-                      <Button size="sm" onClick={() => setItemForm({ menu })}>
-                        {t("newItem")}
-                      </Button>
-                    </div>
-                  </RequirePermission>
                 </CardHeader>
 
                 <CardContent className="p-0">
@@ -199,19 +144,10 @@ function MenusContent() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setItemForm({ menu, item })}
+                                onClick={() => setEditingItem(item)}
                               >
                                 {c("edit")}
                               </Button>
-                              {item.is_active && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setRemovingItem(item)}
-                                >
-                                  {c("deactivate")}
-                                </Button>
-                              )}
                             </RequirePermission>
                           </div>
                         </div>
@@ -225,34 +161,14 @@ function MenusContent() {
         </div>
       )}
 
-      {menuFormOpen && (
-        <MenuFormDialog
-          key={editingMenu?.id ?? "new"}
-          menu={editingMenu}
-          open={menuFormOpen}
-          onOpenChange={setMenuFormOpen}
-        />
-      )}
-
-      {itemForm && (
+      {editingItem && (
         <MenuItemFormDialog
-          key={itemForm.item?.id ?? `new-${itemForm.menu.id}`}
-          menu={itemForm.menu}
-          item={itemForm.item}
+          key={editingItem.id}
+          item={editingItem}
           open
-          onOpenChange={(open) => !open && setItemForm(undefined)}
+          onOpenChange={(open) => !open && setEditingItem(undefined)}
         />
       )}
-
-      <ConfirmDialog
-        open={!!removingItem}
-        onOpenChange={(open) => !open && setRemovingItem(undefined)}
-        title={t("deactivateItemTitle")}
-        description={t("deactivateItemDescription", {
-          name: removingItem ? labelOf(removingItem) : "",
-        })}
-        onConfirm={confirmRemoveItem}
-      />
     </div>
   )
 }
