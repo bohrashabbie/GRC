@@ -15,20 +15,22 @@ import { Link, usePathname } from "@/i18n/navigation";
 import type { Customer } from "@/types/shop";
 
 /**
- * Who is signed in, and the login prompt the wishlist shares with anything
- * else that ends up needing one.
+ * Who is signed in, and the one login prompt the storefront shares between
+ * wishlist and checkout.
  *
  * Cart is deliberately guest-friendly — adding to cart never gates on an
- * account. The account requirement lives at checkout instead, enforced
- * server-side by a redirect in app/[locale]/checkout/page.tsx, not through
- * this modal.
+ * account. The "Checkout" button is what asks, via this same modal (see
+ * cart-drawer.tsx / cart-page-view.tsx), so nobody is bounced to a bare
+ * sign-in page before they've even seen their cart. The checkout page itself
+ * still redirects server-side as a fallback for anyone who lands there
+ * directly (bookmark, back button) without going through that button.
  *
  * This is convenience, not security. Every gated action is a Server Action that
  * checks the session cookie itself and refuses without one; hiding the UI just
  * saves the shopper a round trip to be told no.
  */
 
-export type LoginReason = "wishlist";
+export type LoginReason = "wishlist" | "checkout";
 
 interface SessionContextValue {
   customer: Customer | null;
@@ -106,7 +108,12 @@ function LoginPrompt({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  const body = t("loginForWishlist");
+  const body = reason === "checkout" ? t("loginForCheckout") : t("loginForWishlist");
+
+  // Checkout needs the shopper handed straight back to /checkout once they've
+  // signed in — everything else lands on /account, its usual default.
+  const authHref = (path: "/account/login" | "/account/register") =>
+    reason === "checkout" ? { pathname: path, query: { redirect: "/checkout" } } : path;
 
   return (
     <div
@@ -130,13 +137,13 @@ function LoginPrompt({
 
         <div className="mt-6 flex flex-col gap-2.5">
           <Link
-            href="/account/login"
+            href={authHref("/account/login")}
             className="inline-flex h-11 items-center justify-center rounded-xs bg-palm-600 px-6 text-sm font-medium text-sand-50 transition-colors hover:bg-palm-700"
           >
             {t("signIn")}
           </Link>
           <Link
-            href="/account/register"
+            href={authHref("/account/register")}
             className="inline-flex h-11 items-center justify-center rounded-xs border border-ink-900 px-6 text-sm text-ink-900 transition-colors hover:bg-ink-900 hover:text-sand-50"
           >
             {t("register")}

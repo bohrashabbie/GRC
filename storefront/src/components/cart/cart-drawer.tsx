@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useCart } from "./cart-provider";
 import { CartTotalsBlock, FreeShippingBar } from "./cart-totals";
 import { CloseIcon } from "@/components/ui/icons";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { useSession } from "@/components/account/session-provider";
 import type { Locale } from "@/i18n/routing";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -16,8 +17,16 @@ export function CartDrawer() {
   const t = useTranslations("cart");
   const tCommon = useTranslations("common");
   const locale = useLocale() as Locale;
+  const router = useRouter();
+  const { requireLogin } = useSession();
   const { cart, isOpen, close, setQuantity, removeItem, applyCoupon, removeCoupon, couponError } =
     useCart();
+
+  function onCheckout() {
+    if (!requireLogin("checkout")) return;
+    close();
+    router.push("/checkout");
+  }
 
   const [couponInput, setCouponInput] = useState("");
 
@@ -199,13 +208,13 @@ export function CartDrawer() {
 
               <CartTotalsBlock cart={cart} />
 
-              <Link
-                href="/checkout"
-                onClick={close}
+              <button
+                type="button"
+                onClick={onCheckout}
                 className="flex h-13 items-center justify-center rounded-xs bg-palm-600 text-sm font-medium text-sand-50 transition-colors hover:bg-palm-700"
               >
                 {t("checkout")}
-              </Link>
+              </button>
               <button
                 type="button"
                 onClick={close}
