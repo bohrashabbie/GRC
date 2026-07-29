@@ -52,7 +52,8 @@
     "crNumber": "CR 1010XXXXXX",
     "vatNumber": "VAT 3000XXXXXXXXXX",
     "rights": "© {year} GR8. All rights reserved.",
-    "paymentMethods": "Accepted payment methods"
+    "paymentMethods": "Accepted payment methods",
+    "linksTitle": "Information"
   },
   "product": {
     "discount": "−{percent}%",
@@ -233,8 +234,6 @@
     "notSignedIn": "Sign in to see this page.",
     "loginRequired": "Sign in to continue",
     "loginForWishlist": "Save pieces to your wishlist and find them on any device.",
-    "loginForCart": "You need an account to add items to your bag.",
-    "loginForCheckout": "Sign in to complete your order.",
     "notNow": "Not now",
     "addToWishlist": "Save to wishlist",
     "removeFromWishlist": "Remove from wishlist",

@@ -15,24 +15,26 @@ import { Link, usePathname } from "@/i18n/navigation";
 import type { Customer } from "@/types/shop";
 
 /**
- * Who is signed in, and the one login prompt the whole storefront shares.
+ * Who is signed in, and the login prompt the wishlist shares with anything
+ * else that ends up needing one.
  *
- * Wishlist and cart both gate on an account, and both need to explain *why*
- * they are asking — so the modal lives here once with per-reason copy, instead
- * of each feature growing its own near-identical dialog.
+ * Cart is deliberately guest-friendly — adding to cart never gates on an
+ * account. The account requirement lives at checkout instead, enforced
+ * server-side by a redirect in app/[locale]/checkout/page.tsx, not through
+ * this modal.
  *
  * This is convenience, not security. Every gated action is a Server Action that
  * checks the session cookie itself and refuses without one; hiding the UI just
  * saves the shopper a round trip to be told no.
  */
 
-export type LoginReason = "wishlist" | "cart" | "checkout";
+export type LoginReason = "wishlist";
 
 interface SessionContextValue {
   customer: Customer | null;
   isAuthenticated: boolean;
   /** Opens the prompt. Returns false when signed out, so callers can bail in
-   *  one line: `if (!requireLogin("cart")) return;` */
+   *  one line: `if (!requireLogin("wishlist")) return;` */
   requireLogin: (reason: LoginReason) => boolean;
 }
 
@@ -104,12 +106,7 @@ function LoginPrompt({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  const body =
-    reason === "wishlist"
-      ? t("loginForWishlist")
-      : reason === "cart"
-        ? t("loginForCart")
-        : t("loginForCheckout");
+  const body = t("loginForWishlist");
 
   return (
     <div

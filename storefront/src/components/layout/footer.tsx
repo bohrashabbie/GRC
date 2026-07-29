@@ -6,7 +6,10 @@ import { InstagramIcon, SnapchatIcon, TiktokIcon, XIcon } from "@/components/ui/
 import { getMenu } from "@/lib/shop-api";
 import type { Locale } from "@/i18n/routing";
 
-const MENU_CODES = ["footer_company", "footer_info", "footer_support"] as const;
+// Only one "footer" menu is seeded in the CMS today — a single combined
+// column, not the three-column (company/info/support) split this footer
+// used to request before those extra menus existed.
+const MENU_CODE = "footer";
 
 const SOCIALS = [
   { href: "https://instagram.com", label: "Instagram", Icon: InstagramIcon },
@@ -21,14 +24,14 @@ const SOCIALS = [
 const PAYMENT_METHODS = ["mada", "VISA", "Mastercard", "Apple Pay", "tamara"];
 
 export async function Footer({ locale }: { locale: Locale }) {
-  const [t, menus] = await Promise.all([
+  const [t, menu] = await Promise.all([
     getTranslations("footer"),
-    Promise.all(MENU_CODES.map((code) => getMenu(code, locale))),
+    getMenu(MENU_CODE, locale),
   ]);
 
   return (
     <footer className="bg-ink-900 text-sand-200">
-      <div className="container-site grid gap-12 py-16 lg:grid-cols-[1.4fr_repeat(3,1fr)] lg:gap-8">
+      <div className="container-site grid gap-12 py-16 lg:grid-cols-[1.4fr_1fr] lg:gap-8">
         {/* Brand + newsletter */}
         <div className="max-w-sm">
           <div className="flex items-center gap-2.5 text-sand-50">
@@ -76,24 +79,22 @@ export async function Footer({ locale }: { locale: Locale }) {
           </div>
         </div>
 
-        {/* Link columns */}
-        {menus.map((menu) => (
-          <nav key={menu.code} aria-label={menu.title}>
-            <h2 className="eyebrow text-gold-400">{menu.title}</h2>
-            <ul className="mt-4 space-y-2.5">
-              {menu.items.map((item) => (
-                <li key={item.id}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-sand-300 transition-colors hover:text-sand-50"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
+        {/* Link column */}
+        <nav aria-label={t("linksTitle")}>
+          <h2 className="eyebrow text-gold-400">{t("linksTitle")}</h2>
+          <ul className="mt-4 space-y-2.5">
+            {menu.items.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={item.href}
+                  className="text-sm text-sand-300 transition-colors hover:text-sand-50"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
       {/* Legal bar */}

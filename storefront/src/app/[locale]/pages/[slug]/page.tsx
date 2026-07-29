@@ -3,22 +3,20 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { getPage, getPageSlugs } from "@/lib/shop-api";
+import { getPage } from "@/lib/shop-api";
 import { formatDate } from "@/lib/format";
-import { localeAlternates, locales, type Locale } from "@/i18n/routing";
-
-export const revalidate = 3600;
+import { localeAlternates, type Locale } from "@/i18n/routing";
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
-/**
- * Static pages change rarely and are linked from the footer of every page, so
- * they are worth prerendering rather than rendering on demand.
- */
-export async function generateStaticParams() {
-  const slugs = await getPageSlugs();
-  return locales.flatMap((locale) => slugs.map((slug) => ({ locale, slug })));
-}
+// Prerendering (generateStaticParams + a page-level `revalidate`) was removed
+// here: CATALOG_REVALIDATE_SECONDS=0 forces every shopFetch call to use
+// `cache: "no-store"` so admin edits show up immediately (see compose.yml),
+// which is incompatible with a statically-generated page and threw
+// DYNAMIC_SERVER_USAGE for every locale/slug. Reintroduce both once catalogue
+// caching is turned back on — and fix getPageSlugs()/generateStaticParams to
+// fetch each locale's own slugs instead of pairing every locale with the
+// Arabic list.
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
