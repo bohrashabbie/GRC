@@ -189,8 +189,8 @@ const PAGE_BODIES: Record<string, { title: Bilingual; body: Bilingual }> = {
   shipping: {
     title: t("الشحن والتوصيل", "Shipping & delivery"),
     body: t(
-      "<p>نشحن إلى جميع مناطق المملكة العربية السعودية.</p><h2>المدة</h2><p>2–4 أيام عمل داخل المدن الرئيسية، و3–6 أيام لبقية المناطق.</p><h2>التكلفة</h2><p>الشحن مجاني للطلبات التي تتجاوز 200 ريال. ما دون ذلك، تُحتسب رسوم ثابتة قدرها 25 ريالًا.</p><h2>التتبع</h2><p>يصلك رقم التتبع عبر رسالة نصية فور خروج الشحنة من المستودع.</p>",
-      "<p>We ship to every region of Saudi Arabia.</p><h2>Timing</h2><p>2–4 working days to major cities, 3–6 days elsewhere.</p><h2>Cost</h2><p>Shipping is free on orders over 200 SAR. Below that, a flat 25 SAR applies.</p><h2>Tracking</h2><p>A tracking number is sent by SMS as soon as the parcel leaves our warehouse.</p>",
+      "<p>نشحن إلى جميع مناطق المملكة العربية السعودية.</p><h2>المدة</h2><p>2–4 أيام عمل داخل المدن الرئيسية، و3–6 أيام لبقية المناطق.</p><h2>التكلفة</h2><p>الشحن مجاني للطلبات التي تتجاوز 200 دينار. ما دون ذلك، تُحتسب رسوم ثابتة قدرها 25 دينارًا.</p><h2>التتبع</h2><p>يصلك رقم التتبع عبر رسالة نصية فور خروج الشحنة من المستودع.</p>",
+      "<p>We ship to every region of Saudi Arabia.</p><h2>Timing</h2><p>2–4 working days to major cities, 3–6 days elsewhere.</p><h2>Cost</h2><p>Shipping is free on orders over 200 KWD. Below that, a flat 25 KWD applies.</p><h2>Tracking</h2><p>A tracking number is sent by SMS as soon as the parcel leaves our warehouse.</p>",
     ),
   },
   returns: {

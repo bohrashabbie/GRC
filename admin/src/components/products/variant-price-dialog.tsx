@@ -32,7 +32,7 @@ import type { VariantOut } from "@/lib/api/types"
 
 // Blank means "inherit / not set" and is sent as null, so an empty box never
 // becomes "0.00" by accident.
-const MONEY_OR_BLANK = /^(\d+(\.\d{1,2})?)?$/
+const MONEY_OR_BLANK = /^(\d+(\.\d{1,3})?)?$/
 
 const schema = z.object({
   price: z.string().regex(MONEY_OR_BLANK),

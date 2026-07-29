@@ -1,11 +1,12 @@
 import type { Locale } from "@/i18n/routing";
 
 /**
- * Money arrives from the API as a decimal *string* ("349.00"), never a number.
- * The backend stores SAR as NUMERIC(12,2); parsing it into a JS float on the
- * way in would reintroduce exactly the precision loss that rule is there to
- * prevent. These helpers format the string for display and never do arithmetic
- * on it — every total, discount and tax figure is computed server-side.
+ * Money arrives from the API as a decimal *string* ("349.000"), never a number.
+ * The backend stores KWD as NUMERIC(12,3) — 3 decimals for fils; parsing it
+ * into a JS float on the way in would reintroduce exactly the precision loss
+ * that rule is there to prevent. These helpers format the string for display
+ * and never do arithmetic on it — every total, discount and tax figure is
+ * computed server-side.
  */
 export type Money = string;
 
@@ -25,9 +26,9 @@ export function formatPrice(amount: Money, locale: Locale): string {
 
   return new Intl.NumberFormat(NUMERIC_LOCALE[locale], {
     style: "currency",
-    currency: "SAR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    currency: "KWD",
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
   }).format(value);
 }
 
@@ -37,8 +38,8 @@ export function formatAmount(amount: Money, locale: Locale): string {
   if (!Number.isFinite(value)) return amount;
 
   return new Intl.NumberFormat(NUMERIC_LOCALE[locale], {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
   }).format(value);
 }
 

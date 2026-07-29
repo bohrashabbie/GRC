@@ -37,7 +37,7 @@ def slugify(text: str, locale: str = "en") -> str:
 
 
 def quantize_money(value: Any) -> Decimal:
-    return Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return Decimal(str(value)).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
 
 
 def encode_cursor(created_at: datetime, id_: int) -> str:

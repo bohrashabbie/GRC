@@ -79,7 +79,7 @@ Api/
 
 ## Non-negotiable rules — apply these without being re-reminded
 
-1. **Money is `NUMERIC(12,2)` SAR, VAT-inclusive on customer-facing values, never `float`.** VAT rate is `NUMERIC(5,4)` stored as a fraction (`0.1500`, not `15`).
+1. **Money is `NUMERIC(12,3)` KWD, VAT-inclusive on customer-facing values, never `float`.** KWD is subdivided into 1000 fils, so 3 decimal places, not 2. VAT rate is `NUMERIC(5,4)` stored as a fraction (`0.1500`, not `15`).
 2. **`stock_levels.on_hand` is written ONLY through `inventory_service.py`, and only alongside a `stock_movements` row in the same transaction.** No router, no other service, touches `stock_levels` directly. The raw update function is private to that module. `stock_movements` is the ledger and the actual source of truth; `on_hand` is a cached projection.
 3. **Stock decrements use `SELECT ... FOR UPDATE`, locking by `variant_id` ascending**, to avoid deadlocks under concurrent orders.
 4. **Nothing is ever hard-deleted if an order could reference it.** Use `is_active` / `discontinued_at` / `revoked_at`. `DELETE` endpoints call the service's soft-delete, never `session.delete()`.

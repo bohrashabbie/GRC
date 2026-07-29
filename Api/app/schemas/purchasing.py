@@ -14,7 +14,7 @@ class SupplierCreate(BaseModel):
     phone_e164: str | None = None
     address: str | None = None
     vat_number: str | None = None
-    currency: str = "SAR"
+    currency: str = "KWD"
     payment_terms_days: int | None = None
     default_lead_time_days: int | None = None
     is_active: bool = True
@@ -70,7 +70,7 @@ class PurchaseOrderItemOut(BaseModel):
 class PurchaseOrderCreate(BaseModel):
     supplier_id: int
     destination_location_id: int
-    currency: str = "SAR"
+    currency: str = "KWD"
     exchange_rate: Decimal | None = None
     tax_total: Decimal = Decimal("0")
     shipping_cost: Decimal = Decimal("0")

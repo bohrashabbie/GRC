@@ -412,7 +412,7 @@ export function fixtureShippingMethods(locale: LocaleCode): ShippingMethod[] {
     {
       id: "standard",
       name: isAr ? "الشحن القياسي" : "Standard delivery",
-      description: isAr ? "مجاني للطلبات فوق 200 ريال" : "Free on orders over 200 SAR",
+      description: isAr ? "مجاني للطلبات فوق 200 دينار" : "Free on orders over 200 KWD",
       price: "25.00",
       estimated_days: { min: 2, max: 4 },
       carrier_name: "SMSA",

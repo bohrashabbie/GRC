@@ -388,7 +388,7 @@ export type ProductMediaItemOut = ProductMediaOut & {
 /* Products & variants                                                         */
 /* -------------------------------------------------------------------------- */
 
-/** Money is NUMERIC(12,2) SAR and arrives as a string — never parsed to float
+/** Money is NUMERIC(12,3) KWD and arrives as a string — never parsed to float
  * for display or arithmetic here; the backend owns all money maths. */
 export type ProductOut = {
   id: number
@@ -969,19 +969,10 @@ export type MenuItemOut = {
   translations: LabelTranslationOut[]
 }
 
-export type MenuItemCreate = {
-  parent_id?: number | null
-  link_type: MenuLinkType
-  link_target_id?: number | null
-  link_url?: string | null
-  icon_media_id?: number | null
-  badge_code?: string | null
-  sort_order?: number
-  is_active?: boolean
-  translations: LabelTranslationIn[]
-}
-
-export type MenuItemUpdate = Partial<Omit<MenuItemCreate, "translations">> & {
+/** Menu items are seeded, not staff-created — only is_active and the label
+ * translations can be changed here. */
+export type MenuItemUpdate = {
+  is_active?: boolean | null
   translations?: LabelTranslationIn[] | null
 }
 
@@ -992,8 +983,7 @@ export type MenuOut = {
   items: MenuItemOut[]
 }
 
-export type MenuCreate = { code: string; is_active?: boolean }
-export type MenuUpdate = { code?: string | null; is_active?: boolean | null }
+export type MenuUpdate = { is_active?: boolean | null }
 
 export type PageStatus = "draft" | "published"
 export type PageTemplate = "default" | "full_width" | "contact"
@@ -1025,13 +1015,9 @@ export type PageOut = {
   translations: PageTranslationOut[]
 }
 
-export type PageCreate = {
-  code: string
-  template?: PageTemplate
-  status?: PageStatus
-  translations: PageTranslationIn[]
-}
-
-export type PageUpdate = Partial<Omit<PageCreate, "translations">> & {
+/** Pages are seeded, not staff-created — code and template are fixed; only
+ * status and the translation text can be changed here. */
+export type PageUpdate = {
+  status?: PageStatus | null
   translations?: PageTranslationIn[] | null
 }

@@ -35,7 +35,7 @@ import { bilingualName, formatMoney } from "@/lib/format"
 import { queryKeys } from "@/lib/query/keys"
 import type { VariantOut } from "@/lib/api/types"
 
-const MONEY_PATTERN = /^\d+(\.\d{1,2})?$/
+const MONEY_PATTERN = /^\d+(\.\d{1,3})?$/
 
 type DraftLine = { variant: VariantOut; qty: number; unitCost: string }
 
@@ -83,7 +83,7 @@ export function PoCreateDialog({
   // totals — this is never sent back as a price.
   const subtotalPreview = lines
     .reduce((sum, line) => sum + Number(line.unitCost) * line.qty, 0)
-    .toFixed(2)
+    .toFixed(3)
 
   function addLine() {
     if (!canAddLine || !pendingVariant) return

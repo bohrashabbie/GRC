@@ -62,7 +62,7 @@ ENABLED_PAYMENT_METHODS = {"cod"}
 
 
 def _money(value: Decimal) -> Decimal:
-    return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return Decimal(value).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
 
 
 def _tax_rate(db: Session, tax_class: str) -> Decimal:
@@ -204,7 +204,7 @@ def create_order(
         status="pending",
         payment_status="unpaid",
         fulfilment_status="unfulfilled",
-        currency="SAR",
+        currency="KWD",
         locale=locale,
         shipping_method_code=data.shipping_method_id,
         placed_at=now,
@@ -309,7 +309,7 @@ def create_order(
             provider="cash_on_delivery",
             method=data.payment_method_code,
             amount=grand_total,
-            currency="SAR",
+            currency="KWD",
             status="pending",
             idempotency_key=f"order-{order_id}-initial",
         )

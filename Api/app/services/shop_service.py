@@ -60,7 +60,7 @@ def _translation_row(rows: Iterable, locale: str):
 
 
 def _money(value: Decimal | int | str) -> str:
-    return f"{Decimal(value):.2f}"
+    return f"{Decimal(value):.3f}"
 
 
 def _csv(value: str | None) -> set[str]:

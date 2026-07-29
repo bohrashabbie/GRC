@@ -4,7 +4,7 @@
     "tagline": "Saudi traditional wear, made to be worn well"
   },
   "topbar": {
-    "promo": "Free shipping on orders over 200 SAR",
+    "promo": "Free shipping on orders over 200 KWD",
     "switchTo": "العربية",
     "switchToAria": "Switch language to Arabic"
   },
@@ -36,7 +36,7 @@
     "goToSlide": "Go to slide {number}"
   },
   "usp": {
-    "shippingTitle": "Free shipping over 200 SAR",
+    "shippingTitle": "Free shipping over 200 KWD",
     "shippingBody": "Delivered across the Kingdom in 2–4 working days",
     "returnsTitle": "14-day easy returns",
     "returnsBody": "Return in store or arrange a free pickup",
@@ -106,7 +106,7 @@
     "galleryPrevious": "Previous image",
     "galleryNext": "Next image",
     "galleryThumb": "View image {number}",
-    "shippingBody": "Free delivery on orders over 200 SAR, 2–4 working days across the Kingdom. Returns accepted within 14 days, in store or by free pickup.",
+    "shippingBody": "Free delivery on orders over 200 KWD, 2–4 working days across the Kingdom. Returns accepted within 14 days, in store or by free pickup.",
     "outOfStockOption": "Out of stock"
   },
   "reviews": {
@@ -279,7 +279,7 @@
     "retry": "Try again",
     "loadMore": "Load more",
     "close": "Close",
-    "currency": "SAR",
+    "currency": "KWD",
     "vatIncluded": "VAT included",
     "optional": "optional",
     "notFoundTitle": "Page not found",

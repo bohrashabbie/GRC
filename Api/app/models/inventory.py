@@ -58,7 +58,7 @@ class StockMovement(Base, CreatedAtMixin):
     reason: Mapped[str] = mapped_column(nullable=False)
     ref_type: Mapped[str | None] = mapped_column(nullable=True)
     ref_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    unit_cost: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+    unit_cost: Mapped[float | None] = mapped_column(Numeric(12, 3), nullable=True)
     balance_after: Mapped[int | None] = mapped_column(Integer, nullable=True)
     actor_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     note: Mapped[str | None] = mapped_column(nullable=True)

@@ -43,7 +43,7 @@ import { queryKeys } from "@/lib/query/keys"
 import type { ProductOut } from "@/lib/api/types"
 
 const NO_BRAND = "__none__"
-const MONEY_PATTERN = /^\d+(\.\d{1,2})?$/
+const MONEY_PATTERN = /^\d+(\.\d{1,3})?$/
 
 function useProductEditSchema() {
   const p = useTranslations("products")

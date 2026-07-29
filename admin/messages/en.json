@@ -366,7 +366,7 @@
       "brand": "Brand",
       "noBrand": "No brand",
       "productType": "Product type",
-      "basePrice": "Base price (SAR)",
+      "basePrice": "Base price (KWD)",
       "taxClass": "Tax class",
       "isFeatured": "Featured product",
       "isBestSeller": "Best seller",
@@ -377,7 +377,7 @@
       "trackInventory": "Track inventory"
     },
     "hints": {
-      "basePrice": "VAT-inclusive price in SAR. Variants can override it.",
+      "basePrice": "VAT-inclusive price in KWD. Variants can override it.",
       "categories": "A product can sit in several categories across dimensions.",
       "isBestSeller": "Shows the best-seller badge and includes this product in the storefront's Best Sellers rail.",
       "defaultVariant": "Every product has at least one variant — a default one is created automatically.",
@@ -815,11 +815,8 @@
   "pages": {
     "title": "Pages",
     "description": "Static pages such as shipping, returns and terms.",
-    "newPage": "New page",
-    "createTitle": "Create page",
     "editTitle": "Edit page",
     "formDescription": "Content and SEO for both locales. A page is only visible on the storefront once published.",
-    "created": "Page created.",
     "updated": "Page updated.",
     "unpublished": "Page returned to draft.",
     "unpublish": "Unpublish",
@@ -851,30 +848,17 @@
       "metaDescription": "Meta description"
     },
     "validation": {
-      "codeRequired": "A code is required.",
       "titleRequired": "Both Arabic and English need a title."
     }
   },
   "menus": {
     "title": "Menus",
     "description": "Header and footer navigation shown on the storefront.",
-    "newMenu": "New menu",
-    "createTitle": "Create menu",
-    "editTitle": "Edit menu",
-    "formDescription": "A menu is identified by its code, which the storefront asks for by name.",
-    "created": "Menu created.",
-    "updated": "Menu updated.",
     "empty": "No menus yet.",
     "noItems": "No items in this menu yet.",
-    "newItem": "Add item",
-    "newItemTitle": "Add menu item",
     "editItemTitle": "Edit menu item",
-    "itemFormDescription": "Label per locale, and where the link goes.",
-    "itemCreated": "Item added.",
+    "itemFormDescription": "Menu items are fixed — only the label per locale and whether it's shown can change.",
     "itemUpdated": "Item updated.",
-    "itemDeactivated": "Item deactivated.",
-    "deactivateItemTitle": "Deactivate this item?",
-    "deactivateItemDescription": "{name} will stop appearing in the menu. It can be reactivated later.",
     "linkTypes": {
       "category": "Category",
       "brand": "Brand",
@@ -883,26 +867,14 @@
       "url": "URL"
     },
     "fields": {
-      "code": "Code",
-      "codeHint": "The storefront requests main_nav for the header, and footer_* for the footer columns.",
       "isActive": "Active",
       "label": {
         "ar": "Label (Arabic)",
         "en": "Label (English)"
-      },
-      "parent": "Parent",
-      "topLevel": "Top level",
-      "linkType": "Links to",
-      "linkUrl": "URL",
-      "linkTargetId": "Target id",
-      "badge": "Badge",
-      "sortOrder": "Order"
+      }
     },
     "validation": {
-      "codeRequired": "A code is required.",
-      "labelRequired": "Both Arabic and English need a label.",
-      "urlRequired": "A URL is required for this link type.",
-      "targetRequired": "A target id is required for this link type."
+      "labelRequired": "Both Arabic and English need a label."
     }
   }
 }

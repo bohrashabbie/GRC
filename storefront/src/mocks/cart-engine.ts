@@ -10,7 +10,7 @@
  * Nothing outside `src/mocks/` and `src/lib/shop-api.ts` may import this.
  * When the cart API lands, delete this file — the components do not change.
  *
- * Money is handled in integer halalas throughout so 0.1 + 0.2 never appears
+ * Money is handled in integer fils throughout so 0.1 + 0.2 never appears
  * in a total.
  */
 
@@ -26,11 +26,11 @@ import { fixtureProductDetail } from "./catalog";
 import { img } from "./shared";
 
 const VAT_RATE = 0.15;
-const FREE_SHIPPING_THRESHOLD = 20_000; // 200.00 SAR in halalas
-const FLAT_SHIPPING = 2_500; // 25.00 SAR
+const FREE_SHIPPING_THRESHOLD = 200_000; // 200.000 KWD in fils
+const FLAT_SHIPPING = 25_000; // 25.000 KWD
 
-const toHalalas = (value: string) => Math.round(Number(value) * 100);
-const toMoney = (halalas: number) => (halalas / 100).toFixed(2);
+const toFils = (value: string) => Math.round(Number(value) * 1000);
+const toMoney = (fils: number) => (fils / 1000).toFixed(3);
 
 /** What the client persists — ids and quantities only, never prices. */
 export interface StoredLine {
@@ -41,7 +41,7 @@ export interface StoredLine {
 
 const COUPONS: Record<string, { type: "percent" | "fixed"; value: number; label: string }> = {
   GRC10: { type: "percent", value: 10, label: "GRC10 — 10%" },
-  WELCOME50: { type: "fixed", value: 5_000, label: "WELCOME50 — 50 SAR" },
+  WELCOME50: { type: "fixed", value: 50_000, label: "WELCOME50 — 50 KWD" },
 };
 
 export function fixtureValidateCoupon(code: string): boolean {
@@ -90,7 +90,7 @@ export function fixtureBuildCart(
       product.media[0] ??
       img(1, product.name);
 
-    const unit = toHalalas(variant.price);
+    const unit = toFils(variant.price);
     // Null means the product is not inventory-tracked, i.e. no ceiling. Zero is
     // a real ceiling — the line stays visible at 0 so the shopper can see what
     // sold out rather than having it disappear from under them.
@@ -115,7 +115,7 @@ export function fixtureBuildCart(
     });
   }
 
-  const subtotal = lines.reduce((sum, line) => sum + toHalalas(line.line_total), 0);
+  const subtotal = lines.reduce((sum, line) => sum + toFils(line.line_total), 0);
 
   let discount = 0;
   let coupon: AppliedCoupon | null = null;
@@ -132,7 +132,7 @@ export function fixtureBuildCart(
   // The threshold is evaluated after discount, which is the stricter reading
   // and the one that avoids a total dropping below it post-coupon.
   const qualifiesFreeShipping = afterDiscount >= FREE_SHIPPING_THRESHOLD;
-  const explicitShipping = shippingMethodPrice ? toHalalas(shippingMethodPrice) : null;
+  const explicitShipping = shippingMethodPrice ? toFils(shippingMethodPrice) : null;
   const shipping =
     lines.length === 0
       ? 0

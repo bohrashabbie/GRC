@@ -60,7 +60,7 @@ export function productJsonLd(
     brand: product.brand ? { "@type": "Brand", name: product.brand.name } : undefined,
     offers: {
       "@type": "AggregateOffer",
-      priceCurrency: "SAR",
+      priceCurrency: "KWD",
       lowPrice: product.price_range.min,
       highPrice: product.price_range.max,
       offerCount: product.variants.length,

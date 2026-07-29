@@ -137,7 +137,7 @@ class Product(Base, TimestampMixin):
         ForeignKey("variants.id", use_alter=True, name="fk_products_default_variant_id"),
         nullable=True,
     )
-    base_price: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
+    base_price: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
     tax_class: Mapped[str] = mapped_column(nullable=False, default="standard")
     is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     # Merchandising flag, set by hand in the admin. Deliberately separate from
@@ -305,9 +305,9 @@ class Variant(Base, TimestampMixin):
     )
     sku: Mapped[str] = mapped_column(nullable=False, unique=True)
     barcode: Mapped[str | None] = mapped_column(nullable=True, unique=True)
-    price: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
-    compare_at_price: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
-    cost_price: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+    price: Mapped[float | None] = mapped_column(Numeric(12, 3), nullable=True)
+    compare_at_price: Mapped[float | None] = mapped_column(Numeric(12, 3), nullable=True)
+    cost_price: Mapped[float | None] = mapped_column(Numeric(12, 3), nullable=True)
     weight_grams: Mapped[int | None] = mapped_column(Integer, nullable=True)
     low_stock_threshold: Mapped[int | None] = mapped_column(Integer, nullable=True)
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

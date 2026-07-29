@@ -5,14 +5,15 @@ import type {
 } from "@/lib/api/types"
 
 /**
- * Money arrives from the API as a NUMERIC(12,2) string in SAR, VAT-inclusive.
+ * Money arrives from the API as a NUMERIC(12,3) string in KWD, VAT-inclusive.
  * It is never parsed into a float and never recomputed client-side — the
  * backend owns every price and VAT calculation. This only formats for display.
+ * KWD is subdivided into 1000 fils, so it's shown to 3 decimals, not 2.
  */
 export function formatMoney(
   amount: string | null | undefined,
   locale: string,
-  currency = "SAR"
+  currency = "KWD"
 ): string {
   if (amount === null || amount === undefined || amount === "") return "—"
   const numeric = Number(amount)
@@ -20,8 +21,8 @@ export function formatMoney(
   return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-SA", {
     style: "currency",
     currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
   }).format(numeric)
 }
 

@@ -24,7 +24,7 @@ import { formatMoney } from "@/lib/format"
 import { queryKeys } from "@/lib/query/keys"
 import type { PaymentOut } from "@/lib/api/types"
 
-const MONEY_PATTERN = /^\d+(\.\d{1,2})?$/
+const MONEY_PATTERN = /^\d+(\.\d{1,3})?$/
 
 export function OrderRefundDialog({
   orderId,
@@ -48,7 +48,7 @@ export function OrderRefundDialog({
   // backend re-validates the remaining balance anyway.
   const remaining = (
     Number(payment.amount) - Number(payment.refunded_amount)
-  ).toFixed(2)
+  ).toFixed(3)
 
   const [amount, setAmount] = useState(remaining)
   const [reason, setReason] = useState("")
