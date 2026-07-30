@@ -31,7 +31,7 @@ export async function Footer({ locale }: { locale: Locale }) {
 
   return (
     <footer className="bg-ink-900 text-sand-200">
-      <div className="container-site grid gap-12 py-16 lg:grid-cols-[1fr_1fr] lg:gap-8">
+      <div className="container-site grid gap-12 py-16 lg:grid-cols-[1.4fr_1fr] lg:gap-8">
         {/* Brand + newsletter */}
         <div className="max-w-sm">
           <div className="flex items-center gap-2.5 text-sand-50">
@@ -79,12 +79,10 @@ export async function Footer({ locale }: { locale: Locale }) {
           </div>
         </div>
 
-        {/* Link column — a 2-column grid rather than one long list, since a
-            single seeded menu (6 items) reads as sparse next to the brand
-            block otherwise. */}
+        {/* Link column */}
         <nav aria-label={t("linksTitle")}>
           <h2 className="eyebrow text-gold-400">{t("linksTitle")}</h2>
-          <ul className="mt-4 grid grid-cols-2 gap-x-8 gap-y-2.5">
+          <ul className="mt-4 space-y-2.5">
             {menu.items.map((item) => (
               <li key={item.id}>
                 <Link

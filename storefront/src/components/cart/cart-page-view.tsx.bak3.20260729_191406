@@ -4,9 +4,8 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { useCart } from "./cart-provider";
 import { CartTotalsBlock, FreeShippingBar } from "./cart-totals";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
-import { useSession } from "@/components/account/session-provider";
 import type { Locale } from "@/i18n/routing";
 import { formatPrice } from "@/lib/format";
 
@@ -17,14 +16,7 @@ import { formatPrice } from "@/lib/format";
 export function CartPageView() {
   const t = useTranslations("cart");
   const locale = useLocale() as Locale;
-  const router = useRouter();
-  const { requireLogin } = useSession();
   const { cart, isLoading, setQuantity, removeItem } = useCart();
-
-  function onCheckout() {
-    if (!requireLogin("checkout")) return;
-    router.push("/checkout");
-  }
 
   if (isLoading) {
     return <p className="py-24 text-center text-sm text-ink-400">…</p>;
@@ -109,13 +101,12 @@ export function CartPageView() {
           <FreeShippingBar cart={cart} />
           <div className="p-5">
             <CartTotalsBlock cart={cart} />
-            <button
-              type="button"
-              onClick={onCheckout}
-              className="mt-5 flex h-13 w-full items-center justify-center rounded-xs bg-palm-600 text-sm font-medium text-sand-50 transition-colors hover:bg-palm-700"
+            <Link
+              href="/checkout"
+              className="mt-5 flex h-13 items-center justify-center rounded-xs bg-palm-600 text-sm font-medium text-sand-50 transition-colors hover:bg-palm-700"
             >
               {t("checkout")}
-            </button>
+            </Link>
           </div>
         </div>
       </aside>

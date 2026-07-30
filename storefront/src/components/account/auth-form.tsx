@@ -20,7 +20,17 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * wishlist server-side, so without a refresh the header and every heart would
  * still render signed-out until the next full load.
  */
-export function AuthForm({ mode }: { mode: "login" | "register" }) {
+export function AuthForm({
+  mode,
+  redirectTo,
+}: {
+  mode: "login" | "register";
+  /** Where to send the shopper after success, e.g. "/checkout" for anyone
+   *  routed here by the checkout login prompt. Defaults to "/account". Must
+   *  be a same-site path — anything else falls back to the default rather
+   *  than sending someone off-site. */
+  redirectTo?: string;
+}) {
   const t = useTranslations("account");
   const tCheckout = useTranslations("checkout");
 
@@ -78,7 +88,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         : await signIn(values.email.trim(), values.password, locale);
 
       if (result.ok) {
-        router.push("/account");
+        const isSafe = redirectTo?.startsWith("/") && !redirectTo.startsWith("//");
+        router.push(isSafe ? redirectTo! : "/account");
         // The layout reads the session on the server, so a push alone would
         // leave the header and the hearts rendering as signed out.
         router.refresh();
@@ -192,7 +203,12 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         <p className="mt-6 text-center text-sm text-ink-500">
           {isRegister ? t("hasAccount") : t("noAccount")}{" "}
           <Link
-            href={isRegister ? "/account/login" : "/account/register"}
+            href={{
+              pathname: isRegister ? "/account/login" : "/account/register",
+              // Carries the checkout return path across if the shopper
+              // switches forms rather than filling in the one they landed on.
+              query: redirectTo ? { redirect: redirectTo } : undefined,
+            }}
             className="text-gold-700 underline underline-offset-4"
           >
             {isRegister ? t("signIn") : t("register")}

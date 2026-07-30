@@ -22,10 +22,13 @@ export default async function CheckoutPage({ params }: PageProps) {
 
   const typedLocale = locale as Locale;
 
-  // Shopping requires an account, so an unauthenticated shopper cannot have a
-  // cart to check out. Redirecting rather than rendering a dead form.
+  // The "Checkout" button already gates on an account via the shared login
+  // modal (see cart-drawer.tsx / cart-page-view.tsx) before it ever gets
+  // here. This redirect is only a fallback for someone landing on /checkout
+  // directly — a bookmark or the back button — bypassing that button. It
+  // still sends them back to checkout once they've signed in.
   const customer = await currentCustomer(typedLocale);
-  if (!customer) redirect(`/${locale}/account/login`);
+  if (!customer) redirect(`/${locale}/account/login?redirect=${encodeURIComponent("/checkout")}`);
 
   const [t, regions, cities, shippingMethods, paymentMethods] = await Promise.all([
     getTranslations("checkout"),

@@ -12,7 +12,6 @@ import {
 import { useLocale } from "next-intl";
 
 import { checkCoupon, checkStock, rebuildCart } from "@/app/actions";
-import { useSession } from "@/components/account/session-provider";
 import type { Cart, LocaleCode } from "@/types/shop";
 import type { StoredLine } from "@/lib/shop-api";
 
@@ -66,7 +65,6 @@ function readStored(): StoredLine[] {
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const locale = useLocale() as LocaleCode;
-  const { requireLogin } = useSession();
 
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -152,10 +150,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = useCallback(
     async (variantId: string, productSlug: string, quantity = 1) => {
-      // Shopping requires an account. Prompting here rather than at checkout
-      // means nobody fills a basket only to be stopped at the till.
-      if (!requireLogin("cart")) return;
-
+      // Guests can add to cart freely — the account requirement is enforced
+      // at checkout (see app/[locale]/checkout/page.tsx), not here, so
+      // nobody has to sign in before they've decided to buy anything.
       const existing = stored.current.find((line) => line.variantId === variantId);
       if (existing) existing.quantity += quantity;
       else stored.current = [...stored.current, { variantId, productSlug, quantity }];
@@ -164,7 +161,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setIsOpen(true);
       await sync();
     },
-    [requireLogin, sync],
+    [sync],
   );
 
   const setQuantity = useCallback(

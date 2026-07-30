@@ -17,7 +17,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
-    networks: [backend, dbaccess]
+    networks: [backend]
 
   api:
     build:
@@ -110,7 +110,6 @@ networks:
   backend:
     internal: true
   web:
-  dbaccess:
 
 volumes:
   postgres_data:
