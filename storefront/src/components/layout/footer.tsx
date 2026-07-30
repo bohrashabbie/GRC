@@ -35,7 +35,7 @@ export async function Footer({ locale }: { locale: Locale }) {
         {/* Brand + newsletter */}
         <div className="max-w-sm">
           <div className="flex items-center gap-2.5 text-sand-50">
-            <LogoMark className="size-7 text-gold-400" />
+            <LogoMark className="size-7" invert />
             <span className="font-display text-2xl">{t("newsletterTitle")}</span>
           </div>
 

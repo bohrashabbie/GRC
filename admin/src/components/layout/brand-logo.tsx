@@ -5,11 +5,12 @@ import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
 /**
- * GR8 brand mark: the monogram tile from public/logo-mark.svg plus the
- * wordmark. The wordmark is live text rather than part of the SVG so it picks
- * up the app font and stays sharp at any zoom.
+ * GR8 brand mark: public/logo-full.png is the full wordmark artwork (the
+ * "Gr8" lettering is baked into the image), so no separate text is rendered
+ * beside it. The collapsed sidebar rail is too narrow for the wordmark's
+ * wide aspect ratio, so it renders nothing there but an accessible name.
  *
- * To swap in a different logo, replace public/logo-mark.svg — nothing here
+ * To swap in a different logo, replace public/logo-full.png — nothing here
  * needs to change.
  */
 export function BrandLogo({
@@ -23,25 +24,21 @@ export function BrandLogo({
 }) {
   const app = useTranslations("app")
 
-  const boxSize = size === "lg" ? "size-10" : "size-7"
-  const textSize = size === "lg" ? "text-xl" : "text-base"
+  if (collapsed) {
+    return <span className="sr-only">{app("name")}</span>
+  }
+
+  const height = size === "lg" ? "h-10" : "h-7"
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG
+    <div className={cn("flex items-center", className)}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- a static PNG
           in /public needs no optimisation pipeline. */}
       <img
-        src="/logo-mark.svg"
-        alt=""
-        aria-hidden
-        className={cn("shrink-0", boxSize)}
+        src="/logo-full.png"
+        alt={app("shortName")}
+        className={cn("w-auto object-contain", height)}
       />
-      {!collapsed && (
-        <span className={cn("truncate font-semibold tracking-tight", textSize)}>
-          {app("shortName")}
-        </span>
-      )}
-      {collapsed && <span className="sr-only">{app("name")}</span>}
     </div>
   )
 }

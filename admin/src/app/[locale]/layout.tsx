@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: "GR8 Admin",
   description: "Internal admin panel for GR8 staff.",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicon.png" },
 }
 
 export function generateStaticParams() {

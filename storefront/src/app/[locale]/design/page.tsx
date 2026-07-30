@@ -325,12 +325,12 @@ export default async function DesignPage({ params }: { params: Promise<{ locale:
       {/* ---------------------------------------------------------------- */}
       <Section
         title="The mark"
-        intro="A Rub el Hizb drawn as a hairline rather than a solid — the single piece of ornament in the identity, legible at 20px and at 200."
+        intro="The G monogram, legible from favicon size up to a full display size."
       >
         <div className="flex flex-wrap items-center gap-10 bg-sand-100 p-10">
-          <LogoMark className="size-8 text-gold-500" />
-          <LogoMark className="size-16 text-gold-500" />
-          <LogoMark className="size-32 text-ink-900" />
+          <LogoMark className="size-8" />
+          <LogoMark className="size-16" />
+          <LogoMark className="size-32" />
         </div>
       </Section>
     </div>
