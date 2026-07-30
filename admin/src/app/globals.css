@@ -39,6 +39,14 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-status-success: var(--status-success);
+  --color-status-success-foreground: var(--status-success-foreground);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-foreground: var(--status-warning-foreground);
+  --color-status-info: var(--status-info);
+  --color-status-info-foreground: var(--status-info-foreground);
+  --color-delta-up: var(--delta-up);
+  --color-delta-down: var(--delta-down);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,73 +56,102 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Brand palette — shares its ink/sand/gold vocabulary with the storefront
+   (storefront/src/app/globals.css) so the admin reads as the same product,
+   just tuned for dense, data-heavy screens rather than editorial retail. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: #f5f0e7; /* sand-100 */
+  --foreground: #16130f; /* ink-900 */
+  --card: #ffffff;
+  --card-foreground: #16130f;
+  --popover: #ffffff;
+  --popover-foreground: #16130f;
+  --primary: #16130f; /* ink-900 */
+  --primary-foreground: #fbf9f5; /* sand-50 */
+  --secondary: #ebe3d6; /* sand-200 */
+  --secondary-foreground: #16130f;
+  --muted: #f5f0e7; /* sand-100 */
+  --muted-foreground: #6b6155; /* ink-500 */
+  --accent: #ebe3d6; /* sand-200 */
+  --accent-foreground: #16130f;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: #dacfbd; /* sand-300 */
+  --input: #dacfbd;
+  --ring: #b8873f; /* gold-500 */
+  --status-success: #16a34a;
+  --status-success-foreground: #15803d;
+  --status-warning: #d97706;
+  --status-warning-foreground: #b45309;
+  --status-info: #0284c7;
+  --status-info-foreground: #0369a1;
+  /* Categorical chart palette — the dataviz skill's validated default order
+     (fixed hue anchors, adjacent-pair CVD checked), used as-is. Brand's warm
+     ink/sand/gold ramp can't supply 5 distinct categorical identities without
+     failing the chroma/CVD checks, so charts intentionally step outside the
+     brand palette here. */
+  --chart-1: #2a78d6; /* blue */
+  --chart-2: #eb6834; /* orange */
+  --chart-3: #1baf7a; /* aqua */
+  --chart-4: #eda100; /* yellow */
+  --chart-5: #e87ba4; /* magenta */
+  --delta-up: #006300;
+  --delta-down: #d03b3b;
+  --radius: 0.5rem;
+  /* Sidebar stays light (not the dark ink rail this palette could otherwise
+     support) because /public/logo-full.png is solid-black art with no light
+     variant — a dark rail would swallow the wordmark. Sand-50 keeps it one
+     shade lighter than the page background so it still reads as its own
+     panel, with gold doing the brand work via the ring/accent instead. */
+  --sidebar: #fbf9f5; /* sand-50 */
+  --sidebar-foreground: #16130f; /* ink-900 */
+  --sidebar-primary: #16130f;
+  --sidebar-primary-foreground: #fbf9f5;
+  --sidebar-accent: #ebe3d6; /* sand-200 */
+  --sidebar-accent-foreground: #16130f;
+  --sidebar-border: #dacfbd; /* sand-300 */
+  --sidebar-ring: #b8873f; /* gold-500 */
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: #26221c; /* ink-800 */
+  --foreground: #f5f0e7; /* sand-100 */
+  --card: #3a342c; /* ink-700 */
+  --card-foreground: #f5f0e7;
+  --popover: #3a342c;
+  --popover-foreground: #f5f0e7;
+  --primary: #e2c88f; /* gold-300 */
+  --primary-foreground: #16130f;
+  --secondary: #4e463c; /* ink-600 */
+  --secondary-foreground: #f5f0e7;
+  --muted: #4e463c;
+  --muted-foreground: #dacfbd; /* sand-300 */
+  --accent: #4e463c;
+  --accent-foreground: #fbf9f5;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --border: rgb(245 240 231 / 12%); /* sand-100 @ 12% */
+  --input: rgb(245 240 231 / 15%);
+  --ring: #d4af6a; /* gold-400 */
+  --status-success: #22c55e;
+  --status-success-foreground: #4ade80;
+  --status-warning: #f59e0b;
+  --status-warning-foreground: #fbbf24;
+  --status-info: #38bdf8;
+  --status-info-foreground: #7dd3fc;
+  --chart-1: #3987e5; /* blue */
+  --chart-2: #d95926; /* orange */
+  --chart-3: #199e70; /* aqua */
+  --chart-4: #c98500; /* yellow */
+  --chart-5: #d55181; /* magenta */
+  --delta-up: #0ca30c;
+  --delta-down: #d03b3b;
+  --sidebar: #16130f; /* ink-900 — the darkest surface, even against the dark content bg */
+  --sidebar-foreground: #f5f0e7;
+  --sidebar-primary: #e2c88f;
+  --sidebar-primary-foreground: #16130f;
+  --sidebar-accent: #3a342c;
+  --sidebar-accent-foreground: #fbf9f5;
+  --sidebar-border: rgb(245 240 231 / 10%);
+  --sidebar-ring: #d4af6a;
 }
 
 /* Type scale, bumped ~1 step above Tailwind's defaults.

@@ -52,6 +52,7 @@ export const PERMISSIONS = {
   cmsPageManage: "cms.page.manage",
   cmsPagePublish: "cms.page.publish",
   financeView: "finance.view",
+  analyticsView: "analytics.view",
 } as const
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -65,6 +66,7 @@ export const PERMISSION_GROUP_ORDER = [
   "customers",
   "marketing",
   "finance",
+  "analytics",
 ] as const
 
 export function sortPermissionGroups(groups: string[]): string[] {

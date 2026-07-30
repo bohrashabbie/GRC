@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.routers import (
+    analytics,
     audit,
     auth,
     banners,
@@ -47,3 +48,4 @@ api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
 api_router.include_router(banners.router, prefix="/banners", tags=["cms"])
 api_router.include_router(menus.router, prefix="/menus", tags=["cms"])
 api_router.include_router(pages.router, prefix="/pages", tags=["cms"])
+api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])

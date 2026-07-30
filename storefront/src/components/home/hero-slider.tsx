@@ -46,7 +46,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
       onBlurCapture={() => setIsPaused(false)}
       className="relative isolate overflow-hidden bg-ink-900"
     >
-      <div className="relative aspect-[4/5] w-full sm:aspect-[16/9] lg:aspect-[21/9]">
+      <div className="relative aspect-[4/3] w-full sm:aspect-[2/1] lg:aspect-[16/5]">
         {banners.map((banner, index) => (
           <div
             key={banner.id}

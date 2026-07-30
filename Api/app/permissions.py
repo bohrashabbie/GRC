@@ -62,6 +62,8 @@ PERMISSIONS: list[PermissionDef] = [
     PermissionDef("cms.page.publish", "marketing", "Publish or unpublish a static page"),
     # finance
     PermissionDef("finance.view", "finance", "View financial reports and exports"),
+    # analytics
+    PermissionDef("analytics.view", "analytics", "View dashboard analytics (revenue, orders, top products, stock)"),
 ]
 
 DEFAULT_ROLES: list[dict] = [
@@ -153,6 +155,7 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "return.manage",
         "customer.view",
         "inventory.view",
+        "analytics.view",
     ],
     "support": ["order.view", "order.note", "customer.view", "customer.update"],
     "marketing": [
@@ -165,7 +168,7 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "cms.page.manage",
         "cms.page.publish",
     ],
-    "accountant": ["finance.view", "order.view", "audit.view", "settings.view"],
+    "accountant": ["finance.view", "order.view", "audit.view", "settings.view", "analytics.view"],
 }
 
 

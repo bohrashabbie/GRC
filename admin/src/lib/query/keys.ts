@@ -1,4 +1,5 @@
 import type {
+  AnalyticsRange,
   AuditListParams,
   OrderListParams,
   ProductListParams,
@@ -128,5 +129,17 @@ export const queryKeys = {
     all: ["audit"] as const,
     list: (params: Omit<AuditListParams, "cursor" | "limit">) =>
       ["audit", "list", params] as const,
+  },
+
+  analytics: {
+    all: ["analytics"] as const,
+    summary: (range: AnalyticsRange) => ["analytics", "summary", range] as const,
+    timeseries: (range: AnalyticsRange) =>
+      ["analytics", "timeseries", range] as const,
+    byStatus: (range: AnalyticsRange) =>
+      ["analytics", "by-status", range] as const,
+    topProducts: (range: AnalyticsRange, limit: number) =>
+      ["analytics", "top-products", range, limit] as const,
+    lowStock: (limit: number) => ["analytics", "low-stock", limit] as const,
   },
 } as const

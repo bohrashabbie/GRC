@@ -4,12 +4,10 @@ import { humanizeStatus, statusTone, type BadgeTone } from "@/lib/status"
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
   neutral: "bg-muted text-muted-foreground",
-  success:
-    "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400",
-  warning:
-    "bg-amber-500/10 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400",
+  success: "bg-status-success/10 text-status-success-foreground",
+  warning: "bg-status-warning/10 text-status-warning-foreground",
   danger: "bg-destructive/10 text-destructive",
-  info: "bg-sky-500/10 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400",
+  info: "bg-status-info/10 text-status-info-foreground",
 }
 
 /** Consistent colour-coding for every status string the API returns. */

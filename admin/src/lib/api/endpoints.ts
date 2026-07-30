@@ -1,5 +1,6 @@
 import { api, apiUpload } from "./client"
 import type {
+  AnalyticsRange,
   AuditListParams,
   AuditLogOut,
   BrandCreate,
@@ -22,6 +23,7 @@ import type {
   LocationCreate,
   LocationOut,
   LocationUpdate,
+  LowStockItemOut,
   MediaOut,
   OptionCreate,
   OptionOut,
@@ -51,9 +53,13 @@ import type {
   RoleDetailOut,
   SettingOut,
   SettingUpdate,
+  StatusBreakdownOut,
+  SummaryOut,
   SupplierCreate,
   SupplierOut,
   SupplierUpdate,
+  TimeseriesOut,
+  TopProductOut,
   UserCreate,
   UserListParams,
   UserOut,
@@ -490,6 +496,35 @@ export const auditApi = {
         date_from: params.date_from ?? undefined,
         date_to: params.date_to ?? undefined,
       },
+      signal,
+    }),
+}
+
+/* -------------------------------------------------------------------------- */
+/* Analytics                                                                   */
+/* -------------------------------------------------------------------------- */
+
+export const analyticsApi = {
+  summary: (range: AnalyticsRange, signal?: AbortSignal) =>
+    api.get<SummaryOut>("/analytics/summary", { query: { range }, signal }),
+  ordersTimeseries: (range: AnalyticsRange, signal?: AbortSignal) =>
+    api.get<TimeseriesOut>("/analytics/orders-timeseries", {
+      query: { range },
+      signal,
+    }),
+  ordersByStatus: (range: AnalyticsRange, signal?: AbortSignal) =>
+    api.get<StatusBreakdownOut>("/analytics/orders-by-status", {
+      query: { range },
+      signal,
+    }),
+  topProducts: (range: AnalyticsRange, limit: number, signal?: AbortSignal) =>
+    api.get<TopProductOut[]>("/analytics/top-products", {
+      query: { range, limit },
+      signal,
+    }),
+  lowStock: (limit: number, signal?: AbortSignal) =>
+    api.get<LowStockItemOut[]>("/analytics/low-stock", {
+      query: { limit },
       signal,
     }),
 }

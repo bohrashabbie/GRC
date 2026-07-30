@@ -220,7 +220,8 @@
     "orders": "الطلبات",
     "customers": "العملاء",
     "marketing": "التسويق",
-    "finance": "المالية"
+    "finance": "المالية",
+    "analytics": "التحليلات"
   },
   "catalog": {
     "fields": {
@@ -876,5 +877,31 @@
     "validation": {
       "labelRequired": "النص مطلوب بالعربية والإنجليزية."
     }
+  },
+  "dashboard": {
+    "title": "التحليلات",
+    "ranges": {
+      "7d": "آخر 7 أيام",
+      "30d": "آخر 30 يومًا",
+      "90d": "آخر 90 يومًا"
+    },
+    "kpi": {
+      "revenue": "الإيرادات",
+      "orders": "الطلبات",
+      "avgOrderValue": "متوسط قيمة الطلب",
+      "activeCustomers": "العملاء النشطون"
+    },
+    "charts": {
+      "revenueOverTime": "الإيرادات عبر الوقت",
+      "ordersOverTime": "الطلبات عبر الوقت",
+      "statusBreakdown": "الطلبات حسب الحالة",
+      "paymentBreakdown": "الطلبات حسب حالة الدفع",
+      "topProducts": "الأكثر مبيعًا",
+      "lowStock": "مخزون منخفض"
+    },
+    "noData": "لا توجد بيانات لهذه الفترة بعد.",
+    "lowStockEmpty": "لا يوجد حاليًا ما هو أقل من حد إعادة الطلب.",
+    "unitsSold": "{count} قطعة مباعة",
+    "onHandOfThreshold": "{onHand} متوفر (من أصل {threshold})"
   }
 }

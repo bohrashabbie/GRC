@@ -1021,3 +1021,59 @@ export type PageUpdate = {
   status?: PageStatus | null
   translations?: PageTranslationIn[] | null
 }
+
+/* -------------------------------------------------------------------------- */
+/* Analytics                                                                   */
+/* -------------------------------------------------------------------------- */
+
+export type AnalyticsRange = "7d" | "30d" | "90d"
+
+export type KpiValue = {
+  value: string
+  previous: string
+  change_pct: number | null
+}
+
+export type SummaryOut = {
+  range_days: number
+  revenue: KpiValue
+  orders: KpiValue
+  avg_order_value: KpiValue
+  active_customers: KpiValue
+}
+
+export type TimeseriesPoint = {
+  date: string
+  orders_count: number
+  revenue: string
+}
+
+export type TimeseriesOut = {
+  points: TimeseriesPoint[]
+}
+
+export type StatusCount = {
+  status: string
+  count: number
+}
+
+export type StatusBreakdownOut = {
+  by_status: StatusCount[]
+  by_payment_status: StatusCount[]
+}
+
+export type TopProductOut = {
+  product_id: number
+  name: string
+  sku: string | null
+  units_sold: number
+  revenue: string
+}
+
+export type LowStockItemOut = {
+  variant_id: number
+  sku: string
+  product_name: string
+  on_hand: number
+  threshold: number
+}

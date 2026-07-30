@@ -220,7 +220,8 @@
     "orders": "Orders",
     "customers": "Customers",
     "marketing": "Marketing",
-    "finance": "Finance"
+    "finance": "Finance",
+    "analytics": "Analytics"
   },
   "catalog": {
     "fields": {
@@ -876,5 +877,31 @@
     "validation": {
       "labelRequired": "Both Arabic and English need a label."
     }
+  },
+  "dashboard": {
+    "title": "Analytics",
+    "ranges": {
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days"
+    },
+    "kpi": {
+      "revenue": "Revenue",
+      "orders": "Orders",
+      "avgOrderValue": "Avg. order value",
+      "activeCustomers": "Active customers"
+    },
+    "charts": {
+      "revenueOverTime": "Revenue over time",
+      "ordersOverTime": "Orders over time",
+      "statusBreakdown": "Orders by status",
+      "paymentBreakdown": "Orders by payment status",
+      "topProducts": "Top products",
+      "lowStock": "Low stock"
+    },
+    "noData": "No data for this period yet.",
+    "lowStockEmpty": "Nothing below its reorder threshold right now.",
+    "unitsSold": "{count} units sold",
+    "onHandOfThreshold": "{onHand} on hand (of {threshold})"
   }
 }
