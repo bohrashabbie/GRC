@@ -2,8 +2,14 @@
 **/.env
 **/.env.local
 **/.env.*.local
+**/.env.vps
 !.env.vps.example
 !**/.env.example
+
+# Timestamped backup copies left by on-server manual editing
+*.bak
+*.bak.*
+*.bak[0-9]*
 
 # JavaScript dependencies and Next.js output
 **/node_modules/
