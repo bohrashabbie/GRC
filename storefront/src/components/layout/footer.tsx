@@ -2,7 +2,15 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { LogoMark } from "@/components/ui/logo";
-import { InstagramIcon, SnapchatIcon, TiktokIcon, XIcon } from "@/components/ui/icons";
+import { WhatsappIcon } from "@/components/ui/icons";
+import {
+  CONTACT_EMAIL,
+  CREDIT_NAME,
+  CREDIT_URL,
+  SOCIALS,
+  WHATSAPP_DISPLAY,
+  WHATSAPP_HREF,
+} from "@/lib/site-contact";
 import { getMenu } from "@/lib/shop-api";
 import type { Locale } from "@/i18n/routing";
 
@@ -10,13 +18,6 @@ import type { Locale } from "@/i18n/routing";
 // column, not the three-column (company/info/support) split this footer
 // used to request before those extra menus existed.
 const MENU_CODE = "footer";
-
-const SOCIALS = [
-  { href: "https://instagram.com", label: "Instagram", Icon: InstagramIcon },
-  { href: "https://x.com", label: "X", Icon: XIcon },
-  { href: "https://snapchat.com", label: "Snapchat", Icon: SnapchatIcon },
-  { href: "https://tiktok.com", label: "TikTok", Icon: TiktokIcon },
-];
 
 // Text badges, not logos. Shipping someone else's trademark as a hand-drawn
 // SVG approximation is worse than an honest placeholder — swap these for the
@@ -77,6 +78,32 @@ export async function Footer({ locale }: { locale: Locale }) {
               ))}
             </ul>
           </div>
+
+          <div className="mt-8">
+            <p className="eyebrow text-gold-400">{t("contactTitle")}</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              <li>
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  dir="ltr"
+                  className="text-sand-300 transition-colors hover:text-gold-300"
+                >
+                  {CONTACT_EMAIL}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={WHATSAPP_HREF}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-2 text-sand-300 transition-colors hover:text-gold-300"
+                >
+                  <WhatsappIcon className="size-4.5" />
+                  <span dir="ltr" className="tabular">{WHATSAPP_DISPLAY}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Link column — a 2-column grid rather than one long list, since a
@@ -106,6 +133,17 @@ export async function Footer({ locale }: { locale: Locale }) {
             <span className="tabular">{t("crNumber")}</span>
             <span className="tabular">{t("vatNumber")}</span>
             <span>{t("rights", { year: new Date().getFullYear() })}</span>
+            <span>
+              {t("designedBy")}{" "}
+              <a
+                href={CREDIT_URL}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-sand-300 transition-colors hover:text-gold-300"
+              >
+                {CREDIT_NAME}
+              </a>
+            </span>
           </div>
 
           <ul aria-label={t("paymentMethods")} className="flex flex-wrap items-center gap-2">

@@ -1,14 +1,7 @@
 import { useTranslations } from "next-intl";
 
-import { InstagramIcon, SnapchatIcon, TiktokIcon, XIcon } from "@/components/ui/icons";
+import { SOCIALS } from "@/lib/site-contact";
 import { LocaleSwitch } from "./locale-switch";
-
-const SOCIALS = [
-  { href: "https://instagram.com", label: "Instagram", Icon: InstagramIcon },
-  { href: "https://x.com", label: "X", Icon: XIcon },
-  { href: "https://snapchat.com", label: "Snapchat", Icon: SnapchatIcon },
-  { href: "https://tiktok.com", label: "TikTok", Icon: TiktokIcon },
-];
 
 export function TopBar() {
   const t = useTranslations("topbar");

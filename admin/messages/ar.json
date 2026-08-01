@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "لوحة تحكم GR8",
-    "shortName": "GR8"
+    "shortName": "GR8",
+    "designedBy": "تصميم وتطوير"
   },
   "common": {
     "save": "حفظ",

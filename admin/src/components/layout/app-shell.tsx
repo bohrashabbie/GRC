@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { AppSidebar, MobileSidebar } from "./app-sidebar"
+import { DevCredit } from "./dev-credit"
 import { Topbar } from "./topbar"
 import { useAuth } from "@/providers/auth-provider"
 import { useRouter } from "@/i18n/navigation"
@@ -51,6 +52,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex flex-1 flex-col gap-4 p-4 md:p-6">
           {children}
         </main>
+        <footer className="border-t border-border px-4 py-3 md:px-6">
+          <DevCredit className="text-center" />
+        </footer>
       </div>
     </div>
   )

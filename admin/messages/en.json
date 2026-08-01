@@ -1,7 +1,8 @@
 {
   "app": {
     "name": "GR8 Admin",
-    "shortName": "GR8"
+    "shortName": "GR8",
+    "designedBy": "Designed & developed by"
   },
   "common": {
     "save": "Save",

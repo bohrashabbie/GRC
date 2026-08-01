@@ -49,9 +49,12 @@
     "emailPlaceholder": "بريدك الإلكتروني",
     "subscribe": "اشترك",
     "followUs": "تابعنا",
+    "contactTitle": "تواصل معنا",
+    "chatOnWhatsapp": "تحدث معنا عبر واتساب",
     "crNumber": "س.ت 1010XXXXXX",
     "vatNumber": "الرقم الضريبي 3000XXXXXXXXXX",
     "rights": "© {year} GR8. جميع الحقوق محفوظة.",
+    "designedBy": "تصميم وتطوير",
     "paymentMethods": "وسائل الدفع المقبولة",
     "linksTitle": "معلومات"
   },

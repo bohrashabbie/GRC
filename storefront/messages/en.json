@@ -49,9 +49,12 @@
     "emailPlaceholder": "Your email address",
     "subscribe": "Subscribe",
     "followUs": "Follow us",
+    "contactTitle": "Contact us",
+    "chatOnWhatsapp": "Chat with us on WhatsApp",
     "crNumber": "CR 1010XXXXXX",
     "vatNumber": "VAT 3000XXXXXXXXXX",
     "rights": "© {year} GR8. All rights reserved.",
+    "designedBy": "Designed & developed by",
     "paymentMethods": "Accepted payment methods",
     "linksTitle": "Information"
   },

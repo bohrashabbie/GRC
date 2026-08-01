@@ -10,6 +10,7 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { BrandLogo } from "@/components/layout/brand-logo"
+import { DevCredit } from "@/components/layout/dev-credit"
 import {
   Form,
   FormControl,
@@ -74,7 +75,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-muted/30 px-4">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-muted/30 px-4">
       <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-sm">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
           <BrandLogo size="lg" />
@@ -172,6 +173,8 @@ export default function LoginPage() {
           </form>
         </Form>
       </div>
+
+      <DevCredit className="mt-4 text-center" />
     </div>
   )
 }

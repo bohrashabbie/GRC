@@ -7,6 +7,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { WhatsappButton } from "@/components/layout/whatsapp-button";
 import { MobileMenuProvider } from "@/components/layout/mobile-menu";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { SessionProvider } from "@/components/account/session-provider";
@@ -76,6 +77,7 @@ export default async function LocaleLayout({
               <main className="flex-1 pb-16 md:pb-0">{children}</main>
               <Footer locale={typedLocale} />
               <MobileBottomNav />
+              <WhatsappButton />
               <CartDrawer />
             </MobileMenuProvider>
               </CartProvider>
