@@ -236,6 +236,23 @@ export function MastercardLogo(props: IconProps) {
   );
 }
 
+/** Official mark from Adyen's payment-logo set; viewBox cropped to the art. */
+export function KnetLogo(props: IconProps) {
+  return (
+    <svg viewBox="99.74 24.11 200.52 201.79" aria-hidden="true" focusable="false" {...props}>
+      <path fill="#0b74b9" d="M99.74 24.11h200.52v55.5H99.74z" />
+      <path
+        fill="#f8e608"
+        d="M181.13 122.98v31.45h-44.8V95.58h44.8v25.33l32.32-25.33h59.89l-33.66 26.22 36.24 32.63h-64.43l-30.36-31.45z"
+      />
+      <path
+        fill="#0b74b9"
+        d="M300.26 86.5H99.74V167h200.52ZM181.14 123v31.45h-44.81V95.58h44.81v25.33l32.31-25.33h59.89l-33.66 26.22 36.24 32.63h-64.43Zm-81.4 50.84h200.52v52.05H99.74z"
+      />
+    </svg>
+  );
+}
+
 export function ApplePayLogo(props: IconProps) {
   return (
     <PaymentMark {...props}>

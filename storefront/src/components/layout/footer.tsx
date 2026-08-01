@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { LogoMark } from "@/components/ui/logo";
 import {
   ApplePayLogo,
+  KnetLogo,
   MastercardLogo,
   VisaLogo,
   WhatsappIcon,
@@ -31,6 +32,7 @@ const MENU_CODE = "footer";
 const PAYMENT_METHODS = [
   { name: "Visa", Logo: VisaLogo, logoClass: "size-9" },
   { name: "Mastercard", Logo: MastercardLogo, logoClass: "size-8" },
+  { name: "KNET", Logo: KnetLogo, logoClass: "size-6" },
   { name: "Apple Pay", Logo: ApplePayLogo, logoClass: "size-9" },
 ];
 
