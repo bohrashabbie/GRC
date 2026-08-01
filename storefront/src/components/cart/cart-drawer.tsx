@@ -214,7 +214,7 @@ export function CartDrawer() {
               <button
                 type="button"
                 onClick={onCheckout}
-                className="flex h-13 items-center justify-center rounded-xs bg-palm-600 text-sm font-medium text-sand-50 transition-colors hover:bg-palm-700"
+                className="flex h-13 w-full items-center justify-center rounded-xs bg-palm-600 px-6 text-sm font-medium text-sand-50 transition-colors hover:bg-palm-700"
               >
                 {t("checkout")}
               </button>
