@@ -130,8 +130,6 @@ export async function Footer({ locale }: { locale: Locale }) {
       <div className="border-t border-ink-700">
         <div className="container-site flex flex-col gap-5 py-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-2xs text-ink-400">
-            <span className="tabular">{t("crNumber")}</span>
-            <span className="tabular">{t("vatNumber")}</span>
             <span>{t("rights", { year: new Date().getFullYear() })}</span>
             <span>
               {t("designedBy")}{" "}
