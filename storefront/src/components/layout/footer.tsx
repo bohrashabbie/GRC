@@ -2,7 +2,12 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { LogoMark } from "@/components/ui/logo";
-import { WhatsappIcon } from "@/components/ui/icons";
+import {
+  ApplePayLogo,
+  MastercardLogo,
+  VisaLogo,
+  WhatsappIcon,
+} from "@/components/ui/icons";
 import {
   CONTACT_EMAIL,
   CREDIT_NAME,
@@ -19,10 +24,15 @@ import type { Locale } from "@/i18n/routing";
 // used to request before those extra menus existed.
 const MENU_CODE = "footer";
 
-// Text badges, not logos. Shipping someone else's trademark as a hand-drawn
-// SVG approximation is worse than an honest placeholder — swap these for the
-// official assets from each scheme's brand kit before launch.
-const PAYMENT_METHODS = ["mada", "VISA", "Mastercard", "Apple Pay", "tamara"];
+// Real scheme marks on white cards, the way payment badges read everywhere
+// else. Each logo gets its own size class because the marks have very
+// different proportions — the Visa wordmark is short and wide, the Mastercard
+// circles are tall — and one shared size makes them look mismatched.
+const PAYMENT_METHODS = [
+  { name: "Visa", Logo: VisaLogo, logoClass: "size-9" },
+  { name: "Mastercard", Logo: MastercardLogo, logoClass: "size-8" },
+  { name: "Apple Pay", Logo: ApplePayLogo, logoClass: "size-9" },
+];
 
 export async function Footer({ locale }: { locale: Locale }) {
   const [t, menu] = await Promise.all([
@@ -144,13 +154,20 @@ export async function Footer({ locale }: { locale: Locale }) {
             </span>
           </div>
 
-          <ul aria-label={t("paymentMethods")} className="flex flex-wrap items-center gap-2">
-            {PAYMENT_METHODS.map((method) => (
+          {/* lg:me-20 keeps the last card clear of the floating WhatsApp
+              button, which is fixed to the same logical end corner. */}
+          <ul
+            aria-label={t("paymentMethods")}
+            className="flex flex-wrap items-center gap-2 lg:me-20"
+          >
+            {PAYMENT_METHODS.map(({ name, Logo, logoClass }) => (
               <li
-                key={method}
-                className="rounded-xs border border-ink-700 px-2.5 py-1.5 text-2xs text-sand-300"
+                key={name}
+                title={name}
+                className="flex h-9 w-14 items-center justify-center rounded-sm bg-white"
               >
-                {method}
+                <Logo className={logoClass} />
+                <span className="sr-only">{name}</span>
               </li>
             ))}
           </ul>

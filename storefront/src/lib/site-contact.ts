@@ -2,9 +2,9 @@ import {
   FacebookIcon,
   InstagramIcon,
   SnapchatIcon,
-  TiktokIcon,
   WhatsappIcon,
   XIcon,
+  YoutubeIcon,
 } from "@/components/ui/icons";
 
 /**
@@ -36,5 +36,5 @@ export const SOCIALS = [
   { href: "https://instagram.com", label: "Instagram", Icon: InstagramIcon },
   { href: "https://x.com", label: "X", Icon: XIcon },
   { href: "https://snapchat.com", label: "Snapchat", Icon: SnapchatIcon },
-  { href: "https://tiktok.com", label: "TikTok", Icon: TiktokIcon },
+  { href: "https://youtube.com", label: "YouTube", Icon: YoutubeIcon },
 ];
