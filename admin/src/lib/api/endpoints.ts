@@ -12,6 +12,8 @@ import type {
   CategoryUpdate,
   CurrentUserOut,
   CursorPage,
+  ContactMessageOut,
+  ContactMessageUpdate,
   CustomerAddressCreate,
   CustomerAddressOut,
   CustomerAddressUpdate,
@@ -466,6 +468,29 @@ export const customersApi = {
     api.post<CustomerAddressOut>(`/customers/${customerId}/addresses`, payload),
   updateAddress: (addressId: number, payload: CustomerAddressUpdate) =>
     api.patch<CustomerAddressOut>(`/customers/addresses/${addressId}`, payload),
+}
+
+/* -------------------------------------------------------------------------- */
+/* Contact messages                                                            */
+/* -------------------------------------------------------------------------- */
+
+export const contactMessagesApi = {
+  list: (
+    params: { cursor?: string | null; limit?: number; status?: string | null } = {},
+    signal?: AbortSignal
+  ) =>
+    api.get<CursorPage<ContactMessageOut>>("/contact-messages", {
+      query: {
+        cursor: params.cursor ?? undefined,
+        limit: params.limit,
+        status: params.status ?? undefined,
+      },
+      signal,
+    }),
+  get: (messageId: number, signal?: AbortSignal) =>
+    api.get<ContactMessageOut>(`/contact-messages/${messageId}`, { signal }),
+  updateStatus: (messageId: number, payload: ContactMessageUpdate) =>
+    api.patch<ContactMessageOut>(`/contact-messages/${messageId}`, payload),
 }
 
 /* -------------------------------------------------------------------------- */

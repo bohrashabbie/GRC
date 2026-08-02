@@ -69,6 +69,7 @@ from app.models.system import ApiKey, ExportJob, ImportJob, Notification, Settin
 from app.models.cms import (
     Banner,
     BannerTranslation,
+    ContactMessage,
     Menu,
     MenuItem,
     MenuItemTranslation,
@@ -142,6 +143,7 @@ __all__ = [
     "ApiKey",
     "Banner",
     "BannerTranslation",
+    "ContactMessage",
     "Menu",
     "MenuItem",
     "MenuItemTranslation",

@@ -43,6 +43,8 @@ export const PERMISSIONS = {
   // customers
   customerView: "customer.view",
   customerUpdate: "customer.update",
+  contactView: "contact.view",
+  contactManage: "contact.manage",
 
   // marketing / finance
   marketingView: "marketing.view",

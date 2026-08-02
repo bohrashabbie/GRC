@@ -67,6 +67,18 @@ class CheckoutOut(BaseModel):
     totals: CheckoutTotalsOut
 
 
+class ContactIn(BaseModel):
+    """The Contact Us form. Lengths are tight enough that the unauthenticated
+    endpoint is a poor spam target without cutting off a genuine complaint
+    mid-sentence."""
+
+    name: str = Field(min_length=2, max_length=120)
+    email: EmailStr
+    phone: str | None = Field(default=None, max_length=20)
+    subject: str | None = Field(default=None, max_length=200)
+    message: str = Field(min_length=10, max_length=4000)
+
+
 class StockCheckIn(BaseModel):
     variant_ids: list[int] = Field(min_length=1, max_length=100)
 

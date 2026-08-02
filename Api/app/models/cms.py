@@ -126,6 +126,32 @@ class MenuItemTranslation(Base, TimestampMixin):
     )
 
 
+class ContactMessage(Base, TimestampMixin):
+    """A storefront Contact Us submission.
+
+    Not in the workbook — the seeded `contact_us` page needed a working form,
+    and this is its inbox. No FK to customers on purpose: most senders are
+    anonymous shoppers, and tying the form to an account would add a login
+    wall to a page whose whole point is being reachable.
+    """
+
+    __tablename__ = "contact_messages"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    email: Mapped[str] = mapped_column(nullable=False)
+    phone: Mapped[str | None] = mapped_column(nullable=True)
+    subject: Mapped[str | None] = mapped_column(nullable=True)
+    message: Mapped[str] = mapped_column(nullable=False)
+    locale: Mapped[str] = mapped_column(nullable=False, default="ar")
+    status: Mapped[str] = mapped_column(nullable=False, default="new")
+
+    __table_args__ = (
+        Index("ix_contact_messages_status", "status"),
+        Index("ix_contact_messages_created_at", "created_at"),
+    )
+
+
 class Page(Base, TimestampMixin):
     __tablename__ = "pages"
 

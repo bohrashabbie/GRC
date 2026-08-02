@@ -230,6 +230,8 @@ export interface Menu {
 export interface StaticPage {
   slug: string;
   title: string;
+  /** Layout hint — "contact" renders the contact form under the CMS body. */
+  template: string;
   body_html: string;
   updated_at: string;
   seo: SeoMeta;

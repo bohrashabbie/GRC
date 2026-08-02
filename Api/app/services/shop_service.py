@@ -1024,6 +1024,9 @@ def page(db: Session, slug: str, locale: str) -> dict:
     return {
         "slug": text.slug if text else slug,
         "title": text.title if text else "",
+        # The storefront renders extra blocks per template — "contact" adds
+        # the contact form under the CMS body.
+        "template": row.template,
         "body_html": (text.body if text else None) or "",
         "updated_at": row.updated_at.isoformat(),
         "seo": {

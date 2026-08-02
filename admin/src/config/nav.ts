@@ -1,6 +1,7 @@
 import {
   FileText,
   Images,
+  Inbox,
   Menu as MenuIcon,
   ClipboardList,
   FileClock,
@@ -105,6 +106,12 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: "customers",
         icon: Users,
         permission: PERMISSIONS.customerView,
+      },
+      {
+        href: "/contact-messages",
+        labelKey: "contactMessages",
+        icon: Inbox,
+        permission: PERMISSIONS.contactView,
       },
     ],
   },

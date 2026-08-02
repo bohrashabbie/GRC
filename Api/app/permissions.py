@@ -52,6 +52,8 @@ PERMISSIONS: list[PermissionDef] = [
     # customers
     PermissionDef("customer.view", "customers", "View customer accounts and addresses"),
     PermissionDef("customer.update", "customers", "Edit customer accounts and addresses"),
+    PermissionDef("contact.view", "customers", "View contact form submissions"),
+    PermissionDef("contact.manage", "customers", "Mark contact form submissions read/closed"),
     # marketing
     PermissionDef("marketing.view", "marketing", "View marketing configuration"),
     # cms — banners, menus, static pages
@@ -157,11 +159,19 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "inventory.view",
         "analytics.view",
     ],
-    "support": ["order.view", "order.note", "customer.view", "customer.update"],
+    "support": [
+        "order.view",
+        "order.note",
+        "customer.view",
+        "customer.update",
+        "contact.view",
+        "contact.manage",
+    ],
     "marketing": [
         "marketing.view",
         "catalog.view",
         "customer.view",
+        "contact.view",
         "cms.view",
         "cms.banner.manage",
         "cms.menu.manage",

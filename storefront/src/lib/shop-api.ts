@@ -334,6 +334,28 @@ export async function getProductSlugs(): Promise<string[]> {
   );
 }
 
+export interface ContactInput {
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string | null;
+  message: string;
+}
+
+export async function sendContactMessage(
+  input: ContactInput,
+  locale: LocaleCode,
+): Promise<void> {
+  // No fixture branch: with the backend down the form should say so rather
+  // than pretend a message was delivered.
+  await shopFetch<{ id: string }>("/contact", {
+    locale,
+    revalidate: false,
+    method: "POST",
+    body: input,
+  });
+}
+
 export async function getStores(locale: LocaleCode): Promise<StoreLocation[]> {
   return liveCatalog(
     () => shopFetch<StoreLocation[]>("/stores", { locale, revalidate: 3600 }),

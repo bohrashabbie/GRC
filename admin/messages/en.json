@@ -75,7 +75,8 @@
     "sectionContent": "Content",
     "banners": "Banners",
     "menus": "Menus",
-    "pages": "Pages"
+    "pages": "Pages",
+    "contactMessages": "Contact messages"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -703,6 +704,36 @@
       "empty": "No addresses saved.",
       "defaultShipping": "Default shipping",
       "defaultBilling": "Default billing"
+    }
+  },
+  "contactMessages": {
+    "title": "Contact messages",
+    "description": "Messages sent through the storefront's Contact Us form.",
+    "empty": "No messages yet.",
+    "noSubject": "(no subject)",
+    "updated": "Message updated.",
+    "closeMessage": "Mark as closed",
+    "reopen": "Reopen",
+    "columns": {
+      "from": "From",
+      "subject": "Subject",
+      "status": "Status",
+      "received": "Received"
+    },
+    "statuses": {
+      "new": "New",
+      "read": "Read",
+      "closed": "Closed"
+    },
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "locale": "Language"
+    },
+    "locales": {
+      "ar": "Arabic",
+      "en": "English"
     }
   },
   "settings": {

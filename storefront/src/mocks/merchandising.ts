@@ -258,6 +258,7 @@ export function fixturePage(slug: string, locale: LocaleCode): StaticPage | null
   return {
     slug,
     title: raw.title[locale],
+    template: slug === "contact" ? "contact" : "default",
     body_html: raw.body[locale],
     updated_at: "2026-06-01T00:00:00Z",
     seo: {

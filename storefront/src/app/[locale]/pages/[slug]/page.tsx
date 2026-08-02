@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ContactForm } from "@/components/contact/contact-form";
 import { getPage } from "@/lib/shop-api";
 import { formatDate } from "@/lib/format";
 import { localeAlternates, type Locale } from "@/i18n/routing";
@@ -58,6 +59,14 @@ export default async function StaticPage({ params }: PageProps) {
           // Server-authored CMS copy, not user input.
           dangerouslySetInnerHTML={{ __html: page.body_html }}
         />
+
+        {/* The seeded contact_us page carries template "contact" — its CMS
+            body is the intro copy and this form is the actual channel. */}
+        {page.template === "contact" && (
+          <div className="mt-10 max-w-2xl border-t border-hairline pt-10">
+            <ContactForm />
+          </div>
+        )}
       </article>
     </div>
   );

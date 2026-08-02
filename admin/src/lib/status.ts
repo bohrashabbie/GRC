@@ -108,6 +108,9 @@ const TONE_BY_STATUS: Record<string, BadgeTone> = {
   applied: "success",
   counting: "warning",
   closed: "neutral",
+  // contact messages ("closed" is shared with counts above)
+  new: "warning",
+  read: "info",
 }
 
 export function statusTone(status: string): BadgeTone {

@@ -2,6 +2,7 @@ import {
   FacebookIcon,
   InstagramIcon,
   SnapchatIcon,
+  TiktokIcon,
   WhatsappIcon,
   XIcon,
   YoutubeIcon,
@@ -27,14 +28,19 @@ export const WHATSAPP_DISPLAY = "+965 9727 5271";
 export const FACEBOOK_URL =
   "https://www.facebook.com/profile.php?id=61592648282235";
 
+export const TIKTOK_URL = "https://www.tiktok.com/@gr8_trend";
+
+export const YOUTUBE_URL = "https://www.youtube.com/@Gr8Trend";
+
 export const CREDIT_NAME = "burhanicreation.com";
 export const CREDIT_URL = "https://www.burhanicreation.com";
 
 export const SOCIALS = [
   { href: FACEBOOK_URL, label: "Facebook", Icon: FacebookIcon },
   { href: WHATSAPP_HREF, label: "WhatsApp", Icon: WhatsappIcon },
+  { href: TIKTOK_URL, label: "TikTok", Icon: TiktokIcon },
+  { href: YOUTUBE_URL, label: "YouTube", Icon: YoutubeIcon },
   { href: "https://instagram.com", label: "Instagram", Icon: InstagramIcon },
   { href: "https://x.com", label: "X", Icon: XIcon },
   { href: "https://snapchat.com", label: "Snapchat", Icon: SnapchatIcon },
-  { href: "https://youtube.com", label: "YouTube", Icon: YoutubeIcon },
 ];

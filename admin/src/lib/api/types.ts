@@ -846,6 +846,29 @@ export type CustomerAddressUpdate = Partial<
 >
 
 /* -------------------------------------------------------------------------- */
+/* Contact messages                                                            */
+/* -------------------------------------------------------------------------- */
+
+export type ContactMessageStatus = "new" | "read" | "closed"
+
+export type ContactMessageOut = {
+  id: number
+  name: string
+  email: string
+  phone: string | null
+  subject: string | null
+  message: string
+  locale: string
+  status: ContactMessageStatus
+  created_at: string
+  updated_at: string
+}
+
+export type ContactMessageUpdate = {
+  status: ContactMessageStatus
+}
+
+/* -------------------------------------------------------------------------- */
 /* System — settings & audit                                                   */
 /* -------------------------------------------------------------------------- */
 

@@ -100,6 +100,12 @@ export const queryKeys = {
       ["customers", "addresses", customerId] as const,
   },
 
+  contactMessages: {
+    all: ["contact-messages"] as const,
+    list: (params: { status?: string | null }) =>
+      ["contact-messages", "list", params] as const,
+  },
+
   settings: {
     all: ["settings"] as const,
     list: (group?: string | null) => ["settings", "list", group ?? null] as const,

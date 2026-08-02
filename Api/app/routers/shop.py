@@ -17,6 +17,7 @@ from app.schemas.shop import (
     AccountSummaryOut,
     CheckoutIn,
     CheckoutOut,
+    ContactIn,
     CustomerOut,
     LoginIn,
     PasswordChangeIn,
@@ -27,7 +28,7 @@ from app.schemas.shop import (
     VariantStockOut,
     WishlistOut,
 )
-from app.services import account_service, checkout_service, shop_service
+from app.services import account_service, checkout_service, contact_service, shop_service
 
 router = APIRouter(tags=["shop"])
 
@@ -233,6 +234,20 @@ def page_slugs(accept_language: str | None = Header(None), db: Session = Depends
 @router.get("/pages/{slug}")
 def page(slug: str, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     return shop_service.page(db, slug, shop_service.locale_from_header(accept_language))
+
+
+@router.post("/contact", status_code=status.HTTP_201_CREATED)
+def contact(
+    payload: ContactIn,
+    accept_language: str | None = Header(None),
+    db: Session = Depends(get_db),
+) -> dict:
+    """The Contact Us form. Unauthenticated by design — the page's whole point
+    is being reachable without an account."""
+    row = contact_service.create_message(
+        db, payload, shop_service.locale_from_header(accept_language)
+    )
+    return {"id": str(row.id)}
 
 
 # --------------------------------------------------------------------------

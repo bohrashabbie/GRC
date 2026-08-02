@@ -1,4 +1,5 @@
-"""Request/response models for banners, menus and static pages."""
+"""Request/response models for banners, menus, static pages and the
+contact-form inbox."""
 
 from datetime import datetime
 
@@ -7,6 +8,7 @@ from pydantic import BaseModel, Field
 BANNER_PLACEMENTS = {"home_hero"}
 BANNER_LINK_TYPES = {"category", "product", "collection", "url"}
 PAGE_STATUSES = {"draft", "published"}
+CONTACT_MESSAGE_STATUSES = {"new", "read", "closed"}
 
 
 # --------------------------------------------------------------------------- #
@@ -169,5 +171,32 @@ class PageRead(BaseModel):
     status: str
     published_at: datetime | None
     translations: list[PageTranslationOut]
+
+    model_config = {"from_attributes": True}
+
+
+# --------------------------------------------------------------------------- #
+# Contact messages                                                             #
+# --------------------------------------------------------------------------- #
+
+
+class ContactMessageUpdate(BaseModel):
+    """Staff can only move a message between statuses — the sender's words are
+    never editable."""
+
+    status: str
+
+
+class ContactMessageRead(BaseModel):
+    id: int
+    name: str
+    email: str
+    phone: str | None
+    subject: str | None
+    message: str
+    locale: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
 
     model_config = {"from_attributes": True}

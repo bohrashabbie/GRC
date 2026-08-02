@@ -275,6 +275,20 @@
     "call": "Call",
     "empty": "No stores in that city."
   },
+  "contact": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "subject": "Subject",
+    "message": "Message",
+    "optional": "optional",
+    "send": "Send message",
+    "sending": "Sending…",
+    "sentTitle": "Message sent",
+    "sentBody": "Thank you for reaching out — we'll get back to you as soon as possible.",
+    "messageTooShort": "Please write at least a few words so we can help.",
+    "unreachable": "We couldn't send your message. Please try again in a moment."
+  },
   "common": {
     "loading": "Loading…",
     "retry": "Try again",

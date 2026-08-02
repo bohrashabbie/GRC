@@ -18,8 +18,10 @@ import {
   registerCustomer,
   removeFromWishlist,
   saveToWishlist,
+  sendContactMessage,
   updateProfile,
   validateCoupon,
+  type ContactInput,
   type ListQuery,
   type StoredLine,
 } from "@/lib/shop-api";
@@ -138,6 +140,22 @@ export async function submitOrder(
       reason: "failed",
       message: error instanceof Error ? error.message : "Checkout failed",
     };
+  }
+}
+
+/** Contact Us form. Anonymous by design — no session token is attached. */
+export async function submitContactMessage(
+  input: ContactInput,
+  locale: LocaleCode,
+): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
+  try {
+    await sendContactMessage(input, locale);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ShopApiError) {
+      return { ok: false, code: error.code, message: error.message };
+    }
+    return { ok: false, code: "unreachable", message: "Could not reach the server." };
   }
 }
 

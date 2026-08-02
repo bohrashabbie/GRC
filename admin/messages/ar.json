@@ -75,7 +75,8 @@
     "sectionContent": "المحتوى",
     "banners": "البانرات",
     "menus": "القوائم",
-    "pages": "الصفحات"
+    "pages": "الصفحات",
+    "contactMessages": "رسائل التواصل"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -703,6 +704,36 @@
       "empty": "لا توجد عناوين محفوظة.",
       "defaultShipping": "شحن افتراضي",
       "defaultBilling": "فوترة افتراضية"
+    }
+  },
+  "contactMessages": {
+    "title": "رسائل التواصل",
+    "description": "الرسائل المرسلة عبر نموذج اتصل بنا في المتجر.",
+    "empty": "لا توجد رسائل بعد.",
+    "noSubject": "(بدون موضوع)",
+    "updated": "تم تحديث الرسالة.",
+    "closeMessage": "وضع علامة مغلقة",
+    "reopen": "إعادة فتح",
+    "columns": {
+      "from": "المرسل",
+      "subject": "الموضوع",
+      "status": "الحالة",
+      "received": "تاريخ الاستلام"
+    },
+    "statuses": {
+      "new": "جديدة",
+      "read": "مقروءة",
+      "closed": "مغلقة"
+    },
+    "fields": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "locale": "اللغة"
+    },
+    "locales": {
+      "ar": "العربية",
+      "en": "الإنجليزية"
     }
   },
   "settings": {
