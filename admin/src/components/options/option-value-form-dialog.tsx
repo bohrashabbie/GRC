@@ -55,6 +55,9 @@ function pickerValue(hex: string | undefined): string {
 function useValueSchema() {
   const c = useTranslations("catalog")
   const o = useTranslations("options")
+  // Empty string means "not entered" — the literal must come first so ""
+  // never reaches the numeric coercion (which would turn it into 0).
+  const measurement = z.literal("").or(z.coerce.number().int().min(1).max(500))
   return z
     .object({
       code: z.string().min(1, c("validation.codeRequired")),
@@ -62,6 +65,8 @@ function useValueSchema() {
         .string()
         .regex(HEX_PATTERN, o("values.hexHint"))
         .or(z.literal("")),
+      length_cm: measurement,
+      width_cm: measurement,
       sort_order: z.coerce.number().int(),
       translations: z.object({
         ar: z.object({ label: z.string() }),
@@ -75,19 +80,21 @@ function useValueSchema() {
 }
 
 type FormValues = z.infer<ReturnType<typeof useValueSchema>>
-const FIELD_NAMES = ["code", "hex_color", "sort_order"] as const
+const FIELD_NAMES = ["code", "hex_color", "length_cm", "width_cm", "sort_order"] as const
 
 export function OptionValueFormDialog({
   optionId,
   value,
   withSwatch,
+  withMeasurements,
   open,
   onOpenChange,
 }: {
   optionId: number
   value?: OptionValueOut
-  /** Colour values carry a swatch; sizes are labels only. */
+  /** Colour values carry a swatch; size values carry garment measurements. */
   withSwatch: boolean
+  withMeasurements: boolean
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -103,6 +110,8 @@ export function OptionValueFormDialog({
     defaultValues: {
       code: value?.code ?? "",
       hex_color: value?.hex_color ?? "",
+      length_cm: value?.length_cm ?? "",
+      width_cm: value?.width_cm ?? "",
       sort_order: value?.sort_order ?? 0,
       translations: toLabelTranslationForm(value?.translations),
     },
@@ -111,11 +120,17 @@ export function OptionValueFormDialog({
   async function onSubmit(values: FormValues) {
     const translations = fromLabelTranslationForm(values.translations)
     const hex = withSwatch && values.hex_color ? values.hex_color : null
+    const lengthCm =
+      withMeasurements && values.length_cm !== "" ? values.length_cm : null
+    const widthCm =
+      withMeasurements && values.width_cm !== "" ? values.width_cm : null
     try {
       if (isEdit) {
         // The API doesn't allow changing an option value's code after creation.
         await optionValuesApi.update(value.id, {
           hex_color: hex,
+          length_cm: lengthCm,
+          width_cm: widthCm,
           sort_order: values.sort_order,
           translations,
         })
@@ -124,6 +139,8 @@ export function OptionValueFormDialog({
           option_id: optionId,
           code: values.code,
           hex_color: hex,
+          length_cm: lengthCm,
+          width_cm: widthCm,
           sort_order: values.sort_order,
           translations,
         })
@@ -191,6 +208,42 @@ export function OptionValueFormDialog({
                 )}
               />
             </div>
+
+            {withMeasurements && (
+              <div className="flex flex-col gap-1.5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="length_cm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("values.lengthCm")}</FormLabel>
+                        <FormControl>
+                          <Input type="number" dir="ltr" min={1} max={500} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="width_cm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("values.widthCm")}</FormLabel>
+                        <FormControl>
+                          <Input type="number" dir="ltr" min={1} max={500} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormDescription>
+                  {t("values.measurementsHint")}
+                </FormDescription>
+              </div>
+            )}
 
             {withSwatch && (
               <FormField

@@ -326,6 +326,8 @@ export type OptionValueOut = {
   code: string
   hex_color: string | null
   swatch_media_id: number | null
+  length_cm: number | null
+  width_cm: number | null
   sort_order: number
   created_at: string
   translations: LabelTranslationOut[]
@@ -336,6 +338,8 @@ export type OptionValueCreate = {
   code: string
   hex_color?: string | null
   swatch_media_id?: number | null
+  length_cm?: number | null
+  width_cm?: number | null
   sort_order?: number
   translations: LabelTranslationIn[]
 }
@@ -343,6 +347,8 @@ export type OptionValueCreate = {
 export type OptionValueUpdate = {
   hex_color?: string | null
   swatch_media_id?: number | null
+  length_cm?: number | null
+  width_cm?: number | null
   sort_order?: number | null
   translations?: LabelTranslationIn[] | null
 }

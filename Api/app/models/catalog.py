@@ -269,6 +269,11 @@ class OptionValue(Base, TimestampMixin):
     code: Mapped[str] = mapped_column(nullable=False)
     hex_color: Mapped[str | None] = mapped_column(CHAR(7), nullable=True)
     swatch_media_id: Mapped[int | None] = mapped_column(ForeignKey("media.id"), nullable=True)
+    # Garment measurements a size value stands for (thobe length and chest
+    # width, whole cm). Only size values carry them — colour values keep them
+    # NULL, exactly as sizes keep hex_color NULL.
+    length_cm: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    width_cm: Mapped[int | None] = mapped_column(Integer, nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     # Values a variant already uses can never be removed (Hard Rule 4), so
     # retiring one is a flag rather than a delete. This is also what keeps

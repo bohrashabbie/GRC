@@ -109,6 +109,10 @@ export interface ProductOptionValue {
   name: string;
   hex: string | null;
   image: MediaImage | null;
+  /** Garment measurements a size value stands for, whole cm. Size only —
+   *  colour values never carry them. */
+  length_cm?: number | null;
+  width_cm?: number | null;
 }
 
 export interface ProductVariant {

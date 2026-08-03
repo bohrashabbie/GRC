@@ -55,6 +55,8 @@ def test_staff_can_add_a_colour_value(monkeypatch):
         code="navy",
         hex_color="#001F3F",
         swatch_media_id=None,
+        length_cm=None,
+        width_cm=None,
         sort_order=0,
         translations=[],
     )
@@ -73,6 +75,8 @@ def test_staff_can_add_a_size_value(monkeypatch):
         code="xl",
         hex_color=None,
         swatch_media_id=None,
+        length_cm=160,
+        width_cm=62,
         sort_order=5,
         translations=[],
     )
@@ -82,6 +86,8 @@ def test_staff_can_add_a_size_value(monkeypatch):
 
     assert value.code == "xl"
     assert value.sort_order == 5
+    assert value.length_cm == 160
+    assert value.width_cm == 62
 
 
 def test_a_size_never_carries_a_swatch(monkeypatch):
@@ -93,6 +99,8 @@ def test_a_size_never_carries_a_swatch(monkeypatch):
         code="xxl",
         hex_color="#001F3F",
         swatch_media_id=7,
+        length_cm=None,
+        width_cm=None,
         sort_order=6,
         translations=[],
     )
@@ -102,3 +110,25 @@ def test_a_size_never_carries_a_swatch(monkeypatch):
 
     assert value.hex_color is None
     assert value.swatch_media_id is None
+
+
+def test_a_colour_never_carries_measurements(monkeypatch):
+    """The mirror rule: garment length/width sent against a colour are dropped,
+    so the PDP never captions a swatch with centimetres."""
+    db = FakeSession(SimpleNamespace(code="colour"))
+    payload = SimpleNamespace(
+        option_id=1,
+        code="olive",
+        hex_color="#6B6B47",
+        swatch_media_id=None,
+        length_cm=150,
+        width_cm=58,
+        sort_order=3,
+        translations=[],
+    )
+    monkeypatch.setattr(catalog_service, "_sync_label_translations", lambda *_args: None)
+
+    value = catalog_service.create_option_value(db, payload)
+
+    assert value.length_cm is None
+    assert value.width_cm is None

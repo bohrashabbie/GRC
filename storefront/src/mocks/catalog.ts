@@ -160,6 +160,17 @@ const COLOURS: Record<string, { name: Bilingual; hex: string }> = {
 
 const SIZES = ["52", "54", "56", "58", "60", "62", "64"];
 
+/** Garment measurements per size, matching the size-guide page's table. */
+const SIZE_MEASUREMENTS: Record<string, { length_cm: number; width_cm: number }> = {
+  "52": { length_cm: 140, width_cm: 50 },
+  "54": { length_cm: 145, width_cm: 52 },
+  "56": { length_cm: 150, width_cm: 54 },
+  "58": { length_cm: 155, width_cm: 56 },
+  "60": { length_cm: 160, width_cm: 58 },
+  "62": { length_cm: 165, width_cm: 60 },
+  "64": { length_cm: 170, width_cm: 62 },
+};
+
 const SLEEVES: Record<string, Bilingual> = {
   cuff: t("كبك", "Cuff"),
   button: t("زرار", "Button"),
@@ -573,7 +584,13 @@ function buildOptions(raw: RawProduct, locale: LocaleCode): ProductOption[] {
       code: "size",
       name: locale === "ar" ? "المقاس" : "Size",
       input_type: "button",
-      values: SIZES.map((size) => ({ id: `size-${size}`, name: size, hex: null, image: null })),
+      values: SIZES.map((size) => ({
+        id: `size-${size}`,
+        name: size,
+        hex: null,
+        image: null,
+        ...SIZE_MEASUREMENTS[size],
+      })),
     });
     options.push({
       id: "sleeve",

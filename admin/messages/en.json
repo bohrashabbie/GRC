@@ -333,6 +333,9 @@
       "empty": "No values yet for this option.",
       "hexColor": "Colour (hex)",
       "hexHint": "Pick a colour with the box, or paste a hex such as #1B3A2F.",
+      "lengthCm": "Length (cm)",
+      "widthCm": "Width (cm)",
+      "measurementsHint": "The garment measurements this size stands for. Leave empty if not applicable.",
       "columns": {
         "label": "Value",
         "code": "Code",

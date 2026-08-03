@@ -257,9 +257,11 @@ def get_category_tree(db: Session, dimension: str) -> list[Category]:
 # --------------------------------------------------------------------------
 
 SYSTEM_OPTION_CODES = ("colour", "size")
-# Colour values carry a swatch; size values are labels only. Nothing else about
-# the two differs, and both are staff-editable.
+# Colour values carry a swatch; size values carry garment measurements
+# (length/width in cm). Each field set is dropped on the other option, and
+# both options are staff-editable.
 SWATCH_OPTION_CODE = "colour"
+SIZE_OPTION_CODE = "size"
 
 
 def _system_options_only() -> BusinessRuleError:
@@ -312,6 +314,9 @@ def create_option_value(db: Session, data) -> OptionValue:
         # which groups by hex and would otherwise show a size as a swatch.
         hex_color=data.hex_color if option.code == SWATCH_OPTION_CODE else None,
         swatch_media_id=data.swatch_media_id if option.code == SWATCH_OPTION_CODE else None,
+        # The mirror of the swatch rule: a colour has no garment measurements.
+        length_cm=data.length_cm if option.code == SIZE_OPTION_CODE else None,
+        width_cm=data.width_cm if option.code == SIZE_OPTION_CODE else None,
         sort_order=data.sort_order,
     )
     db.add(value)
@@ -337,6 +342,10 @@ def update_option_value(db: Session, option_value_id: int, data) -> OptionValue:
     _require_system_option(option)
     if option.code == SWATCH_OPTION_CODE:
         for field in ("hex_color", "swatch_media_id"):
+            if field in data.model_fields_set:
+                setattr(value, field, getattr(data, field))
+    if option.code == SIZE_OPTION_CODE:
+        for field in ("length_cm", "width_cm"):
             if field in data.model_fields_set:
                 setattr(value, field, getattr(data, field))
     if "is_active" in data.model_fields_set and data.is_active is not None:

@@ -101,6 +101,8 @@
     "reviews": "Reviews",
     "relatedTitle": "You may also like",
     "sizeGuide": "Size guide",
+    "sizeLength": "Length: {value} cm",
+    "sizeWidth": "Width: {value} cm",
     "shareLabel": "Share",
     "vatIncluded": "VAT included",
     "outOfStockTitle": "Out of stock",

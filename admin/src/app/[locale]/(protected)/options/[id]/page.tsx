@@ -70,7 +70,8 @@ function OptionDetailContent() {
   // API rejects writes to it, so the buttons stay hidden there.
   const optionCode = optionQuery.data?.code
   const isSwatchOption = optionCode === "colour"
-  const canManageValues = optionCode === "colour" || optionCode === "size"
+  const isSizeOption = optionCode === "size"
+  const canManageValues = isSwatchOption || isSizeOption
 
   const values = [...(valuesQuery.data?.items ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order
@@ -165,6 +166,16 @@ function OptionDetailContent() {
                       <code className="text-xs text-muted-foreground">
                         {value.code}
                       </code>
+                      {value.length_cm != null && (
+                        <span className="text-xs text-muted-foreground">
+                          {t("values.lengthCm")}: {value.length_cm}
+                        </span>
+                      )}
+                      {value.width_cm != null && (
+                        <span className="text-xs text-muted-foreground">
+                          {t("values.widthCm")}: {value.width_cm}
+                        </span>
+                      )}
                       <span className="text-xs text-muted-foreground">
                         #{value.sort_order}
                       </span>
@@ -194,6 +205,7 @@ function OptionDetailContent() {
           optionId={optionId}
           value={editingValue}
           withSwatch={isSwatchOption}
+          withMeasurements={isSizeOption}
           open={valueOpen}
           onOpenChange={setValueOpen}
         />

@@ -66,6 +66,12 @@ export function VariantSelector({
     <div className="space-y-6">
       {options.map((option) => {
         const selectedValue = option.values.find((value) => value.id === selection[option.id]);
+        const measurements = [
+          selectedValue?.length_cm != null &&
+            t("sizeLength", { value: selectedValue.length_cm }),
+          selectedValue?.width_cm != null &&
+            t("sizeWidth", { value: selectedValue.width_cm }),
+        ].filter(Boolean);
 
         return (
           <fieldset key={option.id}>
@@ -162,6 +168,15 @@ export function VariantSelector({
                 );
               })}
             </ul>
+
+            {/* The garment measurements the chosen size stands for. Lives
+                under the buttons rather than inside them so the row of sizes
+                stays scannable. */}
+            {measurements.length > 0 && (
+              <p className="mt-2.5 text-xs text-ink-500">
+                {measurements.join(" · ")}
+              </p>
+            )}
           </fieldset>
         );
       })}

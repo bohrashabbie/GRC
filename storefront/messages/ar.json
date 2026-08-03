@@ -101,6 +101,8 @@
     "reviews": "التقييمات",
     "relatedTitle": "قد يعجبك أيضًا",
     "sizeGuide": "دليل المقاسات",
+    "sizeLength": "الطول: {value} سم",
+    "sizeWidth": "العرض: {value} سم",
     "shareLabel": "مشاركة",
     "vatIncluded": "شامل الضريبة",
     "outOfStockTitle": "نفدت الكمية",
