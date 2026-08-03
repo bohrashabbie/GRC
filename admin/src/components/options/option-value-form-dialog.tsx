@@ -239,9 +239,11 @@ export function OptionValueFormDialog({
                     )}
                   />
                 </div>
-                <FormDescription>
+                {/* Not FormDescription: that hook needs a FormField context,
+                    and this hint describes the pair of fields, not one. */}
+                <p className="text-xs text-muted-foreground">
                   {t("values.measurementsHint")}
-                </FormDescription>
+                </p>
               </div>
             )}
 
