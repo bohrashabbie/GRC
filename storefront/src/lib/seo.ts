@@ -92,6 +92,6 @@ export function organizationJsonLd(name: string): Record<string, unknown> {
     "@type": "Organization",
     name,
     url: SITE_URL,
-    logo: absolute("/logo-mark.svg"),
+    logo: absolute("/logo-full.png"),
   };
 }

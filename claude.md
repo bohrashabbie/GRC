@@ -20,9 +20,12 @@ Note the frontend folder is lowercase `admin/` — npm rejects capitals in
 package names and Windows would not release the handle to rename it. Windows
 paths are case-insensitive, so `Admin/` resolves to the same directory.
 
-Branding lives in `admin/messages/{ar,en}.json` under `app.name` / `app.shortName`,
-and the logo is `admin/public/logo-mark.svg` (+ `favicon.svg`). Replacing that one
-SVG re-brands the sidebar, login screen and browser tab together.
+Branding lives in `admin/messages/{ar,en}.json` under `app.name` / `app.shortName`.
+The logo assets are PNGs generated from `media/new_logo.jpeg` by
+`media/regen_brand_assets.py`: `logo-full.png` (wordmark) + `favicon.png`
+(G monogram) in both `admin/public/` and `storefront/public/`, plus
+`storefront/src/app/icon.png` (Next.js file-convention favicon). To re-brand,
+replace `media/new_logo.jpeg` and re-run that script with `Api/.venv`'s Python.
 
 **Current phase: Admin panel only.** No storefront, no checkout, no cart, no public shop endpoints, no CMS (pages/posts/banners/menus), no coupons, no ZATCA invoicing yet. Those come later as separate, explicitly-scoped phases — do not build ahead into them without being asked.
 
