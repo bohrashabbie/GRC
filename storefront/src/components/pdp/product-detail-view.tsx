@@ -120,7 +120,9 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
 
         <div className="mt-6">
           <Link
-            href="/pages/size-guide"
+            // CMS page slugs are per-locale, so the Arabic page lives at its
+            // Arabic slug — a fixed English slug would 404 on /ar.
+            href={locale === "ar" ? "/pages/دليل-المقاسات" : "/pages/size-guide"}
             className="text-xs text-gold-700 underline underline-offset-4"
           >
             {t("sizeGuide")}
