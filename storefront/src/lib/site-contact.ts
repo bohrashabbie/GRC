@@ -4,7 +4,6 @@ import {
   SnapchatIcon,
   TiktokIcon,
   WhatsappIcon,
-  XIcon,
   YoutubeIcon,
 } from "@/components/ui/icons";
 
@@ -32,6 +31,10 @@ export const TIKTOK_URL = "https://www.tiktok.com/@gr8_trend";
 
 export const YOUTUBE_URL = "https://www.youtube.com/@Gr8Trend";
 
+export const INSTAGRAM_URL = "https://www.instagram.com/gr8_trend";
+
+export const SNAPCHAT_URL = "https://www.snapchat.com/add/gr8_trend";
+
 export const CREDIT_NAME = "burhanicreation.com";
 export const CREDIT_URL = "https://www.burhanicreation.com";
 
@@ -40,7 +43,6 @@ export const SOCIALS = [
   { href: WHATSAPP_HREF, label: "WhatsApp", Icon: WhatsappIcon },
   { href: TIKTOK_URL, label: "TikTok", Icon: TiktokIcon },
   { href: YOUTUBE_URL, label: "YouTube", Icon: YoutubeIcon },
-  { href: "https://instagram.com", label: "Instagram", Icon: InstagramIcon },
-  { href: "https://x.com", label: "X", Icon: XIcon },
-  { href: "https://snapchat.com", label: "Snapchat", Icon: SnapchatIcon },
+  { href: INSTAGRAM_URL, label: "Instagram", Icon: InstagramIcon },
+  { href: SNAPCHAT_URL, label: "Snapchat", Icon: SnapchatIcon },
 ];
