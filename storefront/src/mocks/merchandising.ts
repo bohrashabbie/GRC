@@ -87,11 +87,11 @@ export function fixtureBanners(placement: BannerPlacement, locale: LocaleCode): 
 
 const COLLECTION_TITLES: Record<string, { title: Bilingual; subtitle: Bilingual }> = {
   best_sellers: {
-    title: t("الأكثر مبيعًا", "Best Sellers"),
+    title: t("الأكثر مبيعًا", "Best sellers"),
     subtitle: t("ما يختاره عملاؤنا أكثر من غيره", "What our customers reach for most"),
   },
   new_arrivals: {
-    title: t("وصل حديثًا", "New Arrivals"),
+    title: t("وصل حديثًا", "New arrivals"),
     subtitle: t("أحدث القطع في المتجر", "The newest pieces in store"),
   },
   offers: {

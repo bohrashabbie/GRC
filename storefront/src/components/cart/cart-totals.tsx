@@ -61,10 +61,6 @@ export function CartTotalsBlock({ cart, className }: { cart: Cart; className?: s
           {formatPrice(cart.totals.grand_total, locale)}
         </span>
       </div>
-
-      <p className="text-2xs text-ink-400">
-        {t("tax")} · {formatPrice(cart.totals.tax_total, locale)}
-      </p>
     </div>
   );
 }

@@ -75,14 +75,14 @@ export function VariantSelector({
 
         return (
           <fieldset key={option.id}>
-            <legend className="mb-3 flex w-full items-baseline justify-between gap-3">
+            <legend className="mb-3 flex items-baseline gap-2">
               <span className="eyebrow">{option.name}</span>
               {/* The echoed value is decoration — `aria-pressed` on the buttons
                   already conveys the selection. Left in the accessible name it
                   makes the legend read "Size52" before every single option. */}
               {selectedValue && (
                 <span aria-hidden="true" className="text-xs text-ink-500">
-                  {selectedValue.name}
+                  — {selectedValue.name}
                 </span>
               )}
             </legend>

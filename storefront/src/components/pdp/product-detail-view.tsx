@@ -106,7 +106,6 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
 
         <div className="mt-5 flex items-baseline gap-3">
           <Price price={price} compareAtPrice={compareAt} size="lg" />
-          <span className="text-2xs text-ink-400">{t("vatIncluded")}</span>
         </div>
 
         <div className="mt-8">

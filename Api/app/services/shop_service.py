@@ -846,11 +846,11 @@ def related_products(db: Session, slug: str, locale: str, base_url: str, limit: 
 _COLLECTIONS = {
     "best_sellers": {
         "ar": ("الأكثر مبيعًا", "ما يختاره عملاؤنا أكثر من غيره"),
-        "en": ("Best Sellers", "What our customers reach for most"),
+        "en": ("Best sellers", "What our customers reach for most"),
     },
     "new_arrivals": {
         "ar": ("وصل حديثًا", "أحدث القطع في المتجر"),
-        "en": ("New Arrivals", "The newest pieces in store"),
+        "en": ("New arrivals", "The newest pieces in store"),
     },
     "offers": {
         "ar": ("العروض", "أسعار مميزة لفترة محدودة"),

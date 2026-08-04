@@ -101,8 +101,8 @@ const TYPE_SPECIMENS: { label: string; className: string; ar: string; en: string
   {
     label: "2xs · 0.6875rem · body face — meta, counts, legal",
     className: "text-2xs text-ink-400",
-    ar: "شامل ضريبة القيمة المضافة",
-    en: "VAT included",
+    ar: "توصيل خلال ٢–٤ أيام عمل",
+    en: "Delivery in 2–4 working days",
   },
 ];
 

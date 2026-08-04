@@ -175,9 +175,6 @@ export default async function OrderDetailPage({ params }: PageProps) {
               {formatPrice(order.totals.grand_total, typedLocale)}
             </span>
           </div>
-          <p className="text-2xs text-ink-400">
-            {tCart("tax")} · {formatPrice(order.totals.tax_total, typedLocale)}
-          </p>
         </div>
       </div>
     </div>
