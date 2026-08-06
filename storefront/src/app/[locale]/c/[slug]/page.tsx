@@ -61,6 +61,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       <ListingView
         title={category.name}
         crumbs={crumbs}
+        subcategories={category.children}
         data={data}
         query={query}
         locale={typedLocale}

@@ -3,10 +3,11 @@ import { getTranslations } from "next-intl/server";
 import { FilterDrawer, FilterPanel } from "./filter-panel";
 import { SortSelect } from "./sort-select";
 import { ProductResults } from "./product-results";
+import { SubcategoryNav } from "./subcategory-nav";
 import { Breadcrumbs, type Crumb } from "@/components/ui/breadcrumbs";
 import { activeFilterCount } from "@/lib/plp-query";
 import type { ListQuery } from "@/lib/shop-api";
-import type { LocaleCode, ProductListResponse } from "@/types/shop";
+import type { CategoryNode, LocaleCode, ProductListResponse } from "@/types/shop";
 
 /**
  * Shared shell for every listing surface — category pages, search results and
@@ -16,6 +17,7 @@ export async function ListingView({
   title,
   intro,
   crumbs,
+  subcategories,
   data,
   query,
   locale,
@@ -24,6 +26,7 @@ export async function ListingView({
   title: string;
   intro?: string | null;
   crumbs: Crumb[];
+  subcategories?: CategoryNode[];
   data: ProductListResponse;
   query: ListQuery;
   locale: LocaleCode;
@@ -40,6 +43,11 @@ export async function ListingView({
       <header className="mt-5 mb-8">
         <h1 className="font-display text-h1 text-ink-900">{title}</h1>
         {intro && <p className="mt-2 max-w-2xl text-sm text-ink-500">{intro}</p>}
+        {subcategories && subcategories.length > 0 && (
+          <div className="mt-6">
+            <SubcategoryNav categories={subcategories} />
+          </div>
+        )}
       </header>
 
       <div className="grid gap-10 lg:grid-cols-[16rem_1fr] lg:gap-12">
