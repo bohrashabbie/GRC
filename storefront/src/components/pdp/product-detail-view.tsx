@@ -91,7 +91,16 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
       />
 
       <div className="lg:sticky lg:top-32 lg:self-start">
-        {product.brand && <p className="eyebrow">{product.brand.name}</p>}
+        {product.brand && (
+          <p className="eyebrow">
+            <Link
+              href={`/brands/${product.brand.slug}`}
+              className="transition-colors hover:text-gold-600"
+            >
+              {product.brand.name}
+            </Link>
+          </p>
+        )}
 
         <h1 className="mt-2 font-display text-h1 text-ink-900">{product.name}</h1>
 

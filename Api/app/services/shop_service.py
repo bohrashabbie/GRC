@@ -455,6 +455,7 @@ def product_list(
     max_price: Decimal | None = None,
     sort: str | None = None,
     collection: str | None = None,
+    brand: str | None = None,
     cursor: str | None = None,
     limit: int = 24,
 ) -> dict:
@@ -465,6 +466,20 @@ def product_list(
         if collection not in COLLECTION_CODES:
             raise NotFoundError("Collection not found")
         products = [product for product in products if _in_collection(product, collection)]
+
+    if brand:
+        target = next(
+            (
+                row
+                for row in data.brands.values()
+                if (_translation_row(row.translations, locale) or None)
+                and _translation_row(row.translations, locale).slug == brand
+            ),
+            None,
+        )
+        products = [] if target is None else [
+            product for product in products if product.brand_id == target.id
+        ]
 
     if category:
         categories = _category_rows(db)
@@ -881,6 +896,64 @@ def collection(db: Session, code: str, locale: str, base_url: str) -> dict:
         "href": f"/collections/{code}",
         "total_count": total,
         "products": [_card(item, data, locale, base_url) for item in products[:8]],
+    }
+
+
+def _brand_card(row, translation, product_count: int) -> dict:
+    return {
+        "id": str(row.id),
+        "slug": translation.slug,
+        "name": translation.name,
+        "description": translation.description,
+        "product_count": product_count,
+        "href": f"/brands/{translation.slug}",
+    }
+
+
+def brand_list(db: Session, locale: str) -> dict:
+    """Every brand that has something to show.
+
+    A brand with no live products is skipped rather than rendered as an empty
+    tile — the storefront would send shoppers to a listing with nothing in it.
+    Inactive brands are excluded for the same reason the admin hides them.
+    """
+    data = _load_catalog(db)
+    counts: dict[int, int] = {}
+    for product in data.products:
+        if product.brand_id is not None:
+            counts[product.brand_id] = counts.get(product.brand_id, 0) + 1
+
+    items = []
+    for row in data.brands.values():
+        if not row.is_active:
+            continue
+        translation = _translation_row(row.translations, locale)
+        count = counts.get(row.id, 0)
+        if translation is None or count == 0:
+            continue
+        items.append(_brand_card(row, translation, count))
+    items.sort(key=lambda entry: (-entry["product_count"], entry["name"]))
+    return {"items": items}
+
+
+def brand_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
+    data = _load_catalog(db)
+    match = None
+    for row in data.brands.values():
+        translation = _translation_row(row.translations, locale)
+        if translation is not None and translation.slug == slug and row.is_active:
+            match = (row, translation)
+            break
+    if match is None:
+        raise NotFoundError("Brand not found")
+
+    row, translation = match
+    products = [product for product in data.products if product.brand_id == row.id]
+    products.sort(key=lambda item: (item.published_at or item.created_at, item.id), reverse=True)
+    return {
+        **_brand_card(row, translation, len(products)),
+        "total_count": len(products),
+        "products": [_card(item, data, locale, base_url) for item in products[:24]],
     }
 
 

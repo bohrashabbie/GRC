@@ -302,5 +302,11 @@
     "errorTitle": "Something went wrong",
     "errorBody": "We couldn't load this page. Please try again.",
     "updatedOn": "Last updated {date}"
+  },
+  "brands": {
+    "title": "Brands",
+    "intro": "The houses we carry, and what each is known for.",
+    "empty": "No brands have products yet.",
+    "productCount": "{count, plural, one {# product} other {# products}}"
   }
 }

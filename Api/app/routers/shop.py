@@ -93,6 +93,7 @@ def products(
     collection: str | None = Query(
         None, description="best_sellers | new_arrivals | offers | featured"
     ),
+    brand: str | None = Query(None, description="Brand slug"),
     cursor: str | None = None,
     limit: int = Query(24, ge=1, le=100),
     accept_language: str | None = Header(None),
@@ -112,6 +113,7 @@ def products(
         max_price=max_price,
         sort=sort,
         collection=collection,
+        brand=brand,
         cursor=cursor,
         limit=limit,
     )
@@ -136,6 +138,19 @@ def reviews(slug: str):
 def product(slug: str, request: Request, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     locale, base_url = _context(request, accept_language)
     return shop_service.product_detail(db, slug, locale, base_url)
+
+
+@router.get("/brands")
+def brands(request: Request, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
+    """Brands that have at least one product, most stocked first."""
+    locale, _ = _context(request, accept_language)
+    return shop_service.brand_list(db, locale)
+
+
+@router.get("/brands/{slug}")
+def brand(slug: str, request: Request, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
+    locale, base_url = _context(request, accept_language)
+    return shop_service.brand_detail(db, slug, locale, base_url)
 
 
 @router.get("/collections/{code}")

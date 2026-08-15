@@ -2,6 +2,8 @@ import type {
   Address,
   Banner,
   BannerPlacement,
+  BrandDetail,
+  BrandSummary,
   Cart,
   CategoryNode,
   City,
@@ -200,6 +202,7 @@ export async function getProductList(
       searchParams: {
         category: query.category,
         collection: query.collection,
+        brand: query.brand,
         q: query.q,
         colour: query.colour?.join(","),
         size: query.size?.join(","),
@@ -274,6 +277,38 @@ export async function getBanners(
   } catch (error) {
     if (!USE_FIXTURES || !ALLOW_CATALOG_FALLBACK) throw error;
     return fixtureBanners(placement, locale);
+  }
+}
+
+/**
+ * Brands with at least one product. Unlike the menu this is not structural —
+ * a failure here should surface as an empty brand index, not take a page down,
+ * so the caller decides what an empty list means.
+ */
+export async function getBrands(locale: LocaleCode): Promise<BrandSummary[]> {
+  try {
+    const data = await shopFetch<{ items: BrandSummary[] }>("/brands", {
+      locale,
+      revalidate: 600,
+    });
+    return data.items;
+  } catch {
+    return [];
+  }
+}
+
+export async function getBrand(
+  slug: string,
+  locale: LocaleCode,
+): Promise<BrandDetail | null> {
+  try {
+    return await shopFetch<BrandDetail>(`/brands/${slug}`, {
+      locale,
+      revalidate: 600,
+    });
+  } catch (error) {
+    if (error instanceof ShopApiError && error.status === 404) return null;
+    throw error;
   }
 }
 

@@ -36,12 +36,14 @@ export function parseListQuery(
   params: RawSearchParams,
   category?: string,
   collection?: string,
+  brand?: string,
 ): ListQuery {
   const sort = readString(params.sort);
 
   return {
     category,
     collection,
+    brand,
     q: readString(params.q),
     colour: readList(params.colour),
     size: readList(params.size),
@@ -61,6 +63,7 @@ export function queryKey(query: ListQuery): string {
   return JSON.stringify({
     category: query.category ?? null,
     collection: query.collection ?? null,
+    brand: query.brand ?? null,
     q: query.q ?? null,
     colour: [...(query.colour ?? [])].sort(),
     size: [...(query.size ?? [])].sort(),

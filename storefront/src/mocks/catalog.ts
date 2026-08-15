@@ -404,6 +404,8 @@ export interface ListQuery {
   category?: string;
   /** Merchandising collection: best_sellers | new_arrivals | offers | featured. */
   collection?: string;
+  /** Brand slug, when the listing is a brand's own page. */
+  brand?: string;
   q?: string;
   colour?: string[];
   size?: string[];

@@ -205,6 +205,21 @@ export interface Banner {
   sort_order: number;
 }
 
+export interface BrandSummary {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  /** Live products carrying this brand. Never zero — the API omits empty brands. */
+  product_count: number;
+  href: string;
+}
+
+export interface BrandDetail extends BrandSummary {
+  total_count: number;
+  products: ProductCard[];
+}
+
 export interface Collection {
   id: string;
   code: string;
