@@ -54,7 +54,9 @@
     "rights": "© {year} GR8. جميع الحقوق محفوظة.",
     "designedBy": "بدعم من",
     "paymentMethods": "وسائل الدفع المقبولة",
-    "linksTitle": "معلومات"
+    "linksTitle": "معلومات",
+    "crNumber": "السجل التجاري",
+    "vatNumber": "الرقم الضريبي"
   },
   "product": {
     "discount": "−{percent}%",

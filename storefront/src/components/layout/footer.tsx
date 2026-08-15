@@ -16,7 +16,7 @@ import {
   WHATSAPP_DISPLAY,
   WHATSAPP_HREF,
 } from "@/lib/site-contact";
-import { getMenu } from "@/lib/shop-api";
+import { getMenu, getPublicSettings } from "@/lib/shop-api";
 import type { Locale } from "@/i18n/routing";
 
 // Only one "footer" menu is seeded in the CMS today — a single combined
@@ -36,10 +36,17 @@ const PAYMENT_METHODS = [
 ];
 
 export async function Footer({ locale }: { locale: Locale }) {
-  const [t, menu] = await Promise.all([
+  const [t, menu, settings] = await Promise.all([
     getTranslations("footer"),
     getMenu(MENU_CODE, locale),
+    getPublicSettings(locale),
   ]);
+
+  // Staff-editable in Settings. Each renders only once it has a value — an
+  // empty "CR:" label is worse than no line at all, and these were removed
+  // from the footer once already for being placeholders.
+  const crNumber = String(settings["store.cr_number"] ?? "").trim();
+  const vatNumber = String(settings["store.vat_number"] ?? "").trim();
 
   return (
     <footer className="bg-ink-900 text-sand-200">
@@ -142,6 +149,16 @@ export async function Footer({ locale }: { locale: Locale }) {
         <div className="container-site flex flex-col gap-5 py-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-2xs text-ink-400">
             <span>{t("rights", { year: new Date().getFullYear() })}</span>
+            {crNumber && (
+              <span dir="ltr" className="tabular">
+                {t("crNumber")}: {crNumber}
+              </span>
+            )}
+            {vatNumber && (
+              <span dir="ltr" className="tabular">
+                {t("vatNumber")}: {vatNumber}
+              </span>
+            )}
             <span>
               {t("designedBy")}{" "}
               <span className="text-sand-300">{CREDIT_NAME}</span>

@@ -285,6 +285,24 @@ export async function getBanners(
  * a failure here should surface as an empty brand index, not take a page down,
  * so the caller decides what an empty list means.
  */
+/**
+ * Public settings only — the API filters on is_public, so nothing internal
+ * (tax country, default rate) can reach the browser. Failure yields an empty
+ * map: a missing CR number must not take the footer, and so every page, down.
+ */
+export async function getPublicSettings(
+  locale: LocaleCode,
+): Promise<Record<string, unknown>> {
+  try {
+    return await shopFetch<Record<string, unknown>>("/settings", {
+      locale,
+      revalidate: 3600,
+    });
+  } catch {
+    return {};
+  }
+}
+
 export async function getBrands(locale: LocaleCode): Promise<BrandSummary[]> {
   try {
     const data = await shopFetch<{ items: BrandSummary[] }>("/brands", {

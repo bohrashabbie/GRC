@@ -33,24 +33,42 @@ from app.models.catalog import (
     VariantOptionValue,
 )
 from app.models.orders import Order, OrderAddress, OrderItem, OrderStatusHistory, Payment
-from app.services import inventory_service
+from app.services import inventory_service, system_service
 
-# VAT-inclusive fallback when tax_rates has no row for the product's class.
-# Stored as a fraction per Hard Rule 1, never as 15.
-DEFAULT_VAT_RATE = Decimal("0.1500")
+# The store sells in Kuwait, which levies no VAT — so the fallback is zero, not
+# a rate. This used to be 0.1500 looked up against country_code "SA" while every
+# address written here is "KW", so the lookup never matched and every order was
+# recording a 15% Saudi tax figure against a Kuwaiti sale.
+#
+# Both are settings, because the day a rate does apply it must be changeable
+# without a deploy. Stored as a fraction per Hard Rule 1, never as 15.
+DEFAULT_TAX_COUNTRY = "KW"
+DEFAULT_VAT_RATE = Decimal("0")
 
-# Shipping methods and the free-shipping threshold are stand-ins that mirror
-# the storefront's presentation layer one-for-one. shipping_zones/methods/rates
-# are out of scope for this build, and the alternative — trusting the price the
-# browser sends — is not an option for money. Replace this dict when the real
-# shipping tables land; nothing else here changes.
-SHIPPING_METHODS: dict[str, Decimal] = {
+# Shipping prices staff can change, with these as the fallback when the setting
+# has never been written. shipping_zones/methods/rates remain out of scope; what
+# is not acceptable is trusting the price the browser sends, so the number is
+# always resolved here.
+#
+# `shipping.free_threshold` already existed as a setting and was read by nobody
+# — the admin showed 300 while checkout charged against a hardcoded 200. Every
+# one of these is now looked up per request, so what the settings page says is
+# what a customer is actually charged.
+DEFAULT_SHIPPING_RATES: dict[str, Decimal] = {
     "standard": Decimal("25.00"),
     "express": Decimal("45.00"),
     "pickup": Decimal("0.00"),
 }
-FREE_SHIPPING_THRESHOLD = Decimal("200.00")
+SHIPPING_METHODS = DEFAULT_SHIPPING_RATES  # the set of valid method ids
+DEFAULT_FREE_SHIPPING_THRESHOLD = Decimal("200.00")
 FREE_SHIPPING_METHOD = "standard"
+
+
+def _shipping_rate(db: Session, method_id: str) -> Decimal:
+    """Staff-set price for one method, falling back to the built-in rate."""
+    return system_service.decimal_setting(
+        db, f"shipping.rate.{method_id}", DEFAULT_SHIPPING_RATES[method_id]
+    )
 
 MAX_LINES_PER_ORDER = 50
 
@@ -66,13 +84,16 @@ def _money(value: Decimal) -> Decimal:
 
 
 def _tax_rate(db: Session, tax_class: str) -> Decimal:
-    """Today's rate for a tax class in Saudi Arabia, or the default. Snapshotted
-    onto every line so a rate change never rewrites history."""
+    """Today's rate for a tax class in the store's tax country, or the default.
+    Snapshotted onto every line so a rate change never rewrites history."""
     today = date.today()
+    country = str(
+        system_service.setting_value(db, "tax.country_code", DEFAULT_TAX_COUNTRY)
+    ).upper()
     rate = db.execute(
         select(TaxRate.rate)
         .where(
-            TaxRate.country_code == "SA",
+            TaxRate.country_code == country,
             TaxRate.tax_class == tax_class,
             TaxRate.valid_from <= today,
             (TaxRate.valid_to.is_(None)) | (TaxRate.valid_to >= today),
@@ -80,7 +101,9 @@ def _tax_rate(db: Session, tax_class: str) -> Decimal:
         .order_by(TaxRate.valid_from.desc())
         .limit(1)
     ).scalar_one_or_none()
-    return Decimal(rate) if rate is not None else DEFAULT_VAT_RATE
+    if rate is not None:
+        return Decimal(rate)
+    return system_service.decimal_setting(db, "tax.default_rate", DEFAULT_VAT_RATE)
 
 
 def _options_snapshot(db: Session, variant_id: int, locale: str) -> dict:
@@ -106,17 +129,20 @@ def _product_name(product: Product, locale: str) -> str:
     return by_locale.get(locale) or by_locale.get("ar") or by_locale.get("en") or f"Product {product.id}"
 
 
-def _shipping_total(method_id: str, subtotal: Decimal) -> Decimal:
+def _shipping_total(db: Session, method_id: str, subtotal: Decimal) -> Decimal:
     if method_id not in SHIPPING_METHODS:
         raise BusinessRuleError(
             f"Unknown shipping method '{method_id}'.",
             code="unknown_shipping_method",
             details={"allowed": sorted(SHIPPING_METHODS)},
         )
-    price = SHIPPING_METHODS[method_id]
+    price = _shipping_rate(db, method_id)
+    threshold = system_service.decimal_setting(
+        db, "shipping.free_threshold", DEFAULT_FREE_SHIPPING_THRESHOLD
+    )
     # Only the standard method is waived by the threshold — express stays paid,
     # matching what the cart shows the shopper.
-    if method_id == FREE_SHIPPING_METHOD and subtotal >= FREE_SHIPPING_THRESHOLD:
+    if method_id == FREE_SHIPPING_METHOD and subtotal >= threshold:
         return Decimal("0.00")
     return price
 
@@ -235,7 +261,7 @@ def create_order(
         )
 
     subtotal = _money(subtotal)
-    shipping_total = _shipping_total(data.shipping_method_id, subtotal)
+    shipping_total = _shipping_total(db, data.shipping_method_id, subtotal)
     grand_total = _money(subtotal + shipping_total)
     # Customer-facing prices are VAT-inclusive, so VAT is extracted from the
     # total rather than added to it (Hard Rule 1).

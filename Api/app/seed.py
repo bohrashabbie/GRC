@@ -1,4 +1,4 @@
-"""Seed permissions, the 8 default roles, and one owner user.
+"""Seed permissions, the 8 default roles, one owner user, and default settings.
 
 Run with: python -m app.seed
 """
@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from app.database import SessionLocal
 from app.middleware.security import hash_password
 from app.models.auth import Permission, Role, RolePermission, User, UserRole
+from app.models.system import Setting
 from app.permissions import DEFAULT_ROLES, PERMISSIONS, ROLE_PERMISSIONS
 
 OWNER_EMAIL = os.getenv("OWNER_EMAIL", "owner@alshiaka.sa").strip().lower()
@@ -79,6 +80,36 @@ def seed_owner_user(db, owner_role: Role) -> None:
     print(f"Seeded owner user: {OWNER_EMAIL}")
 
 
+# key -> (default value, group, is_public)
+#
+# Seeded so the settings page has a row to edit: the admin lists existing keys
+# and PATCHes them, with no way to invent one. Existing values are never
+# overwritten — re-running the seed must not reset a staff-set figure.
+DEFAULT_SETTINGS: dict[str, tuple[object, str, bool]] = {
+    # Shown in the storefront footer for the registered business.
+    "store.cr_number": ("", "store", True),
+    "store.vat_number": ("", "store", True),
+    # Read by checkout_service on every order.
+    "shipping.free_threshold": (200, "shipping", True),
+    "shipping.rate.standard": ("25.000", "shipping", True),
+    "shipping.rate.express": ("45.000", "shipping", True),
+    "shipping.rate.pickup": ("0.000", "shipping", True),
+    # Kuwait levies no VAT; this exists so a future rate needs no deploy.
+    "tax.country_code": ("KW", "tax", False),
+    "tax.default_rate": ("0", "tax", False),
+}
+
+
+def seed_settings(db) -> None:
+    created = 0
+    for key, (value, group, is_public) in DEFAULT_SETTINGS.items():
+        if db.get(Setting, key) is not None:
+            continue
+        db.add(Setting(key=key, value=value, group=group, is_public=is_public))
+        created += 1
+    print(f"Seeded {created} new setting(s); existing values left untouched.")
+
+
 def run() -> None:
     db = SessionLocal()
     try:
@@ -86,6 +117,7 @@ def run() -> None:
         roles = seed_roles(db)
         seed_role_permissions(db, roles, permissions)
         seed_owner_user(db, roles["owner"])
+        seed_settings(db)
         db.commit()
         print("Seed complete.")
     finally:

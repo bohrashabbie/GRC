@@ -5,6 +5,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, Query, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -12,6 +13,7 @@ from app.config import settings
 from app.middleware.error import AuthenticationError
 from app.middleware.security import decode_customer_access_token
 from app.models.customers import Customer
+from app.models.system import Setting
 from app.schemas.shop import (
     AccountOrderOut,
     AccountSummaryOut,
@@ -138,6 +140,15 @@ def reviews(slug: str):
 def product(slug: str, request: Request, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     locale, base_url = _context(request, accept_language)
     return shop_service.product_detail(db, slug, locale, base_url)
+
+
+@router.get("/settings")
+def public_settings(db: Session = Depends(get_db)):
+    """Only settings flagged is_public. The storefront renders these (the CR and
+    VAT numbers in the footer, the free-shipping threshold in the cart), so
+    anything not explicitly public must never reach it."""
+    rows = db.execute(select(Setting).where(Setting.is_public.is_(True))).scalars()
+    return {row.key: row.value for row in rows}
 
 
 @router.get("/brands")

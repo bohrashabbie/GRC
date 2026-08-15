@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 
 from sqlalchemy.orm import Session
 
@@ -14,6 +15,32 @@ def get_setting(db: Session, key: str) -> Setting:
     if setting is None:
         raise NotFoundError("Setting not found")
     return setting
+
+
+def setting_value(db: Session, key: str, default):
+    """A setting's value, or `default` when it has never been set.
+
+    Settings are staff-editable free-form JSON, so a value that cannot be used
+    falls back rather than raising — a mistyped threshold must not take
+    checkout down. Callers coerce and range-check what they get back.
+    """
+    setting = db.get(Setting, key)
+    if setting is None or setting.value is None:
+        return default
+    return setting.value
+
+
+def decimal_setting(db: Session, key: str, default: Decimal) -> Decimal:
+    """A money or rate setting, coerced. Anything unparseable or negative falls
+    back to `default` rather than poisoning a total."""
+    raw = setting_value(db, key, None)
+    if raw is None:
+        return default
+    try:
+        value = Decimal(str(raw))
+    except (InvalidOperation, ValueError):
+        return default
+    return value if value >= 0 else default
 
 
 def upsert_setting(db: Session, key: str, data, actor_user_id: int) -> Setting:
