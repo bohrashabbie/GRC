@@ -73,7 +73,7 @@ def delete_location(db: Session, location_id: int, *, actor_user_id: int | None)
     receipts that reference it.
     """
     location = get_location(db, location_id)
-    before = {"code": location.code, "name": location.name, "is_active": location.is_active}
+    before = {"code": location.code, "name_en": location.name_en, "is_active": location.is_active}
     blockers = deletion.find_blockers(
         db,
         [
