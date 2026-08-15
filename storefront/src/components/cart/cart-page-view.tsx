@@ -66,10 +66,6 @@ export function CartPageView() {
               {line.options_label && (
                 <p className="text-2xs text-ink-400">{line.options_label}</p>
               )}
-              <p className="tabular text-2xs text-ink-400" dir="ltr">
-                {line.sku}
-              </p>
-
               {line.stock_state === "out_of_stock" && (
                 <p className="text-2xs text-brick-600">{t("lineSoldOut")}</p>
               )}

@@ -123,7 +123,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
                   <p className="mt-0.5 text-2xs text-ink-400">{line.options_snapshot}</p>
                 )}
                 <p className="tabular mt-0.5 text-2xs text-ink-400" dir="ltr">
-                  {line.sku_snapshot} × {line.quantity}
+                  × {line.quantity}
                 </p>
               </div>
               <span className="tabular shrink-0 text-sm font-semibold text-ink-900">
