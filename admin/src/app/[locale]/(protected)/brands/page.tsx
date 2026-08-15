@@ -89,10 +89,6 @@ function BrandsContent() {
       ),
     },
     {
-      accessorKey: "sort_order",
-      header: t("columns.sortOrder"),
-    },
-    {
       id: "actions",
       header: "",
       cell: ({ row }) => (

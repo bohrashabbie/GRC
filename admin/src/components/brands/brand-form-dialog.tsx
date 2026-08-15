@@ -42,8 +42,6 @@ function useBrandSchema() {
   return z
     .object({
       code: z.string().min(1, c("validation.codeRequired")),
-      sort_order: z.coerce.number().int(),
-      is_active: z.boolean(),
       translations: z.object({
         ar: z.object({ name: z.string(), slug: z.string() }),
         en: z.object({ name: z.string(), slug: z.string() }),
@@ -58,7 +56,7 @@ function useBrandSchema() {
 }
 
 type FormValues = z.infer<ReturnType<typeof useBrandSchema>>
-const FIELD_NAMES = ["code", "sort_order", "is_active"] as const
+const FIELD_NAMES = ["code"] as const
 
 export function BrandFormDialog({
   brand,
@@ -81,8 +79,6 @@ export function BrandFormDialog({
     resolver: zodResolver(schema),
     defaultValues: {
       code: brand?.code ?? "",
-      sort_order: brand?.sort_order ?? 0,
-      is_active: brand?.is_active ?? true,
       translations: toNameTranslationForm(brand?.translations),
     },
   })
@@ -91,19 +87,9 @@ export function BrandFormDialog({
     const translations = fromNameTranslationForm(values.translations)
     try {
       if (isEdit) {
-        await brandsApi.update(brand.id, {
-          code: values.code,
-          sort_order: values.sort_order,
-          is_active: values.is_active,
-          translations,
-        })
+        await brandsApi.update(brand.id, { code: values.code, translations })
       } else {
-        await brandsApi.create({
-          code: values.code,
-          sort_order: values.sort_order,
-          is_active: values.is_active,
-          translations,
-        })
+        await brandsApi.create({ code: values.code, translations })
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.brands.all })
       toast.success(isEdit ? t("updated") : t("created"))
@@ -134,7 +120,7 @@ export function BrandFormDialog({
             className="flex flex-col gap-4"
             noValidate
           >
-            <TranslationNameFields control={form.control} showSlug />
+            <TranslationNameFields control={form.control} />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
@@ -149,19 +135,6 @@ export function BrandFormDialog({
                     {!isEdit && (
                       <FormDescription>{cat("hints.code")}</FormDescription>
                     )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="sort_order"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{cat("fields.sortOrder")}</FormLabel>
-                    <FormControl>
-                      <Input type="number" dir="ltr" {...field} />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -35,8 +35,7 @@ export const INSTAGRAM_URL = "https://www.instagram.com/gr8_trend";
 
 export const SNAPCHAT_URL = "https://www.snapchat.com/add/gr8_trend";
 
-export const CREDIT_NAME = "burhanicreation.com";
-export const CREDIT_URL = "https://www.burhanicreation.com";
+export const CREDIT_NAME = "Razain";
 
 export const SOCIALS = [
   { href: FACEBOOK_URL, label: "Facebook", Icon: FacebookIcon },

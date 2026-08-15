@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -55,8 +56,18 @@ function useProductEditSchema() {
     is_best_seller: z.boolean(),
     track_inventory: z.boolean(),
     translations: z.object({
-      ar: z.object({ name: z.string(), slug: z.string() }),
-      en: z.object({ name: z.string(), slug: z.string() }),
+      ar: z.object({
+        name: z.string(),
+        slug: z.string(),
+        short_description: z.string(),
+        description: z.string(),
+      }),
+      en: z.object({
+        name: z.string(),
+        slug: z.string(),
+        short_description: z.string(),
+        description: z.string(),
+      }),
     }),
   })
 }
@@ -99,10 +110,22 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
         ar: {
           name: product.translations.find((x) => x.locale === "ar")?.name ?? "",
           slug: product.translations.find((x) => x.locale === "ar")?.slug ?? "",
+          short_description:
+            product.translations.find((x) => x.locale === "ar")
+              ?.short_description ?? "",
+          description:
+            product.translations.find((x) => x.locale === "ar")?.description ??
+            "",
         },
         en: {
           name: product.translations.find((x) => x.locale === "en")?.name ?? "",
           slug: product.translations.find((x) => x.locale === "en")?.slug ?? "",
+          short_description:
+            product.translations.find((x) => x.locale === "en")
+              ?.short_description ?? "",
+          description:
+            product.translations.find((x) => x.locale === "en")?.description ??
+            "",
         },
       },
     },
@@ -115,6 +138,9 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
         locale: l,
         name: values.translations[l].name.trim(),
         slug: values.translations[l].slug.trim() || null,
+        short_description:
+          values.translations[l].short_description.trim() || null,
+        description: values.translations[l].description.trim() || null,
       }))
 
     try {
@@ -167,6 +193,54 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <TranslationNameFields control={form.control} showSlug />
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              {(["ar", "en"] as const).map((loc) => (
+                <div key={loc} className="flex flex-col gap-4">
+                  <FormField
+                    control={form.control}
+                    name={`translations.${loc}.short_description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {t("fields.shortDescription")} ({loc.toUpperCase()})
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={2}
+                            dir={loc === "ar" ? "rtl" : "ltr"}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          {t("hints.shortDescription")}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`translations.${loc}.description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {t("fields.description")} ({loc.toUpperCase()})
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={6}
+                            dir={loc === "ar" ? "rtl" : "ltr"}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField

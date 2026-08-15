@@ -2,7 +2,7 @@
   "app": {
     "name": "GR8 Admin",
     "shortName": "GR8",
-    "designedBy": "Designed & developed by"
+    "designedBy": "Powered by"
   },
   "common": {
     "save": "Save",
@@ -409,7 +409,8 @@
       "categories": "A product can sit in several categories across dimensions.",
       "isBestSeller": "Shows the best-seller badge and includes this product in the storefront's Best Sellers rail.",
       "defaultVariant": "Every product has at least one variant — a default one is created automatically.",
-      "trackInventory": "Off for made-to-order or digital items — always purchasable, and the per-variant quantities below are ignored."
+      "trackInventory": "Off for made-to-order or digital items — always purchasable, and the per-variant quantities below are ignored.",
+      "shortDescription": "One or two lines shown in listings and search results."
     },
     "columns": {
       "name": "Product",

@@ -12,7 +12,6 @@ import {
 import {
   CONTACT_EMAIL,
   CREDIT_NAME,
-  CREDIT_URL,
   SOCIALS,
   WHATSAPP_DISPLAY,
   WHATSAPP_HREF,
@@ -145,14 +144,7 @@ export async function Footer({ locale }: { locale: Locale }) {
             <span>{t("rights", { year: new Date().getFullYear() })}</span>
             <span>
               {t("designedBy")}{" "}
-              <a
-                href={CREDIT_URL}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="text-sand-300 transition-colors hover:text-gold-300"
-              >
-                {CREDIT_NAME}
-              </a>
+              <span className="text-sand-300">{CREDIT_NAME}</span>
             </span>
           </div>
 
