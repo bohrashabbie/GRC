@@ -25,8 +25,6 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { suppliersApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
@@ -293,25 +291,6 @@ export function SupplierFormDialog({
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name="is_active"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3">
-                    <Label htmlFor="sup-active">{t("fields.isActive")}</Label>
-                    <FormControl>
-                      <Switch
-                        id="sup-active"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </div>
-                </FormItem>
-              )}
-            />
 
             <DialogFooter>
               <Button

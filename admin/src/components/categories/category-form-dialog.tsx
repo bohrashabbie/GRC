@@ -315,25 +315,6 @@ export function CategoryFormDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="is_active"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3">
-                    <Label htmlFor="cat-active">{cat("fields.isActive")}</Label>
-                    <FormControl>
-                      <Switch
-                        id="cat-active"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </div>
-                </FormItem>
-              )}
-            />
-
             <DialogFooter>
               <Button
                 type="button"

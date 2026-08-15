@@ -18,7 +18,6 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
-import { StatusBadge } from "@/components/status-badge"
 import { RequirePermission } from "@/components/permission/require-permission"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { CategoryFormDialog } from "@/components/categories/category-form-dialog"
@@ -67,6 +66,13 @@ function CategoriesContent() {
     queryKey: queryKeys.categories.tree(dimension),
     queryFn: ({ signal }) => categoriesApi.tree(dimension, signal),
   })
+
+  // A delete that could not remove the row deactivates it instead. The tree
+  // endpoint still returns those, and with no active/inactive badge left they
+  // would look identical to live categories — so they are dropped here and the
+  // delete reads as a delete. Pruning a branch takes its children with it,
+  // which matches the API refusing to delete a parent that still has any.
+  const liveTree = pruneInactive(treeQuery.data ?? [])
 
   async function openEdit(categoryId: number) {
     // The tree endpoint returns a trimmed node; the form needs the full record
@@ -141,12 +147,12 @@ function CategoriesContent() {
               onRetry={() => treeQuery.refetch()}
             />
           )}
-          {treeQuery.data && treeQuery.data.length === 0 && (
+          {treeQuery.data && liveTree.length === 0 && (
             <ListEmptyState description={t("empty")} />
           )}
-          {treeQuery.data && treeQuery.data.length > 0 && (
+          {treeQuery.data && liveTree.length > 0 && (
             <ul className="flex flex-col gap-1">
-              {treeQuery.data.map((node) => (
+              {liveTree.map((node) => (
                 <CategoryTreeRow
                   key={node.id}
                   node={node}
@@ -182,6 +188,13 @@ function CategoriesContent() {
       )}
     </div>
   )
+}
+
+/** Drops deactivated categories, and with them their whole branch. */
+function pruneInactive(nodes: CategoryTreeNode[]): CategoryTreeNode[] {
+  return nodes
+    .filter((node) => node.is_active)
+    .map((node) => ({ ...node, children: pruneInactive(node.children) }))
 }
 
 /** One node plus its children, indented by depth. Recursion mirrors the
@@ -229,10 +242,6 @@ function CategoryTreeRow({
           {name}
         </span>
         <code className="text-xs text-muted-foreground">{node.code}</code>
-        {!node.is_active && (
-          <StatusBadge status="archived" label={c("inactive")} />
-        )}
-
         <RequirePermission permission={PERMISSIONS.catalogManage}>
           <div className="flex gap-1.5">
             <Button variant="outline" size="xs" onClick={() => onEdit(node.id)}>

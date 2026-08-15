@@ -12,8 +12,6 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
-import { StatusBadge } from "@/components/status-badge"
-import { StatusFilter, useStatusFilter } from "@/components/status-filter"
 import { RequirePermission } from "@/components/permission/require-permission"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { LocationFormDialog } from "@/components/locations/location-form-dialog"
@@ -42,16 +40,15 @@ function LocationsContent() {
   const locale = useLocale()
   const queryClient = useQueryClient()
 
-  const { status, setStatus, isActive } = useStatusFilter()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<LocationOut | undefined>()
   const [deleting, setDeleting] = useState<LocationOut | null>(null)
   const deletionMessage = useDeletionMessage()
 
   const list = useCursorList<LocationOut>({
-    queryKey: queryKeys.locations.list({ is_active: isActive }),
+    queryKey: queryKeys.locations.list({ is_active: true }),
     fetchPage: (cursor, signal) =>
-      locationsApi.list({ cursor, limit: 50, is_active: isActive }, signal),
+      locationsApi.list({ cursor, limit: 50, is_active: true }, signal),
   })
 
   async function handleDelete(location: LocationOut) {
@@ -93,16 +90,6 @@ function LocationsContent() {
     {
       accessorKey: "fulfilment_priority",
       header: t("columns.priority"),
-    },
-    {
-      id: "status",
-      header: t("columns.status"),
-      cell: ({ row }) => (
-        <StatusBadge
-          status={row.original.is_active ? "active" : "archived"}
-          label={row.original.is_active ? c("active") : c("inactive")}
-        />
-      ),
     },
     {
       id: "actions",
@@ -153,7 +140,6 @@ function LocationsContent() {
         }
       />
 
-      <StatusFilter value={status} onChange={setStatus} />
 
       <DataTable
         columns={columns}

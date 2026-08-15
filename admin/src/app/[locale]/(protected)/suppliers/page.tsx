@@ -11,8 +11,6 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
-import { StatusBadge } from "@/components/status-badge"
-import { StatusFilter, useStatusFilter } from "@/components/status-filter"
 import { RequirePermission } from "@/components/permission/require-permission"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { SupplierFormDialog } from "@/components/suppliers/supplier-form-dialog"
@@ -38,16 +36,15 @@ function SuppliersContent() {
   const del = useTranslations("deletion")
   const queryClient = useQueryClient()
 
-  const { status, setStatus, isActive } = useStatusFilter()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<SupplierOut | undefined>()
   const [deleting, setDeleting] = useState<SupplierOut | null>(null)
   const deletionMessage = useDeletionMessage()
 
   const list = useCursorList<SupplierOut>({
-    queryKey: queryKeys.suppliers.list({ is_active: isActive }),
+    queryKey: queryKeys.suppliers.list({ is_active: true }),
     fetchPage: (cursor, signal) =>
-      suppliersApi.list({ cursor, limit: 20, is_active: isActive }, signal),
+      suppliersApi.list({ cursor, limit: 20, is_active: true }, signal),
   })
 
   async function handleDelete(supplier: SupplierOut) {
@@ -98,16 +95,6 @@ function SuppliersContent() {
           : `${row.original.payment_terms_days}d`,
     },
     {
-      id: "status",
-      header: t("columns.status"),
-      cell: ({ row }) => (
-        <StatusBadge
-          status={row.original.is_active ? "active" : "archived"}
-          label={row.original.is_active ? c("active") : c("inactive")}
-        />
-      ),
-    },
-    {
       id: "actions",
       header: "",
       cell: ({ row }) => (
@@ -156,7 +143,6 @@ function SuppliersContent() {
         }
       />
 
-      <StatusFilter value={status} onChange={setStatus} />
 
       <DataTable
         columns={columns}

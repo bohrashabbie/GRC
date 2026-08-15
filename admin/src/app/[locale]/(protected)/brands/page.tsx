@@ -11,11 +11,9 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
-import { StatusBadge } from "@/components/status-badge"
 import { RequirePermission } from "@/components/permission/require-permission"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { BrandFormDialog } from "@/components/brands/brand-form-dialog"
-import { StatusFilter, useStatusFilter } from "@/components/status-filter"
 import { useCursorList } from "@/hooks/use-cursor-list"
 import { brandsApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
@@ -40,16 +38,15 @@ function BrandsContent() {
   const locale = useLocale()
   const queryClient = useQueryClient()
 
-  const { status, setStatus, isActive } = useStatusFilter()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<BrandOut | undefined>()
   const [deleting, setDeleting] = useState<BrandOut | null>(null)
   const deletionMessage = useDeletionMessage()
 
   const list = useCursorList<BrandOut>({
-    queryKey: queryKeys.brands.list({ is_active: isActive }),
+    queryKey: queryKeys.brands.list({ is_active: true }),
     fetchPage: (cursor, signal) =>
-      brandsApi.list({ cursor, limit: 20, is_active: isActive }, signal),
+      brandsApi.list({ cursor, limit: 20, is_active: true }, signal),
   })
 
   function openCreate() {
@@ -96,16 +93,6 @@ function BrandsContent() {
       header: t("columns.sortOrder"),
     },
     {
-      id: "status",
-      header: t("columns.status"),
-      cell: ({ row }) => (
-        <StatusBadge
-          status={row.original.is_active ? "active" : "archived"}
-          label={row.original.is_active ? c("active") : c("inactive")}
-        />
-      ),
-    },
-    {
       id: "actions",
       header: "",
       cell: ({ row }) => (
@@ -140,7 +127,6 @@ function BrandsContent() {
         }
       />
 
-      <StatusFilter value={status} onChange={setStatus} />
 
       <DataTable
         columns={columns}
