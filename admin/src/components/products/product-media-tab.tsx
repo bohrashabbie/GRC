@@ -1,12 +1,13 @@
 "use client"
 
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Star } from "lucide-react"
+import { ArrowLeft, ArrowRight, Star } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -33,7 +34,7 @@ import { mediaApi, optionsApi, optionValuesApi, productsApi } from "@/lib/api/en
 import { getErrorMessage } from "@/lib/api/error-message"
 import { mediaUrl, translatedLabel } from "@/lib/format"
 import { queryKeys } from "@/lib/query/keys"
-import type { OptionValueOut } from "@/lib/api/types"
+import type { OptionValueOut, ProductMediaItemOut } from "@/lib/api/types"
 
 const NO_COLOUR = "__none__"
 
@@ -48,6 +49,8 @@ export function ProductMediaTab({ productId }: { productId: number }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [uploading, setUploading] = useState(false)
+  const [deleting, setDeleting] = useState<ProductMediaItemOut | null>(null)
+  const [reordering, setReordering] = useState(false)
   const [colourValueId, setColourValueId] = useState(NO_COLOUR)
   const [isPrimary, setIsPrimary] = useState(false)
 
@@ -55,6 +58,56 @@ export function ProductMediaTab({ productId }: { productId: number }) {
     queryKey: queryKeys.products.media(productId),
     queryFn: ({ signal }) => productsApi.listMedia(productId, signal),
   })
+
+  async function refreshMedia() {
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.products.media(productId),
+    })
+    // The listing's thumbnail comes from the primary image, so it goes stale
+    // whenever the gallery changes.
+    await queryClient.invalidateQueries({ queryKey: queryKeys.products.all })
+  }
+
+  async function handleDelete(item: ProductMediaItemOut) {
+    try {
+      await productsApi.detachMedia(productId, item.id)
+      await refreshMedia()
+      toast.success(t("media.deleted"))
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
+      throw error
+    }
+  }
+
+  async function handleSetPrimary(item: ProductMediaItemOut) {
+    try {
+      await productsApi.setPrimaryMedia(productId, item.id)
+      await refreshMedia()
+      toast.success(t("media.primarySet"))
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
+    }
+  }
+
+  /** Moves one image one place along, then sends the whole new order. */
+  async function handleMove(index: number, direction: -1 | 1) {
+    const target = index + direction
+    if (target < 0 || target >= items.length) return
+    const next = [...items]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    setReordering(true)
+    try {
+      await productsApi.reorderMedia(
+        productId,
+        next.map((m) => m.id)
+      )
+      await refreshMedia()
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
+    } finally {
+      setReordering(false)
+    }
+  }
 
   const optionsQuery = useQuery({
     queryKey: queryKeys.options.list(),
@@ -194,7 +247,7 @@ export function ProductMediaTab({ productId }: { productId: number }) {
 
         {items.length > 0 && (
           <ul className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {items.map((item) => {
+            {items.map((item, index) => {
               const colour = colourLabel(item.option_value_id)
               return (
                 <li
@@ -225,12 +278,68 @@ export function ProductMediaTab({ productId }: { productId: number }) {
                   >
                     {item.media.original_filename ?? `#${item.media.id}`}
                   </span>
+
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="flex gap-0.5">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        aria-label={t("media.moveEarlier")}
+                        disabled={reordering || index === 0}
+                        onClick={() => handleMove(index, -1)}
+                      >
+                        <ArrowLeft className="size-3.5 rtl:-scale-x-100" aria-hidden />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        aria-label={t("media.moveLater")}
+                        disabled={reordering || index === items.length - 1}
+                        onClick={() => handleMove(index, 1)}
+                      >
+                        <ArrowRight className="size-3.5 rtl:-scale-x-100" aria-hidden />
+                      </Button>
+                    </div>
+                    <div className="flex gap-0.5">
+                      {!item.is_primary && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => handleSetPrimary(item)}
+                        >
+                          {t("media.makePrimary")}
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        onClick={() => setDeleting(item)}
+                      >
+                        {c("delete")}
+                      </Button>
+                    </div>
+                  </div>
                 </li>
               )
             })}
           </ul>
         )}
       </CardContent>
+
+      {deleting && (
+        <ConfirmDialog
+          open={!!deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title={t("media.deleteTitle")}
+          description={t("media.deleteDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDelete(deleting)}
+        />
+      )}
     </Card>
   )
 }

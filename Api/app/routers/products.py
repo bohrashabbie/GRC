@@ -11,6 +11,7 @@ from app.models.catalog import Product, ProductTranslation, Variant
 from app.schemas.catalog import (
     ProductCreate,
     ProductMediaItemOut,
+    ProductMediaReorder,
     ProductOut,
     ProductStatusUpdate,
     ProductStockUpdate,
@@ -159,6 +160,48 @@ def list_product_media(
     entry inlines the media file so the admin can render it without a
     follow-up request per image."""
     return media_service.list_product_media(db, product_id)
+
+
+@router.delete(
+    "/{product_id}/media/{product_media_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+)
+def detach_product_media(
+    product_id: int,
+    product_media_id: int,
+    db: Session = Depends(get_db),
+    _user=Depends(require("catalog.manage")),
+) -> None:
+    """Removes the image from this product. The uploaded file itself stays, as
+    it may be attached to other products."""
+    media_service.detach_from_product(db, product_id, product_media_id)
+
+
+@router.post(
+    "/{product_id}/media/{product_media_id}/primary",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+)
+def set_primary_product_media(
+    product_id: int,
+    product_media_id: int,
+    db: Session = Depends(get_db),
+    _user=Depends(require("catalog.manage")),
+) -> None:
+    media_service.set_primary_product_media(db, product_id, product_media_id)
+
+
+@router.post("/{product_id}/media/reorder", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+def reorder_product_media(
+    product_id: int,
+    payload: ProductMediaReorder,
+    db: Session = Depends(get_db),
+    _user=Depends(require("catalog.manage")),
+) -> None:
+    """Rewrites sort_order to the submitted order. Every image on the product
+    must be listed exactly once."""
+    media_service.reorder_product_media(db, product_id, payload.ordered_ids)
 
 
 # Permission keys used by this router: catalog.view, catalog.manage, product.publish

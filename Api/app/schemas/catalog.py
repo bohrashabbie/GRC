@@ -421,6 +421,12 @@ class ProductMediaOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ProductMediaReorder(BaseModel):
+    """Every image on the product, in the order they should appear."""
+
+    ordered_ids: list[int] = Field(min_length=1)
+
+
 class ProductMediaItemOut(ProductMediaOut):
     """A product's gallery entry with the underlying file inlined, so the admin
     can render the image without a second round trip per attachment."""

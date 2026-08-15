@@ -327,6 +327,15 @@ export const productsApi = {
   listVariants: (productId: number, signal?: AbortSignal) =>
     api.get<VariantOut[]>(`/products/${productId}/variants`, { signal }),
   /** The product's gallery, primary first, with each file inlined. */
+  detachMedia: (productId: number, productMediaId: number) =>
+    api.del(`/products/${productId}/media/${productMediaId}`),
+  setPrimaryMedia: (productId: number, productMediaId: number) =>
+    api.post<void>(`/products/${productId}/media/${productMediaId}/primary`),
+  /** Must list every image on the product, in the wanted order. */
+  reorderMedia: (productId: number, orderedIds: number[]) =>
+    api.post<void>(`/products/${productId}/media/reorder`, {
+      ordered_ids: orderedIds,
+    }),
   listMedia: (productId: number, signal?: AbortSignal) =>
     api.get<ProductMediaItemOut[]>(`/products/${productId}/media`, { signal }),
   /** Combinations are explicit; >300 for one product is rejected by the API. */

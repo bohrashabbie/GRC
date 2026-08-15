@@ -443,7 +443,14 @@
       "noColour": "Not colour-specific",
       "isPrimary": "Primary image",
       "attachFailed": "The file uploaded but couldn't be attached to this product.",
-      "noListEndpoint": "The API has no endpoint that lists a product's existing media, so only files uploaded in this session are shown here."
+      "noListEndpoint": "The API has no endpoint that lists a product's existing media, so only files uploaded in this session are shown here.",
+      "deleted": "Image removed",
+      "deleteTitle": "Remove this image?",
+      "deleteDescription": "It will be taken off this product. The uploaded file itself is kept.",
+      "makePrimary": "Make main",
+      "primarySet": "Main image updated",
+      "moveEarlier": "Move earlier",
+      "moveLater": "Move later"
     },
     "variants": {
       "title": "Variants",
