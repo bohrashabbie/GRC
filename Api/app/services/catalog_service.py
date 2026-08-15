@@ -12,7 +12,7 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, NotFoundError
-from app.services import media_service
+from app.services import audit_service, deletion, media_service
 from app.models.catalog import (
     Brand,
     BrandTranslation,
@@ -22,6 +22,10 @@ from app.models.catalog import (
     OptionTranslation,
     OptionValue,
     OptionValueTranslation,
+    Product,
+    ProductCategory,
+    ProductMedia,
+    VariantOptionValue,
 )
 from app.utils import slugify
 
@@ -114,10 +118,38 @@ def update_brand(db: Session, brand_id: int, data) -> Brand:
     return brand
 
 
-def deactivate_brand(db: Session, brand_id: int) -> None:
+def delete_brand(db: Session, brand_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
+    """Remove the brand outright, or deactivate it if products still point at it.
+
+    products.brand_id is nullable with no cascade, so deleting a brand a product
+    uses would leave that product brand-less rather than fail — which is why the
+    check is here and not left to the database.
+    """
     brand = get_brand(db, brand_id)
-    brand.is_active = False
+    # Captured before the mutation below, or the audit row records the new
+    # value as the old one.
+    before = {"code": brand.code, "is_active": brand.is_active}
+    blockers = deletion.find_blockers(
+        db, [("products", select(Product.id).where(Product.brand_id == brand_id))]
+    )
+    if blockers:
+        brand.is_active = False
+        mode = deletion.DEACTIVATED
+    else:
+        # brand_translations cascades on the FK.
+        db.delete(brand)
+        mode = deletion.DELETED
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action=f"brand.{mode}",
+        entity_type="brand",
+        entity_id=brand_id,
+        before=before,
+        after=None if mode == deletion.DELETED else {"is_active": False},
+    )
     db.commit()
+    return deletion.DeletionResult(mode, blockers)
 
 
 # --------------------------------------------------------------------------
@@ -222,10 +254,42 @@ def update_category(db: Session, category_id: int, data) -> Category:
     return category
 
 
-def deactivate_category(db: Session, category_id: int) -> None:
+def delete_category(db: Session, category_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
+    """Remove the category outright, or deactivate it if it still has children
+    or products.
+
+    product_categories cascades, so a delete would silently unfile every product
+    in the category rather than error — counted as a blocker for that reason.
+    Child categories only null out their parent_id, which would quietly promote
+    a whole subtree to the root and leave its ltree paths wrong.
+    """
     category = get_category(db, category_id)
-    category.is_active = False
+    before = {"code": category.code, "is_active": category.is_active}
+    blockers = deletion.find_blockers(
+        db,
+        [
+            ("products", select(ProductCategory.product_id).where(ProductCategory.category_id == category_id)),
+            ("sub_categories", select(Category.id).where(Category.parent_id == category_id)),
+        ],
+    )
+    if blockers:
+        category.is_active = False
+        mode = deletion.DEACTIVATED
+    else:
+        # category_translations cascades on the FK.
+        db.delete(category)
+        mode = deletion.DELETED
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action=f"category.{mode}",
+        entity_type="category",
+        entity_id=category_id,
+        before=before,
+        after=None if mode == deletion.DELETED else {"is_active": False},
+    )
     db.commit()
+    return deletion.DeletionResult(mode, blockers)
 
 
 def get_category_tree(db: Session, dimension: str) -> list[Category]:
@@ -359,3 +423,99 @@ def update_option_value(db: Session, option_value_id: int, data) -> OptionValue:
     db.commit()
     db.refresh(value)
     return value
+
+
+def delete_option_value(
+    db: Session, option_value_id: int, *, actor_user_id: int | None
+) -> deletion.DeletionResult:
+    """Remove a colour or size value outright, or retire it if a variant uses it.
+
+    variant_option_values cascades, so deleting a value in use would strip it
+    from the variant's combination and leave that variant silently identifying
+    as something else — including on orders already placed against it. Product
+    media pinned to the value (the per-colour galleries) blocks for the same
+    reason: the FK is nullable, so those images would just drift loose.
+    """
+    value = get_option_value(db, option_value_id)
+    before = {"code": value.code, "is_active": value.is_active}
+    blockers = deletion.find_blockers(
+        db,
+        [
+            (
+                "variants",
+                select(VariantOptionValue.variant_id).where(
+                    VariantOptionValue.option_value_id == option_value_id
+                ),
+            ),
+            ("product_images", select(ProductMedia.id).where(ProductMedia.option_value_id == option_value_id)),
+        ],
+    )
+    if blockers:
+        value.is_active = False
+        mode = deletion.DEACTIVATED
+    else:
+        # option_value_translations cascades on the FK.
+        db.delete(value)
+        mode = deletion.DELETED
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action=f"option_value.{mode}",
+        entity_type="option_value",
+        entity_id=option_value_id,
+        before=before,
+        after=None if mode == deletion.DELETED else {"is_active": False},
+    )
+    db.commit()
+    return deletion.DeletionResult(mode, blockers)
+
+
+def delete_option(db: Session, option_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
+    """Remove a retired option and its values.
+
+    Colour and Size are the two options the storefront can render, so they are
+    never removable — the same reason create_option and update_option refuse.
+    What this does clear is the leftover pre-GR8 rows (`length`, the duplicate
+    `color`) that only still exist because variants pointed at them, and which
+    _require_system_option already rejects new values for.
+
+    Options have no is_active column, so there is no deactivate fallback: an
+    option whose values are still on a variant raises instead.
+    """
+    option = get_option(db, option_id)
+    if option.code in SYSTEM_OPTION_CODES:
+        raise BusinessRuleError(
+            f"'{option.code}' is one of the store's two built-in options and cannot be removed.",
+            code="system_option_locked",
+        )
+    value_ids = select(OptionValue.id).where(OptionValue.option_id == option_id)
+    blockers = deletion.find_blockers(
+        db,
+        [
+            (
+                "variants",
+                select(VariantOptionValue.variant_id).where(
+                    VariantOptionValue.option_value_id.in_(value_ids)
+                ),
+            ),
+            (
+                "product_images",
+                select(ProductMedia.id).where(ProductMedia.option_value_id.in_(value_ids)),
+            ),
+        ],
+    )
+    if blockers:
+        raise deletion.blocked("option", blockers)
+    # option_values and option_translations both cascade on the FK.
+    db.delete(option)
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action="option.deleted",
+        entity_type="option",
+        entity_id=option_id,
+        before={"code": option.code},
+        after=None,
+    )
+    db.commit()
+    return deletion.DeletionResult(deletion.DELETED)

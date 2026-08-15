@@ -8,6 +8,7 @@ from app.database import get_db
 from app.deps import require
 from app.models.catalog import Option
 from app.schemas.catalog import OptionCreate, OptionOut, OptionUpdate
+from app.schemas.common import DeletionResultOut
 from app.services import catalog_service
 from app.utils import paginate
 
@@ -48,6 +49,17 @@ def update_option(
     option_id: int, payload: OptionUpdate, db: Session = Depends(get_db), _user=Depends(require("catalog.manage"))
 ) -> Option:
     return catalog_service.update_option(db, option_id, payload)
+
+
+@router.delete("/{option_id}", response_model=DeletionResultOut)
+def delete_option(
+    option_id: int, db: Session = Depends(get_db), user=Depends(require("catalog.manage"))
+) -> DeletionResultOut:
+    """Removes a retired option and its values. Colour and Size are the store's
+    two built-in options and are rejected, as are options whose values are still
+    on a variant — options have no inactive flag to fall back to."""
+    result = catalog_service.delete_option(db, option_id, actor_user_id=user.id)
+    return DeletionResultOut(mode=result.mode, blockers=result.blockers)
 
 
 # Permission keys used by this router: catalog.view, catalog.manage

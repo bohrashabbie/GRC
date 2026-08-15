@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, NotFoundError
@@ -16,7 +17,7 @@ from app.models.purchasing import (
     PurchaseOrderItem,
     Supplier,
 )
-from app.services import inventory_service
+from app.services import audit_service, deletion, inventory_service
 
 
 def _sequence_number(prefix: str) -> str:
@@ -53,10 +54,35 @@ def update_supplier(db: Session, supplier_id: int, data) -> Supplier:
     return supplier
 
 
-def deactivate_supplier(db: Session, supplier_id: int) -> None:
+def delete_supplier(db: Session, supplier_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
+    """Remove the supplier outright, or deactivate it if it has purchase orders.
+
+    purchase_orders.supplier_id is NOT NULL with no cascade, so the database
+    would reject the delete anyway — checking first turns a raw integrity error
+    into a message naming how many POs are in the way.
+    """
     supplier = get_supplier(db, supplier_id)
-    supplier.is_active = False
+    before = {"code": supplier.code, "name": supplier.name, "is_active": supplier.is_active}
+    blockers = deletion.find_blockers(
+        db, [("purchase_orders", select(PurchaseOrder.id).where(PurchaseOrder.supplier_id == supplier_id))]
+    )
+    if blockers:
+        supplier.is_active = False
+        mode = deletion.DEACTIVATED
+    else:
+        db.delete(supplier)
+        mode = deletion.DELETED
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action=f"supplier.{mode}",
+        entity_type="supplier",
+        entity_id=supplier_id,
+        before=before,
+        after=None if mode == deletion.DELETED else {"is_active": False},
+    )
     db.commit()
+    return deletion.DeletionResult(mode, blockers)
 
 
 # --------------------------------------------------------------------------

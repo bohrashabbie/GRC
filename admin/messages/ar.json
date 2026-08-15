@@ -37,7 +37,29 @@
     "add": "إضافة",
     "remove": "إزالة",
     "view": "عرض",
-    "unknownError": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+    "unknownError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "delete": "حذف"
+  },
+  "deletion": {
+    "deleted": "تم حذف {name}",
+    "deactivatedInstead": "لا يزال {name} مستخدمًا في {reasons}، لذلك تم إلغاء تنشيطه بدلاً من حذفه.",
+    "reasonSeparator": "، ",
+    "confirmTitle": "حذف {name}؟",
+    "confirmDescription": "سيتم حذفه نهائيًا. إذا كان لا يزال مستخدمًا في أي مكان، فسيتم إلغاء تنشيطه بدلاً من ذلك للحفاظ على السجلات الحالية.",
+    "blockers": {
+      "products": "{count, plural, zero {# منتج} one {منتج واحد} two {منتجين} few {# منتجات} many {# منتجًا} other {# منتج}}",
+      "sub_categories": "{count, plural, zero {# فئة فرعية} one {فئة فرعية واحدة} two {فئتين فرعيتين} few {# فئات فرعية} many {# فئة فرعية} other {# فئة فرعية}}",
+      "purchase_orders": "{count, plural, zero {# أمر شراء} one {أمر شراء واحد} two {أمري شراء} few {# أوامر شراء} many {# أمر شراء} other {# أمر شراء}}",
+      "variants": "{count, plural, zero {# متغير} one {متغير واحد} two {متغيرين} few {# متغيرات} many {# متغيرًا} other {# متغير}}",
+      "product_images": "{count, plural, zero {# صورة منتج} one {صورة منتج واحدة} two {صورتي منتج} few {# صور منتجات} many {# صورة منتج} other {# صورة منتج}}",
+      "stock_on_hand": "{count, plural, zero {# متغير به مخزون} one {متغير واحد به مخزون} two {متغيرين بهما مخزون} few {# متغيرات بها مخزون} many {# متغيرًا به مخزون} other {# متغير به مخزون}}",
+      "stock_movements": "{count, plural, zero {# حركة مخزون} one {حركة مخزون واحدة} two {حركتي مخزون} few {# حركات مخزون} many {# حركة مخزون} other {# حركة مخزون}}",
+      "goods_receipts": "{count, plural, zero {# إذن استلام} one {إذن استلام واحد} two {إذني استلام} few {# أذون استلام} many {# إذن استلام} other {# إذن استلام}}",
+      "shipments": "{count, plural, zero {# شحنة} one {شحنة واحدة} two {شحنتين} few {# شحنات} many {# شحنة} other {# شحنة}}",
+      "returns": "{count, plural, zero {# مرتجع} one {مرتجع واحد} two {مرتجعين} few {# مرتجعات} many {# مرتجعًا} other {# مرتجع}}",
+      "staff_assignments": "{count, plural, zero {# تعيين موظف} one {تعيين موظف واحد} two {تعييني موظفين} few {# تعيينات موظفين} many {# تعيين موظف} other {# تعيين موظف}}",
+      "store_listings": "{count, plural, zero {# فرع معروض} one {فرع معروض واحد} two {فرعين معروضين} few {# فروع معروضة} many {# فرعًا معروضًا} other {# فرع معروض}}"
+    }
   },
   "states": {
     "errorTitle": "تعذّر تحميل هذا",

@@ -8,6 +8,7 @@ from app.database import get_db
 from app.deps import require
 from app.models.catalog import Category
 from app.schemas.catalog import CategoryCreate, CategoryOut, CategoryTreeNode, CategoryUpdate
+from app.schemas.common import DeletionResultOut
 from app.services import catalog_service
 from app.utils import paginate
 
@@ -68,11 +69,14 @@ def update_category(
     return catalog_service.update_category(db, category_id, payload)
 
 
-@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
-def deactivate_category(
-    category_id: int, db: Session = Depends(get_db), _user=Depends(require("catalog.manage"))
-) -> None:
-    catalog_service.deactivate_category(db, category_id)
+@router.delete("/{category_id}", response_model=DeletionResultOut)
+def delete_category(
+    category_id: int, db: Session = Depends(get_db), user=Depends(require("catalog.manage"))
+) -> DeletionResultOut:
+    """Removes the category, or deactivates it when it still has products or
+    sub-categories. The response says which."""
+    result = catalog_service.delete_category(db, category_id, actor_user_id=user.id)
+    return DeletionResultOut(mode=result.mode, blockers=result.blockers)
 
 
 # Permission keys used by this router: catalog.view, catalog.manage

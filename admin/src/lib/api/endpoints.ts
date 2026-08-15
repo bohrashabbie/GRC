@@ -12,6 +12,7 @@ import type {
   CategoryUpdate,
   CurrentUserOut,
   CursorPage,
+  DeletionResult,
   ContactMessageOut,
   ContactMessageUpdate,
   CustomerAddressCreate,
@@ -182,8 +183,8 @@ export const brandsApi = {
   create: (payload: BrandCreate) => api.post<BrandOut>("/brands", payload),
   update: (brandId: number, payload: BrandUpdate) =>
     api.patch<BrandOut>(`/brands/${brandId}`, payload),
-  /** Soft-delete: sets is_active false, never removes the row. */
-  deactivate: (brandId: number) => api.del(`/brands/${brandId}`),
+  /** Removes the brand, or deactivates it when products still use it. */
+  delete: (brandId: number) => api.del<DeletionResult>(`/brands/${brandId}`),
 }
 
 /* -------------------------------------------------------------------------- */
@@ -220,7 +221,10 @@ export const categoriesApi = {
     api.post<CategoryOut>("/categories", payload),
   update: (categoryId: number, payload: CategoryUpdate) =>
     api.patch<CategoryOut>(`/categories/${categoryId}`, payload),
-  deactivate: (categoryId: number) => api.del(`/categories/${categoryId}`),
+  /** Removes the category, or deactivates it when it still has products or
+   * sub-categories. */
+  delete: (categoryId: number) =>
+    api.del<DeletionResult>(`/categories/${categoryId}`),
 }
 
 /* -------------------------------------------------------------------------- */
@@ -241,6 +245,10 @@ export const optionsApi = {
   create: (payload: OptionCreate) => api.post<OptionOut>("/options", payload),
   update: (optionId: number, payload: OptionUpdate) =>
     api.patch<OptionOut>(`/options/${optionId}`, payload),
+  /** Only retired options can go. Colour and Size are built in, and an option
+   * whose values are still on a variant is rejected outright — options have no
+   * inactive flag to fall back to. */
+  delete: (optionId: number) => api.del<DeletionResult>(`/options/${optionId}`),
 }
 
 export const optionValuesApi = {
@@ -262,6 +270,10 @@ export const optionValuesApi = {
     api.post<OptionValueOut>("/option-values", payload),
   update: (valueId: number, payload: OptionValueUpdate) =>
     api.patch<OptionValueOut>(`/option-values/${valueId}`, payload),
+  /** Removes the value, or retires it when variants or per-colour product
+   * images still use it. */
+  delete: (valueId: number) =>
+    api.del<DeletionResult>(`/option-values/${valueId}`),
 }
 
 /* -------------------------------------------------------------------------- */
@@ -365,7 +377,10 @@ export const locationsApi = {
     api.post<LocationOut>("/locations", payload),
   update: (locationId: number, payload: LocationUpdate) =>
     api.patch<LocationOut>(`/locations/${locationId}`, payload),
-  deactivate: (locationId: number) => api.del(`/locations/${locationId}`),
+  /** Removes the location, or deactivates it when stock history, paperwork or
+   * staff scoping still points at it. */
+  delete: (locationId: number) =>
+    api.del<DeletionResult>(`/locations/${locationId}`),
 }
 
 /* -------------------------------------------------------------------------- */
@@ -391,7 +406,10 @@ export const suppliersApi = {
     api.post<SupplierOut>("/suppliers", payload),
   update: (supplierId: number, payload: SupplierUpdate) =>
     api.patch<SupplierOut>(`/suppliers/${supplierId}`, payload),
-  deactivate: (supplierId: number) => api.del(`/suppliers/${supplierId}`),
+  /** Removes the supplier, or deactivates it when purchase orders still
+   * reference it. */
+  delete: (supplierId: number) =>
+    api.del<DeletionResult>(`/suppliers/${supplierId}`),
 }
 
 export const purchaseOrdersApi = {

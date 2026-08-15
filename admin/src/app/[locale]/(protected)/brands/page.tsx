@@ -19,6 +19,7 @@ import { StatusFilter, useStatusFilter } from "@/components/status-filter"
 import { useCursorList } from "@/hooks/use-cursor-list"
 import { brandsApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
+import { useDeletionMessage } from "@/lib/deletion"
 import { translatedName } from "@/lib/format"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
@@ -35,13 +36,15 @@ export default function BrandsPage() {
 function BrandsContent() {
   const t = useTranslations("brands")
   const c = useTranslations("common")
+  const del = useTranslations("deletion")
   const locale = useLocale()
   const queryClient = useQueryClient()
 
   const { status, setStatus, isActive } = useStatusFilter()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<BrandOut | undefined>()
-  const [deactivating, setDeactivating] = useState<BrandOut | null>(null)
+  const [deleting, setDeleting] = useState<BrandOut | null>(null)
+  const deletionMessage = useDeletionMessage()
 
   const list = useCursorList<BrandOut>({
     queryKey: queryKeys.brands.list({ is_active: isActive }),
@@ -59,11 +62,12 @@ function BrandsContent() {
     setFormOpen(true)
   }
 
-  async function handleDeactivate(brand: BrandOut) {
+  async function handleDelete(brand: BrandOut) {
+    const name = translatedName(brand.translations, locale)
     try {
-      await brandsApi.deactivate(brand.id)
+      const result = await brandsApi.delete(brand.id)
       await queryClient.invalidateQueries({ queryKey: queryKeys.brands.all })
-      toast.success(t("deactivated"))
+      toast.success(deletionMessage(result, name))
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
       throw error
@@ -110,15 +114,13 @@ function BrandsContent() {
             <Button variant="outline" size="xs" onClick={() => openEdit(row.original)}>
               {c("edit")}
             </Button>
-            {row.original.is_active && (
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => setDeactivating(row.original)}
-              >
-                {c("deactivate")}
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => setDeleting(row.original)}
+            >
+              {c("delete")}
+            </Button>
           </div>
         </RequirePermission>
       ),
@@ -162,15 +164,16 @@ function BrandsContent() {
         />
       )}
 
-      {deactivating && (
+      {deleting && (
         <ConfirmDialog
-          open={!!deactivating}
-          onOpenChange={(open) => !open && setDeactivating(null)}
-          title={t("deactivateTitle")}
-          description={t("deactivateDescription", {
-            name: translatedName(deactivating.translations, locale),
+          open={!!deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title={del("confirmTitle", {
+            name: translatedName(deleting.translations, locale),
           })}
-          onConfirm={() => handleDeactivate(deactivating)}
+          description={del("confirmDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDelete(deleting)}
         />
       )}
     </div>

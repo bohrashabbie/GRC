@@ -30,6 +30,7 @@ import {
 import { useQueryParam } from "@/hooks/use-query-param"
 import { categoriesApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
+import { useDeletionMessage } from "@/lib/deletion"
 import { translatedName } from "@/lib/format"
 import { CATEGORY_DIMENSIONS, humanizeStatus } from "@/lib/status"
 import { PERMISSIONS } from "@/lib/permissions"
@@ -47,6 +48,7 @@ export default function CategoriesPage() {
 function CategoriesContent() {
   const t = useTranslations("categories")
   const c = useTranslations("common")
+  const del = useTranslations("deletion")
   const locale = useLocale()
   const queryClient = useQueryClient()
 
@@ -55,10 +57,11 @@ function CategoriesContent() {
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<CategoryOut | undefined>()
-  const [deactivating, setDeactivating] = useState<{
+  const [deleting, setDeleting] = useState<{
     id: number
     name: string
   } | null>(null)
+  const deletionMessage = useDeletionMessage()
 
   const treeQuery = useQuery({
     queryKey: queryKeys.categories.tree(dimension),
@@ -82,11 +85,11 @@ function CategoriesContent() {
     setFormOpen(true)
   }
 
-  async function handleDeactivate(categoryId: number) {
+  async function handleDelete(categoryId: number, name: string) {
     try {
-      await categoriesApi.deactivate(categoryId)
+      const result = await categoriesApi.delete(categoryId)
       await queryClient.invalidateQueries({ queryKey: queryKeys.categories.all })
-      toast.success(t("deactivated"))
+      toast.success(deletionMessage(result, name))
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
       throw error
@@ -149,7 +152,7 @@ function CategoriesContent() {
                   node={node}
                   locale={locale}
                   onEdit={openEdit}
-                  onDeactivate={(id, name) => setDeactivating({ id, name })}
+                  onDelete={(id, name) => setDeleting({ id, name })}
                 />
               ))}
             </ul>
@@ -167,13 +170,14 @@ function CategoriesContent() {
         />
       )}
 
-      {deactivating && (
+      {deleting && (
         <ConfirmDialog
-          open={!!deactivating}
-          onOpenChange={(open) => !open && setDeactivating(null)}
-          title={t("deactivateTitle")}
-          description={t("deactivateDescription", { name: deactivating.name })}
-          onConfirm={() => handleDeactivate(deactivating.id)}
+          open={!!deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title={del("confirmTitle", { name: deleting.name })}
+          description={del("confirmDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDelete(deleting.id, deleting.name)}
         />
       )}
     </div>
@@ -186,12 +190,12 @@ function CategoryTreeRow({
   node,
   locale,
   onEdit,
-  onDeactivate,
+  onDelete,
 }: {
   node: CategoryTreeNode
   locale: string
   onEdit: (id: number) => void
-  onDeactivate: (id: number, name: string) => void
+  onDelete: (id: number, name: string) => void
 }) {
   const c = useTranslations("common")
   const [expanded, setExpanded] = useState(true)
@@ -234,15 +238,13 @@ function CategoryTreeRow({
             <Button variant="outline" size="xs" onClick={() => onEdit(node.id)}>
               {c("edit")}
             </Button>
-            {node.is_active && (
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => onDeactivate(node.id, name)}
-              >
-                {c("deactivate")}
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => onDelete(node.id, name)}
+            >
+              {c("delete")}
+            </Button>
           </div>
         </RequirePermission>
       </div>
@@ -255,7 +257,7 @@ function CategoryTreeRow({
               node={child}
               locale={locale}
               onEdit={onEdit}
-              onDeactivate={onDeactivate}
+              onDelete={onDelete}
             />
           ))}
         </ul>

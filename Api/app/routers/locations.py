@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.deps import require
 from app.models.inventory import Location
+from app.schemas.common import DeletionResultOut
 from app.schemas.inventory import LocationCreate, LocationOut, LocationUpdate
 from app.services import inventory_service
 from app.utils import paginate
@@ -54,11 +55,14 @@ def update_location(
     return inventory_service.update_location(db, location_id, payload)
 
 
-@router.delete("/{location_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
-def deactivate_location(
-    location_id: int, db: Session = Depends(get_db), _user=Depends(require("location.manage"))
-) -> None:
-    inventory_service.update_location(db, location_id, LocationUpdate(is_active=False))
+@router.delete("/{location_id}", response_model=DeletionResultOut)
+def delete_location(
+    location_id: int, db: Session = Depends(get_db), user=Depends(require("location.manage"))
+) -> DeletionResultOut:
+    """Removes the location, or deactivates it when stock history, paperwork or
+    staff scoping still points at it. The response says which."""
+    result = inventory_service.delete_location(db, location_id, actor_user_id=user.id)
+    return DeletionResultOut(mode=result.mode, blockers=result.blockers)
 
 
 # Permission keys used by this router: inventory.view, location.manage

@@ -1,9 +1,10 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
 import { useParams } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
@@ -25,6 +27,8 @@ import {
   ListLoadingSkeleton,
 } from "@/components/states/list-states"
 import { optionsApi, optionValuesApi } from "@/lib/api/endpoints"
+import { getErrorMessage } from "@/lib/api/error-message"
+import { useDeletionMessage } from "@/lib/deletion"
 import { translatedLabel } from "@/lib/format"
 import { humanizeStatus } from "@/lib/status"
 import { PERMISSIONS } from "@/lib/permissions"
@@ -42,12 +46,30 @@ export default function OptionDetailPage() {
 function OptionDetailContent() {
   const t = useTranslations("options")
   const c = useTranslations("common")
+  const del = useTranslations("deletion")
   const locale = useLocale()
   const params = useParams<{ id: string }>()
   const optionId = Number(params.id)
+  const queryClient = useQueryClient()
+  const deletionMessage = useDeletionMessage()
 
   const [valueOpen, setValueOpen] = useState(false)
   const [editingValue, setEditingValue] = useState<OptionValueOut | undefined>()
+  const [deletingValue, setDeletingValue] = useState<OptionValueOut | null>(null)
+
+  async function handleDeleteValue(value: OptionValueOut) {
+    const name = translatedLabel(value.translations, locale)
+    try {
+      const result = await optionValuesApi.delete(value.id)
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.options.values(optionId),
+      })
+      toast.success(deletionMessage(result, name))
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
+      throw error
+    }
+  }
 
   const optionQuery = useQuery({
     queryKey: queryKeys.options.detail(optionId),
@@ -181,13 +203,22 @@ function OptionDetailContent() {
                       </span>
                       {canManageValues && (
                         <RequirePermission permission={PERMISSIONS.catalogManage}>
-                          <Button
-                            variant="outline"
-                            size="xs"
-                            onClick={() => openEditValue(value)}
-                          >
-                            {c("edit")}
-                          </Button>
+                          <div className="flex gap-1.5">
+                            <Button
+                              variant="outline"
+                              size="xs"
+                              onClick={() => openEditValue(value)}
+                            >
+                              {c("edit")}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="xs"
+                              onClick={() => setDeletingValue(value)}
+                            >
+                              {c("delete")}
+                            </Button>
+                          </div>
                         </RequirePermission>
                       )}
                     </li>
@@ -208,6 +239,19 @@ function OptionDetailContent() {
           withMeasurements={isSizeOption}
           open={valueOpen}
           onOpenChange={setValueOpen}
+        />
+      )}
+
+      {deletingValue && (
+        <ConfirmDialog
+          open={!!deletingValue}
+          onOpenChange={(open) => !open && setDeletingValue(null)}
+          title={del("confirmTitle", {
+            name: translatedLabel(deletingValue.translations, locale),
+          })}
+          description={del("confirmDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDeleteValue(deletingValue)}
         />
       )}
     </div>

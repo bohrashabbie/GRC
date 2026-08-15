@@ -20,6 +20,7 @@ import { LocationFormDialog } from "@/components/locations/location-form-dialog"
 import { useCursorList } from "@/hooks/use-cursor-list"
 import { locationsApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
+import { useDeletionMessage } from "@/lib/deletion"
 import { bilingualName } from "@/lib/format"
 import { humanizeStatus } from "@/lib/status"
 import { PERMISSIONS } from "@/lib/permissions"
@@ -37,13 +38,15 @@ export default function LocationsPage() {
 function LocationsContent() {
   const t = useTranslations("locations")
   const c = useTranslations("common")
+  const del = useTranslations("deletion")
   const locale = useLocale()
   const queryClient = useQueryClient()
 
   const { status, setStatus, isActive } = useStatusFilter()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<LocationOut | undefined>()
-  const [deactivating, setDeactivating] = useState<LocationOut | null>(null)
+  const [deleting, setDeleting] = useState<LocationOut | null>(null)
+  const deletionMessage = useDeletionMessage()
 
   const list = useCursorList<LocationOut>({
     queryKey: queryKeys.locations.list({ is_active: isActive }),
@@ -51,11 +54,12 @@ function LocationsContent() {
       locationsApi.list({ cursor, limit: 50, is_active: isActive }, signal),
   })
 
-  async function handleDeactivate(location: LocationOut) {
+  async function handleDelete(location: LocationOut) {
+    const name = bilingualName(location, locale)
     try {
-      await locationsApi.deactivate(location.id)
+      const result = await locationsApi.delete(location.id)
       await queryClient.invalidateQueries({ queryKey: queryKeys.locations.all })
-      toast.success(t("deactivated"))
+      toast.success(deletionMessage(result, name))
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
       throw error
@@ -116,15 +120,13 @@ function LocationsContent() {
             >
               {c("edit")}
             </Button>
-            {row.original.is_active && (
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => setDeactivating(row.original)}
-              >
-                {c("deactivate")}
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => setDeleting(row.original)}
+            >
+              {c("delete")}
+            </Button>
           </div>
         </RequirePermission>
       ),
@@ -175,15 +177,14 @@ function LocationsContent() {
         />
       )}
 
-      {deactivating && (
+      {deleting && (
         <ConfirmDialog
-          open={!!deactivating}
-          onOpenChange={(open) => !open && setDeactivating(null)}
-          title={t("deactivateTitle")}
-          description={t("deactivateDescription", {
-            name: bilingualName(deactivating, locale),
-          })}
-          onConfirm={() => handleDeactivate(deactivating)}
+          open={!!deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title={del("confirmTitle", { name: bilingualName(deleting, locale) })}
+          description={del("confirmDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDelete(deleting)}
         />
       )}
     </div>

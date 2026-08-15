@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.deps import require
 from app.models.purchasing import Supplier
+from app.schemas.common import DeletionResultOut
 from app.schemas.purchasing import SupplierCreate, SupplierOut, SupplierUpdate
 from app.services import purchasing_service
 from app.utils import paginate
@@ -50,11 +51,14 @@ def update_supplier(
     return purchasing_service.update_supplier(db, supplier_id, payload)
 
 
-@router.delete("/{supplier_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
-def deactivate_supplier(
-    supplier_id: int, db: Session = Depends(get_db), _user=Depends(require("supplier.manage"))
-) -> None:
-    purchasing_service.deactivate_supplier(db, supplier_id)
+@router.delete("/{supplier_id}", response_model=DeletionResultOut)
+def delete_supplier(
+    supplier_id: int, db: Session = Depends(get_db), user=Depends(require("supplier.manage"))
+) -> DeletionResultOut:
+    """Removes the supplier, or deactivates it when purchase orders still
+    reference it. The response says which."""
+    result = purchasing_service.delete_supplier(db, supplier_id, actor_user_id=user.id)
+    return DeletionResultOut(mode=result.mode, blockers=result.blockers)
 
 
 # Permission keys used by this router: supplier.manage, inventory.view

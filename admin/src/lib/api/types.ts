@@ -18,6 +18,21 @@ export type CursorPage<T> = {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Deletion                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Returned by every DELETE. The backend removes the row when nothing
+ * references it and deactivates it when something does, so the caller has to
+ * read `mode` to know which happened rather than assume the row is gone.
+ * `blockers` maps what held the reference ("products") to how many rows did.
+ */
+export type DeletionResult = {
+  mode: "deleted" | "deactivated"
+  blockers: Record<string, number>
+}
+
+/* -------------------------------------------------------------------------- */
 /* Auth                                                                        */
 /* -------------------------------------------------------------------------- */
 

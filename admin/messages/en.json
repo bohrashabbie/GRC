@@ -37,7 +37,29 @@
     "add": "Add",
     "remove": "Remove",
     "view": "View",
-    "unknownError": "Something went wrong. Please try again."
+    "unknownError": "Something went wrong. Please try again.",
+    "delete": "Delete"
+  },
+  "deletion": {
+    "deleted": "{name} deleted",
+    "deactivatedInstead": "{name} is still used by {reasons}, so it was deactivated instead of deleted.",
+    "reasonSeparator": ", ",
+    "confirmTitle": "Delete {name}?",
+    "confirmDescription": "This removes it permanently. If anything still uses it, it will be deactivated instead so existing records stay intact.",
+    "blockers": {
+      "products": "{count, plural, one {# product} other {# products}}",
+      "sub_categories": "{count, plural, one {# sub-category} other {# sub-categories}}",
+      "purchase_orders": "{count, plural, one {# purchase order} other {# purchase orders}}",
+      "variants": "{count, plural, one {# variant} other {# variants}}",
+      "product_images": "{count, plural, one {# product image} other {# product images}}",
+      "stock_on_hand": "{count, plural, one {# variant with stock} other {# variants with stock}}",
+      "stock_movements": "{count, plural, one {# stock movement} other {# stock movements}}",
+      "goods_receipts": "{count, plural, one {# goods receipt} other {# goods receipts}}",
+      "shipments": "{count, plural, one {# shipment} other {# shipments}}",
+      "returns": "{count, plural, one {# return} other {# returns}}",
+      "staff_assignments": "{count, plural, one {# staff assignment} other {# staff assignments}}",
+      "store_listings": "{count, plural, one {# store listing} other {# store listings}}"
+    }
   },
   "states": {
     "errorTitle": "Couldn't load this",

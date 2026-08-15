@@ -8,6 +8,7 @@ from app.database import get_db
 from app.deps import require
 from app.models.catalog import Option, OptionValue
 from app.schemas.catalog import OptionValueCreate, OptionValueOut, OptionValueUpdate
+from app.schemas.common import DeletionResultOut
 from app.services import catalog_service
 from app.utils import paginate
 
@@ -62,6 +63,16 @@ def update_option_value(
     _user=Depends(require("catalog.manage")),
 ) -> OptionValue:
     return catalog_service.update_option_value(db, option_value_id, payload)
+
+
+@router.delete("/{option_value_id}", response_model=DeletionResultOut)
+def delete_option_value(
+    option_value_id: int, db: Session = Depends(get_db), user=Depends(require("catalog.manage"))
+) -> DeletionResultOut:
+    """Removes the value, or retires it when variants or per-colour product
+    images still use it. The response says which."""
+    result = catalog_service.delete_option_value(db, option_value_id, actor_user_id=user.id)
+    return DeletionResultOut(mode=result.mode, blockers=result.blockers)
 
 
 # Permission keys used by this router: catalog.view, catalog.manage

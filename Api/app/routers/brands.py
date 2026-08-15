@@ -8,6 +8,7 @@ from app.database import get_db
 from app.deps import require
 from app.models.catalog import Brand
 from app.schemas.catalog import BrandCreate, BrandOut, BrandUpdate
+from app.schemas.common import DeletionResultOut
 from app.services import catalog_service
 from app.utils import paginate
 
@@ -49,11 +50,14 @@ def update_brand(
     return catalog_service.update_brand(db, brand_id, payload)
 
 
-@router.delete("/{brand_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
-def deactivate_brand(
-    brand_id: int, db: Session = Depends(get_db), _user=Depends(require("catalog.manage"))
-) -> None:
-    catalog_service.deactivate_brand(db, brand_id)
+@router.delete("/{brand_id}", response_model=DeletionResultOut)
+def delete_brand(
+    brand_id: int, db: Session = Depends(get_db), user=Depends(require("catalog.manage"))
+) -> DeletionResultOut:
+    """Removes the brand, or deactivates it when products still use it. The
+    response says which, so the admin can explain the fallback."""
+    result = catalog_service.delete_brand(db, brand_id, actor_user_id=user.id)
+    return DeletionResultOut(mode=result.mode, blockers=result.blockers)
 
 
 # Permission keys used by this router: catalog.view, catalog.manage

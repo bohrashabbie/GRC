@@ -19,6 +19,7 @@ import { SupplierFormDialog } from "@/components/suppliers/supplier-form-dialog"
 import { useCursorList } from "@/hooks/use-cursor-list"
 import { suppliersApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
+import { useDeletionMessage } from "@/lib/deletion"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import type { SupplierOut } from "@/lib/api/types"
@@ -34,12 +35,14 @@ export default function SuppliersPage() {
 function SuppliersContent() {
   const t = useTranslations("suppliers")
   const c = useTranslations("common")
+  const del = useTranslations("deletion")
   const queryClient = useQueryClient()
 
   const { status, setStatus, isActive } = useStatusFilter()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<SupplierOut | undefined>()
-  const [deactivating, setDeactivating] = useState<SupplierOut | null>(null)
+  const [deleting, setDeleting] = useState<SupplierOut | null>(null)
+  const deletionMessage = useDeletionMessage()
 
   const list = useCursorList<SupplierOut>({
     queryKey: queryKeys.suppliers.list({ is_active: isActive }),
@@ -47,11 +50,12 @@ function SuppliersContent() {
       suppliersApi.list({ cursor, limit: 20, is_active: isActive }, signal),
   })
 
-  async function handleDeactivate(supplier: SupplierOut) {
+  async function handleDelete(supplier: SupplierOut) {
+    const name = supplier.name
     try {
-      await suppliersApi.deactivate(supplier.id)
+      const result = await suppliersApi.delete(supplier.id)
       await queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all })
-      toast.success(t("deactivated"))
+      toast.success(deletionMessage(result, name))
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
       throw error
@@ -119,15 +123,13 @@ function SuppliersContent() {
             >
               {c("edit")}
             </Button>
-            {row.original.is_active && (
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={() => setDeactivating(row.original)}
-              >
-                {c("deactivate")}
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => setDeleting(row.original)}
+            >
+              {c("delete")}
+            </Button>
           </div>
         </RequirePermission>
       ),
@@ -178,13 +180,14 @@ function SuppliersContent() {
         />
       )}
 
-      {deactivating && (
+      {deleting && (
         <ConfirmDialog
-          open={!!deactivating}
-          onOpenChange={(open) => !open && setDeactivating(null)}
-          title={t("deactivateTitle")}
-          description={t("deactivateDescription", { name: deactivating.name })}
-          onConfirm={() => handleDeactivate(deactivating)}
+          open={!!deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title={del("confirmTitle", { name: deleting.name })}
+          description={del("confirmDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDelete(deleting)}
         />
       )}
     </div>

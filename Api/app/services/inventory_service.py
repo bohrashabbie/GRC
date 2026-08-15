@@ -25,8 +25,12 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.middleware.error import BusinessRuleError, ConflictError, NotFoundError
-from app.models.catalog import Product, ProductTranslation, Variant
+from app.models.auth import UserRole
+from app.models.catalog import Product, ProductTranslation, StoreLocation, Variant
 from app.models.inventory import Location, StockLevel, StockMovement
+from app.models.orders import Return, Shipment
+from app.models.purchasing import GoodsReceipt, PurchaseOrder
+from app.services import audit_service, deletion
 
 
 # --------------------------------------------------------------------------
@@ -56,6 +60,68 @@ def update_location(db: Session, location_id: int, data) -> Location:
     db.commit()
     db.refresh(location)
     return location
+
+
+def delete_location(db: Session, location_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
+    """Remove the location outright, or deactivate it if any stock history,
+    paperwork or staff scoping still points at it.
+
+    stock_levels cascades, so a row sitting at zero is just a placeholder the
+    delete may clear — only a non-zero balance counts. stock_movements is the
+    append-only ledger and never cascades, so any movement at all pins the
+    location permanently; the same goes for the shipments, returns, POs and
+    receipts that reference it.
+    """
+    location = get_location(db, location_id)
+    before = {"code": location.code, "name": location.name, "is_active": location.is_active}
+    blockers = deletion.find_blockers(
+        db,
+        [
+            (
+                "stock_on_hand",
+                select(StockLevel.variant_id).where(
+                    StockLevel.location_id == location_id,
+                    (StockLevel.on_hand != 0) | (StockLevel.reserved != 0) | (StockLevel.incoming != 0),
+                ),
+            ),
+            (
+                "stock_movements",
+                select(StockMovement.id).where(StockMovement.location_id == location_id),
+            ),
+            (
+                "purchase_orders",
+                select(PurchaseOrder.id).where(PurchaseOrder.destination_location_id == location_id),
+            ),
+            (
+                "goods_receipts",
+                select(GoodsReceipt.id).where(GoodsReceipt.location_id == location_id),
+            ),
+            ("shipments", select(Shipment.id).where(Shipment.from_location_id == location_id)),
+            ("returns", select(Return.id).where(Return.received_location_id == location_id)),
+            ("staff_assignments", select(UserRole.id).where(UserRole.location_id == location_id)),
+            (
+                "store_listings",
+                select(StoreLocation.id).where(StoreLocation.location_id == location_id),
+            ),
+        ],
+    )
+    if blockers:
+        location.is_active = False
+        mode = deletion.DEACTIVATED
+    else:
+        db.delete(location)
+        mode = deletion.DELETED
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action=f"location.{mode}",
+        entity_type="location",
+        entity_id=location_id,
+        before=before,
+        after=None if mode == deletion.DELETED else {"is_active": False},
+    )
+    db.commit()
+    return deletion.DeletionResult(mode, blockers)
 
 
 # --------------------------------------------------------------------------
