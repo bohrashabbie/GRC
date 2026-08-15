@@ -894,7 +894,8 @@
     "templates": {
       "default": "افتراضي",
       "full_width": "عرض كامل",
-      "contact": "اتصال"
+      "contact": "اتصال",
+      "plain": "عادية"
     },
     "statuses": {
       "draft": "مسودة",
@@ -916,8 +917,12 @@
       "metaDescription": "وصف SEO"
     },
     "validation": {
-      "titleRequired": "العنوان مطلوب بالعربية والإنجليزية."
-    }
+      "titleRequired": "العنوان مطلوب بالعربية والإنجليزية.",
+      "codeRequired": "الرمز مطلوب."
+    },
+    "newPage": "صفحة جديدة",
+    "createTitle": "صفحة جديدة",
+    "created": "تم إنشاء الصفحة"
   },
   "menus": {
     "title": "القوائم",
@@ -928,21 +933,38 @@
     "itemFormDescription": "عناصر القائمة ثابتة — يمكن تغيير النص لكل لغة وإظهارها أو إخفاؤها فقط.",
     "itemUpdated": "تم تحديث العنصر.",
     "linkTypes": {
-      "category": "تصنيف",
-      "brand": "علامة تجارية",
+      "url": "رابط",
+      "category": "فئة",
+      "product": "منتج",
       "collection": "مجموعة",
-      "page": "صفحة",
-      "url": "رابط"
+      "page": "صفحة"
     },
     "fields": {
       "isActive": "مفعّلة",
       "label": {
         "ar": "النص (بالعربية)",
         "en": "النص (بالإنجليزية)"
-      }
+      },
+      "linkType": "نوع الرابط",
+      "linkUrl": "الرابط",
+      "linkTargetId": "معرف الوجهة",
+      "parent": "العنصر الأب",
+      "sortOrder": "الترتيب"
     },
     "validation": {
-      "labelRequired": "النص مطلوب بالعربية والإنجليزية."
+      "labelRequired": "النص مطلوب بالعربية والإنجليزية.",
+      "linkUrlRequired": "الرابط مطلوب لهذا النوع.",
+      "linkTargetRequired": "معرف الوجهة مطلوب لهذا النوع."
+    },
+    "newItem": "إضافة عنصر",
+    "newItemTitle": "عنصر قائمة جديد",
+    "itemCreated": "تمت إضافة العنصر",
+    "itemDeleted": "تمت إزالة العنصر",
+    "deleteItemTitle": "إزالة \"{label}\"؟",
+    "deleteItemDescription": "ستتم إزالة العنصر وكل ما يتفرع عنه من القائمة.",
+    "topLevel": "المستوى الأعلى",
+    "hints": {
+      "linkTargetId": "المعرف الرقمي للفئة أو المنتج أو المجموعة أو الصفحة."
     }
   },
   "dashboard": {

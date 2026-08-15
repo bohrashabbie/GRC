@@ -7,6 +7,13 @@ from pydantic import BaseModel, Field
 
 BANNER_PLACEMENTS = {"home_hero"}
 BANNER_LINK_TYPES = {"category", "product", "collection", "url"}
+# What a menu entry may point at — exactly the types shop_service._resolve_href
+# can turn into a storefront path. Anything else resolves to nothing and would
+# render a nav entry pointing at "#".
+MENU_ITEM_LINK_TYPES = {"category", "product", "page", "url"}
+# Which storefront layout renders a page. Staff-created pages get the plain
+# template; the richer ones are wired to bespoke components.
+PAGE_TEMPLATES = {"plain", "contact", "faq", "size_guide"}
 PAGE_STATUSES = {"draft", "published"}
 CONTACT_MESSAGE_STATUSES = {"new", "read", "closed"}
 
@@ -94,10 +101,29 @@ class MenuItemTranslationOut(MenuItemTranslationIn):
     model_config = {"from_attributes": True}
 
 
-class MenuItemUpdate(BaseModel):
-    """Menu items are seeded, not staff-created — only the label text (and
-    is_active, to hide a link without deleting it) can change here."""
+class MenuItemCreate(BaseModel):
+    """A staff-added nav entry. menu_id comes from the path, not the body."""
 
+    parent_id: int | None = None
+    link_type: str
+    link_target_id: int | None = None
+    link_url: str | None = None
+    badge_code: str | None = None
+    sort_order: int = 0
+    is_active: bool = True
+    translations: list[MenuItemTranslationIn] = Field(min_length=1)
+
+
+class MenuItemUpdate(BaseModel):
+    """Everything a staff user can change about a nav entry. The link fields
+    are here now that items are staff-created rather than seed-only."""
+
+    parent_id: int | None = None
+    link_type: str | None = None
+    link_target_id: int | None = None
+    link_url: str | None = None
+    badge_code: str | None = None
+    sort_order: int | None = None
     is_active: bool | None = None
     translations: list[MenuItemTranslationIn] | None = None
 
@@ -156,9 +182,20 @@ class PageTranslationOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PageCreate(BaseModel):
+    """A staff-created page. `code` is the stable handle menus and links use;
+    the slug staff see is per-locale and lives on the translation."""
+
+    code: str = Field(min_length=1)
+    template: str = "plain"
+    status: str = "draft"
+    translations: list[PageTranslationIn] = Field(min_length=1)
+
+
 class PageUpdate(BaseModel):
-    """Pages are seeded, not staff-created — code and template are fixed at
-    seed time; staff can only change the translation text and publish status."""
+    """Template stays fixed after creation — it decides which storefront
+    component renders the page, and switching it would strand the body content
+    the old layout was written for."""
 
     status: str | None = None
     translations: list[PageTranslationIn] | None = None

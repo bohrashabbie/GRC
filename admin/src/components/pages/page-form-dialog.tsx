@@ -34,8 +34,8 @@ const LOCALES = ["ar", "en"] as const
 
 type Text = { title: string; slug: string; body: string; meta_title: string; meta_description: string }
 
-function textFrom(page: PageOut, locale: string): Text {
-  const row = page.translations.find((t) => t.locale === locale)
+function textFrom(page: PageOut | undefined, locale: string): Text {
+  const row = page?.translations.find((t) => t.locale === locale)
   return {
     title: row?.title ?? "",
     slug: row?.slug ?? "",
@@ -45,23 +45,27 @@ function textFrom(page: PageOut, locale: string): Text {
   }
 }
 
-/** Pages are seeded, not staff-created (see CLAUDE.md / cms_service.py) — this
- * dialog only ever edits an existing page's text and publish status. code and
- * template are fixed at seed time and shown read-only for identification. */
+/** Create or edit a static page. `code` is the stable handle menus link to, so
+ * it is set once at creation and read-only afterwards; `template` decides which
+ * storefront component renders the page and is fixed for the same reason —
+ * switching it would strand body content written for the old layout. */
 export function PageFormDialog({
   page,
   open,
   onOpenChange,
 }: {
-  page: PageOut
+  /** Undefined = create mode. */
+  page?: PageOut
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const isEdit = !!page
   const t = useTranslations("pages")
   const c = useTranslations("common")
   const queryClient = useQueryClient()
 
-  const [status, setStatus] = useState<PageStatus>(page.status)
+  const [status, setStatus] = useState<PageStatus>(page?.status ?? "draft")
+  const [code, setCode] = useState(page?.code ?? "")
   const [text, setText] = useState<Record<string, Text>>({
     ar: textFrom(page, "ar"),
     en: textFrom(page, "en"),
@@ -90,11 +94,25 @@ export function PageFormDialog({
       meta_description: text[locale].meta_description || null,
     }))
 
+    if (!isEdit && !code.trim()) {
+      toast.error(t("validation.codeRequired"))
+      return
+    }
+
     setSaving(true)
     try {
-      await pagesApi.update(page.id, { status, translations })
+      if (isEdit) {
+        await pagesApi.update(page.id, { status, translations })
+      } else {
+        await pagesApi.create({
+          code: code.trim(),
+          template: "plain",
+          status,
+          translations,
+        })
+      }
       await queryClient.invalidateQueries({ queryKey: queryKeys.pages.all })
-      toast.success(t("updated"))
+      toast.success(isEdit ? t("updated") : t("created"))
       onOpenChange(false)
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
@@ -107,7 +125,7 @@ export function PageFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("editTitle")}</DialogTitle>
+          <DialogTitle>{isEdit ? t("editTitle") : t("createTitle")}</DialogTitle>
           <DialogDescription>{t("formDescription")}</DialogDescription>
         </DialogHeader>
 
@@ -115,11 +133,19 @@ export function PageFormDialog({
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-2">
               <Label>{t("fields.code")}</Label>
-              <Input value={page.code} disabled dir="ltr" />
+              <Input
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                disabled={isEdit}
+                dir="ltr"
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label>{t("fields.template")}</Label>
-              <Input value={t(`templates.${page.template}`)} disabled />
+              <Input
+                value={t(`templates.${page?.template ?? "plain"}`)}
+                disabled
+              />
             </div>
             <div className="flex flex-col gap-2">
               <Label>{t("fields.status")}</Label>
@@ -207,7 +233,7 @@ export function PageFormDialog({
             {c("cancel")}
           </Button>
           <Button type="button" onClick={onSubmit} disabled={saving}>
-            {saving ? c("saving") : c("save")}
+            {saving ? c("saving") : isEdit ? c("save") : c("create")}
           </Button>
         </DialogFooter>
       </DialogContent>

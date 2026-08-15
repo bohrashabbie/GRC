@@ -1,10 +1,12 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
+import { toast } from "sonner"
 
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { ConfirmDialog } from "@/components/confirm-dialog"
 import { MenuItemFormDialog } from "@/components/menus/menu-item-form-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
@@ -18,6 +20,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { menusApi } from "@/lib/api/endpoints"
+import { getErrorMessage } from "@/lib/api/error-message"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import type { MenuItemOut } from "@/lib/api/types"
@@ -35,7 +38,21 @@ function MenusContent() {
   const c = useTranslations("common")
   const locale = useLocale()
 
+  const queryClient = useQueryClient()
   const [editingItem, setEditingItem] = useState<MenuItemOut | undefined>()
+  const [creatingIn, setCreatingIn] = useState<number | null>(null)
+  const [deletingItem, setDeletingItem] = useState<MenuItemOut | null>(null)
+
+  async function handleDeleteItem(item: MenuItemOut) {
+    try {
+      await menusApi.deleteItem(item.id)
+      await queryClient.invalidateQueries({ queryKey: queryKeys.menus.all })
+      toast.success(t("itemDeleted"))
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
+      throw error
+    }
+  }
 
   const menusQuery = useQuery({
     queryKey: queryKeys.menus.list(),
@@ -105,6 +122,11 @@ function MenusContent() {
                       label={menu.is_active ? c("active") : c("inactive")}
                     />
                   </div>
+                  <RequirePermission permission={PERMISSIONS.cmsMenuManage}>
+                    <Button size="sm" onClick={() => setCreatingIn(menu.id)}>
+                      {t("newItem")}
+                    </Button>
+                  </RequirePermission>
                 </CardHeader>
 
                 <CardContent className="p-0">
@@ -148,6 +170,13 @@ function MenusContent() {
                               >
                                 {c("edit")}
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeletingItem(item)}
+                              >
+                                {c("delete")}
+                              </Button>
                             </RequirePermission>
                           </div>
                         </div>
@@ -164,9 +193,34 @@ function MenusContent() {
       {editingItem && (
         <MenuItemFormDialog
           key={editingItem.id}
+          menuId={editingItem.menu_id}
           item={editingItem}
+          siblings={
+            menus.find((m) => m.id === editingItem.menu_id)?.items ?? []
+          }
           open
           onOpenChange={(open) => !open && setEditingItem(undefined)}
+        />
+      )}
+
+      {creatingIn !== null && (
+        <MenuItemFormDialog
+          key={`new-${creatingIn}`}
+          menuId={creatingIn}
+          siblings={menus.find((m) => m.id === creatingIn)?.items ?? []}
+          open
+          onOpenChange={(open) => !open && setCreatingIn(null)}
+        />
+      )}
+
+      {deletingItem && (
+        <ConfirmDialog
+          open={!!deletingItem}
+          onOpenChange={(open) => !open && setDeletingItem(null)}
+          title={t("deleteItemTitle", { label: labelOf(deletingItem) })}
+          description={t("deleteItemDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDeleteItem(deletingItem)}
         />
       )}
     </div>

@@ -1,9 +1,12 @@
 """Banners, menus and static pages.
 
-Deletes are soft, per the project rule that DELETE endpoints never call
-session.delete(): banners and menu items flip is_active, a page drops back to
-draft. Nothing here is referenced by an order, but keeping one deletion
-semantic across the codebase is worth more than the exception.
+Deletion follows the same rule as the rest of the catalogue: the row goes when
+nothing points at it, and is retired when something does. Nothing here is ever
+referenced by an order, so the only real dependency is internal — a menu item
+linking to a page, or nested under another item.
+
+Banners still soft-delete, because a banner is a scheduled slot staff bring
+back seasonally rather than something they mean to destroy.
 """
 
 from datetime import datetime, timezone
@@ -11,8 +14,8 @@ from datetime import datetime, timezone
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.middleware.error import BusinessRuleError, NotFoundError
-from app.services import media_service
+from app.middleware.error import BusinessRuleError, ConflictError, NotFoundError
+from app.services import deletion, media_service
 from app.models.cms import (
     Banner,
     BannerTranslation,
@@ -25,7 +28,9 @@ from app.models.cms import (
 from app.schemas.cms import (
     BANNER_LINK_TYPES,
     BANNER_PLACEMENTS,
+    MENU_ITEM_LINK_TYPES,
     PAGE_STATUSES,
+    PAGE_TEMPLATES,
 )
 from app.utils import paginate, slugify
 
@@ -261,11 +266,53 @@ def get_menu_item(db: Session, item_id: int) -> MenuItem:
     return item
 
 
+def create_menu_item(db: Session, menu_id: int, data) -> MenuItem:
+    """Add a nav entry to a menu."""
+    get_menu(db, menu_id)
+    _check_choice(data.link_type, MENU_ITEM_LINK_TYPES, "link_type")
+    _check_link(data.link_type, data.link_target_id, data.link_url)
+    if data.parent_id is not None:
+        parent = get_menu_item(db, data.parent_id)
+        if parent.menu_id != menu_id:
+            raise BusinessRuleError(
+                "A menu item's parent must belong to the same menu.",
+                code="parent_menu_mismatch",
+            )
+    item = MenuItem(
+        menu_id=menu_id,
+        parent_id=data.parent_id,
+        link_type=data.link_type,
+        link_target_id=data.link_target_id,
+        link_url=data.link_url,
+        badge_code=data.badge_code,
+        sort_order=data.sort_order,
+        is_active=data.is_active,
+    )
+    db.add(item)
+    db.flush()
+    _sync_menu_item_translations(db, item, data.translations)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
 def update_menu_item(db: Session, item_id: int, data) -> MenuItem:
-    """Items are seeded, not staff-created — only is_active and translations
-    (the label text) are ever in `data`, per MenuItemUpdate."""
     item = get_menu_item(db, item_id)
-    for field, value in data.model_dump(exclude_unset=True, exclude={"translations"}).items():
+    fields = data.model_dump(exclude_unset=True, exclude={"translations"})
+
+    # Validate against the values the row will actually hold, not just what was
+    # sent — changing link_type alone must still satisfy the target/url rule.
+    link_type = fields.get("link_type", item.link_type)
+    _check_choice(link_type, MENU_ITEM_LINK_TYPES, "link_type")
+    _check_link(
+        link_type,
+        fields.get("link_target_id", item.link_target_id),
+        fields.get("link_url", item.link_url),
+    )
+    if fields.get("parent_id") == item.id:
+        raise BusinessRuleError("A menu item cannot be its own parent.", code="self_parent")
+
+    for field, value in fields.items():
         setattr(item, field, value)
 
     if data.translations is not None:
@@ -274,6 +321,22 @@ def update_menu_item(db: Session, item_id: int, data) -> MenuItem:
     db.commit()
     db.refresh(item)
     return item
+
+
+def delete_menu_item(db: Session, item_id: int) -> None:
+    """Remove a nav entry, and any entries nested under it.
+
+    Children are removed explicitly because menu_items.parent_id has no cascade
+    — left alone they would keep pointing at a row that no longer exists and
+    quietly vanish from the rendered menu instead of being deleted honestly.
+    Nothing outside the menu references an item, so this is a real delete.
+    """
+    item = get_menu_item(db, item_id)
+    children = db.execute(select(MenuItem).where(MenuItem.parent_id == item_id)).scalars().all()
+    for child in children:
+        db.delete(child)
+    db.delete(item)
+    db.commit()
 
 
 # --------------------------------------------------------------------------- #
@@ -381,3 +444,54 @@ def unpublish_page(db: Session, page_id: int) -> None:
     page.status = "draft"
     page.published_at = None
     db.commit()
+
+
+def create_page(db: Session, data) -> Page:
+    """Create a page. `code` is the stable handle menus link to, so it has to be
+    unique across pages the same way a seeded one is."""
+    _check_choice(data.status, PAGE_STATUSES, "status")
+    _check_choice(data.template, PAGE_TEMPLATES, "template")
+    existing = db.execute(select(Page).where(Page.code == data.code)).scalar_one_or_none()
+    if existing is not None:
+        raise ConflictError(
+            f"A page with code '{data.code}' already exists.", code="duplicate_page_code"
+        )
+    page = Page(code=data.code, template=data.template, status=data.status)
+    if data.status == "published":
+        page.published_at = datetime.now(timezone.utc)
+    db.add(page)
+    db.flush()
+    _sync_page_translations(db, page, data.translations)
+    db.commit()
+    db.refresh(page)
+    return page
+
+
+def delete_page(db: Session, page_id: int) -> deletion.DeletionResult:
+    """Remove a page, or unpublish it if a menu still links to it.
+
+    A menu item pointing at a deleted page would render a nav link straight to a
+    404, and menu_items.link_target_id is a plain integer with no FK to enforce
+    otherwise — so the check has to live here.
+    """
+    page = get_page(db, page_id)
+    blockers = deletion.find_blockers(
+        db,
+        [
+            (
+                "menu_links",
+                select(MenuItem.id).where(
+                    MenuItem.link_type == "page", MenuItem.link_target_id == page_id
+                ),
+            )
+        ],
+    )
+    if blockers:
+        page.status = "draft"
+        page.published_at = None
+        db.commit()
+        return deletion.DeletionResult(deletion.DEACTIVATED, blockers)
+    # page_translations cascades on the FK.
+    db.delete(page)
+    db.commit()
+    return deletion.DeletionResult(deletion.DELETED)

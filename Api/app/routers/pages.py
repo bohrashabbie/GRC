@@ -6,10 +6,21 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.deps import require
 from app.models.cms import Page
-from app.schemas.cms import PageRead, PageUpdate
+from app.schemas.cms import PageCreate, PageRead, PageUpdate
+from app.schemas.common import DeletionResultOut
 from app.services import cms_service
 
 router = APIRouter()
+
+
+@router.post("", response_model=PageRead, status_code=status.HTTP_201_CREATED)
+def create_page(
+    payload: PageCreate,
+    db: Session = Depends(get_db),
+    _user=Depends(require("cms.page.manage")),
+) -> Page:
+    """Staff-created page. `code` is the stable handle menus link to."""
+    return cms_service.create_page(db, payload)
 
 
 @router.get("")
@@ -46,10 +57,10 @@ def update_page(
     return cms_service.update_page(db, page_id, payload)
 
 
-@router.delete("/{page_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{page_id}", response_model=DeletionResultOut)
 def delete_page(
     page_id: int, db: Session = Depends(get_db), _user=Depends(require("cms.page.publish"))
-) -> Response:
-    """Soft delete — the page returns to draft and leaves the storefront."""
-    cms_service.unpublish_page(db, page_id)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+) -> DeletionResultOut:
+    """Removes the page, or unpublishes it when a menu still links to it."""
+    result = cms_service.delete_page(db, page_id)
+    return DeletionResultOut(mode=result.mode, blockers=result.blockers)

@@ -20,6 +20,7 @@ import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { pagesApi } from "@/lib/api/endpoints"
+import { useDeletionMessage } from "@/lib/deletion"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
@@ -36,12 +37,26 @@ export default function PagesPage() {
 function PagesContent() {
   const t = useTranslations("pages")
   const c = useTranslations("common")
+  const del = useTranslations("deletion")
   const locale = useLocale()
   const queryClient = useQueryClient()
 
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<PageOut | undefined>()
   const [unpublishing, setUnpublishing] = useState<PageOut | undefined>()
+  const [deleting, setDeleting] = useState<PageOut | null>(null)
+  const deletionMessage = useDeletionMessage()
+
+  async function handleDelete(page: PageOut) {
+    try {
+      const result = await pagesApi.delete(page.id)
+      await queryClient.invalidateQueries({ queryKey: queryKeys.pages.all })
+      toast.success(deletionMessage(result, title(page)))
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
+      throw error
+    }
+  }
 
   // Pages are seeded, not staff-created — there is no "new page" action.
 
@@ -81,7 +96,22 @@ function PagesContent() {
     <div className="flex flex-col gap-6">
       <Breadcrumbs items={[{ label: t("title") }]} />
 
-      <PageHeader title={t("title")} description={t("description")} />
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        action={
+          <RequirePermission permission={PERMISSIONS.cmsPageManage}>
+            <Button
+              onClick={() => {
+                setEditing(undefined)
+                setFormOpen(true)
+              }}
+            >
+              {t("newPage")}
+            </Button>
+          </RequirePermission>
+        }
+      />
 
       {pagesQuery.isLoading ? (
         <ListLoadingSkeleton />
@@ -132,6 +162,15 @@ function PagesContent() {
                       </Button>
                     </RequirePermission>
                   )}
+                  <RequirePermission permission={PERMISSIONS.cmsPagePublish}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleting(page)}
+                    >
+                      {c("delete")}
+                    </Button>
+                  </RequirePermission>
                 </div>
               </div>
             ))}
@@ -139,12 +178,23 @@ function PagesContent() {
         </Card>
       )}
 
-      {formOpen && editing && (
+      {formOpen && (
         <PageFormDialog
-          key={editing.id}
+          key={editing?.id ?? "new"}
           page={editing}
           open={formOpen}
           onOpenChange={setFormOpen}
+        />
+      )}
+
+      {deleting && (
+        <ConfirmDialog
+          open={!!deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title={del("confirmTitle", { name: title(deleting) })}
+          description={del("confirmDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDelete(deleting)}
         />
       )}
 

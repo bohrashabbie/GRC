@@ -78,8 +78,10 @@ import type {
   MenuOut,
   MenuUpdate,
   MenuItemOut,
+  MenuItemCreate,
   MenuItemUpdate,
   PageOut,
+  PageCreate,
   PageUpdate,
 } from "./types"
 
@@ -635,6 +637,10 @@ export const menusApi = {
     api.get<MenuOut>(`/menus/${menuId}`, { signal }),
   update: (menuId: number, payload: MenuUpdate) =>
     api.patch<MenuOut>(`/menus/${menuId}`, payload),
+  createItem: (menuId: number, payload: MenuItemCreate) =>
+    api.post<MenuItemOut>(`/menus/${menuId}/items`, payload),
+  /** Removes the entry and anything nested under it. */
+  deleteItem: (itemId: number) => api.del(`/menus/items/${itemId}`),
   updateItem: (itemId: number, payload: MenuItemUpdate) =>
     api.patch<MenuItemOut>(`/menus/items/${itemId}`, payload),
 }
@@ -660,5 +666,10 @@ export const pagesApi = {
     api.get<PageOut>(`/pages/${pageId}`, { signal }),
   update: (pageId: number, payload: PageUpdate) =>
     api.patch<PageOut>(`/pages/${pageId}`, payload),
-  unpublish: (pageId: number) => api.del(`/pages/${pageId}`),
+  create: (payload: PageCreate) => api.post<PageOut>("/pages", payload),
+  /** Removes the page, or unpublishes it when a menu still links to it. */
+  delete: (pageId: number) => api.del<DeletionResult>(`/pages/${pageId}`),
+  /** Back to draft. Distinct from delete now that DELETE removes the page. */
+  unpublish: (pageId: number) =>
+    api.patch<PageOut>(`/pages/${pageId}`, { status: "draft" }),
 }

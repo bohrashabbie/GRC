@@ -998,7 +998,7 @@ export type BannerUpdate = Partial<Omit<BannerCreate, "translations">> & {
   translations?: BannerTranslationIn[] | null
 }
 
-export type MenuLinkType = "category" | "brand" | "collection" | "page" | "url"
+export type MenuLinkType = "category" | "product" | "page" | "url"
 
 export type MenuItemOut = {
   id: number
@@ -1016,7 +1016,24 @@ export type MenuItemOut = {
 
 /** Menu items are seeded, not staff-created — only is_active and the label
  * translations can be changed here. */
+export type MenuItemCreate = {
+  parent_id?: number | null
+  link_type: MenuLinkType
+  link_target_id?: number | null
+  link_url?: string | null
+  badge_code?: string | null
+  sort_order?: number
+  is_active?: boolean
+  translations: LabelTranslationIn[]
+}
+
 export type MenuItemUpdate = {
+  parent_id?: number | null
+  link_type?: MenuLinkType | null
+  link_target_id?: number | null
+  link_url?: string | null
+  badge_code?: string | null
+  sort_order?: number | null
   is_active?: boolean | null
   translations?: LabelTranslationIn[] | null
 }
@@ -1062,6 +1079,13 @@ export type PageOut = {
 
 /** Pages are seeded, not staff-created — code and template are fixed; only
  * status and the translation text can be changed here. */
+export type PageCreate = {
+  code: string
+  template?: string
+  status?: PageStatus
+  translations: PageTranslationIn[]
+}
+
 export type PageUpdate = {
   status?: PageStatus | null
   translations?: PageTranslationIn[] | null

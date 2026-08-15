@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.deps import require
 from app.models.cms import Menu, MenuItem
 from app.schemas.cms import (
+    MenuItemCreate,
     MenuItemRead,
     MenuItemUpdate,
     MenuRead,
@@ -58,3 +59,21 @@ def update_menu_item(
     """Menu items are seeded, not staff-created — this can only relabel an
     item's translations or flip is_active to hide it."""
     return cms_service.update_menu_item(db, item_id, payload)
+
+
+@router.post("/{menu_id}/items", response_model=MenuItemRead, status_code=status.HTTP_201_CREATED)
+def create_menu_item(
+    menu_id: int,
+    payload: MenuItemCreate,
+    db: Session = Depends(get_db),
+    _user=Depends(require("cms.menu.manage")),
+) -> MenuItem:
+    return cms_service.create_menu_item(db, menu_id, payload)
+
+
+@router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+def delete_menu_item(
+    item_id: int, db: Session = Depends(get_db), _user=Depends(require("cms.menu.manage"))
+) -> None:
+    """Removes the entry and anything nested under it."""
+    cms_service.delete_menu_item(db, item_id)

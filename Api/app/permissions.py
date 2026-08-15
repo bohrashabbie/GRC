@@ -59,8 +59,8 @@ PERMISSIONS: list[PermissionDef] = [
     # cms — banners, menus, static pages
     PermissionDef("cms.view", "marketing", "View banners, menus and static pages"),
     PermissionDef("cms.banner.manage", "marketing", "Create/edit/remove home and category banners"),
-    PermissionDef("cms.menu.manage", "marketing", "Edit navigation menu item labels (menus and items are fixed, not staff-created)"),
-    PermissionDef("cms.page.manage", "marketing", "Edit static page text (pages are fixed, not staff-created)"),
+    PermissionDef("cms.menu.manage", "marketing", "Add, edit and remove navigation menu items"),
+    PermissionDef("cms.page.manage", "marketing", "Create and edit static pages"),
     PermissionDef("cms.page.publish", "marketing", "Publish or unpublish a static page"),
     # finance
     PermissionDef("finance.view", "finance", "View financial reports and exports"),

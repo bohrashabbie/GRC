@@ -894,7 +894,8 @@
     "templates": {
       "default": "Default",
       "full_width": "Full width",
-      "contact": "Contact"
+      "contact": "Contact",
+      "plain": "Plain"
     },
     "statuses": {
       "draft": "Draft",
@@ -916,8 +917,12 @@
       "metaDescription": "Meta description"
     },
     "validation": {
-      "titleRequired": "Both Arabic and English need a title."
-    }
+      "titleRequired": "Both Arabic and English need a title.",
+      "codeRequired": "A code is required."
+    },
+    "newPage": "New page",
+    "createTitle": "New page",
+    "created": "Page created"
   },
   "menus": {
     "title": "Menus",
@@ -928,21 +933,38 @@
     "itemFormDescription": "Menu items are fixed — only the label per locale and whether it's shown can change.",
     "itemUpdated": "Item updated.",
     "linkTypes": {
+      "url": "URL",
       "category": "Category",
-      "brand": "Brand",
+      "product": "Product",
       "collection": "Collection",
-      "page": "Page",
-      "url": "URL"
+      "page": "Page"
     },
     "fields": {
       "isActive": "Active",
       "label": {
         "ar": "Label (Arabic)",
         "en": "Label (English)"
-      }
+      },
+      "linkType": "Link type",
+      "linkUrl": "URL",
+      "linkTargetId": "Target ID",
+      "parent": "Parent",
+      "sortOrder": "Sort order"
     },
     "validation": {
-      "labelRequired": "Both Arabic and English need a label."
+      "labelRequired": "Both Arabic and English need a label.",
+      "linkUrlRequired": "A URL is required for this link type.",
+      "linkTargetRequired": "A target ID is required for this link type."
+    },
+    "newItem": "Add item",
+    "newItemTitle": "New menu item",
+    "itemCreated": "Menu item added",
+    "itemDeleted": "Menu item removed",
+    "deleteItemTitle": "Remove \"{label}\"?",
+    "deleteItemDescription": "The entry and anything nested under it will be removed from the menu.",
+    "topLevel": "Top level",
+    "hints": {
+      "linkTargetId": "The numeric id of the category, product, collection or page this links to."
     }
   },
   "dashboard": {
