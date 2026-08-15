@@ -16,6 +16,10 @@ class LocationCreate(BaseModel):
 
 
 class LocationUpdate(BaseModel):
+    # Type is editable: a site genuinely changes role (a back room becomes a
+    # shop floor), and the value only drives labelling and fulfilment choice,
+    # not the stock ledger — nothing historical is invalidated by a change.
+    type: str | None = Field(default=None, description="warehouse | store | virtual")
     name_ar: str | None = None
     name_en: str | None = None
     is_sellable_online: bool | None = None

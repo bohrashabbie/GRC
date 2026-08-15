@@ -21,6 +21,10 @@ class SupplierCreate(BaseModel):
 
 
 class SupplierUpdate(BaseModel):
+    # Codes are corrected in practice (a typo, or a switch to the supplier's own
+    # reference). It is unique, so a clash surfaces as a conflict rather than
+    # silently overwriting another supplier.
+    code: str | None = None
     name: str | None = None
     contact_name: str | None = None
     email: str | None = None

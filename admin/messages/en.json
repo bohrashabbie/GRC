@@ -480,7 +480,9 @@
       "saveStock": "Save stock ({count})",
       "stockSaved": "Stock updated.",
       "stockInvalid": "Quantities must be whole numbers, zero or more.",
-      "trackingOffNotice": "Inventory tracking is off for this product, so these quantities are recorded but never checked at checkout."
+      "trackingOffNotice": "Inventory tracking is off for this product, so these quantities are recorded but never checked at checkout.",
+      "continue": "Continue",
+      "reactivated": "Variant is active again"
     }
   },
   "locations": {

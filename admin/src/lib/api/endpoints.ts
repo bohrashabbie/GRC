@@ -342,7 +342,13 @@ export const variantsApi = {
   /** Separate endpoint because price edits need variant.price_edit. */
   updatePrice: (variantId: number, payload: VariantPriceUpdate) =>
     api.patch<VariantOut>(`/variants/${variantId}/price`, payload),
-  discontinue: (variantId: number) => api.del(`/variants/${variantId}`),
+  /** Removes the variant, or discontinues it when order or stock history
+   *  refers to it. Refuses if it is the product's last live variant. */
+  delete: (variantId: number) =>
+    api.del<DeletionResult>(`/variants/${variantId}`),
+  /** Undoes a discontinue. */
+  reactivate: (variantId: number) =>
+    api.post<VariantOut>(`/variants/${variantId}/reactivate`),
 }
 
 /* -------------------------------------------------------------------------- */

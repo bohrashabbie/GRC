@@ -8,6 +8,7 @@ from app.deps import require
 from app.models.auth import User
 from app.models.catalog import Variant
 from app.schemas.catalog import GenerateVariantsRequest, VariantOut, VariantPriceUpdate, VariantUpdate
+from app.schemas.common import DeletionResultOut
 from app.services import variant_service
 
 router = APIRouter()
@@ -60,11 +61,25 @@ def update_variant_price(
     return variant_service.update_variant_price(db, variant_id, payload, current_user.id)
 
 
-@router.delete("/variants/{variant_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
-def deactivate_variant(
+@router.delete("/variants/{variant_id}", response_model=DeletionResultOut)
+def delete_variant(
+    variant_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require("catalog.manage")),
+) -> DeletionResultOut:
+    """Removes the variant, or discontinues it when order or stock history
+    refers to it. Refuses outright if it is the product's last live variant."""
+    result = variant_service.delete_variant(db, variant_id, actor_user_id=current_user.id)
+    return DeletionResultOut(mode=result.mode, blockers=result.blockers)
+
+
+@router.post("/variants/{variant_id}/reactivate", response_model=VariantOut)
+def reactivate_variant(
     variant_id: int, db: Session = Depends(get_db), _user=Depends(require("catalog.manage"))
-) -> None:
-    variant_service.deactivate_variant(db, variant_id)
+) -> Variant:
+    """The counterpart to discontinue, so a variant retired by mistake — or one
+    coming back into the range — does not need re-creating."""
+    return variant_service.reactivate_variant(db, variant_id)
 
 
 # Permission keys used by this router: catalog.view, catalog.manage, variant.price_edit

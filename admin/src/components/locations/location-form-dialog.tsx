@@ -95,8 +95,11 @@ export function LocationFormDialog({
   async function onSubmit(values: FormValues) {
     try {
       if (isEdit) {
-        // Code and type are immutable after creation in the API.
+        // Code stays immutable; type is editable because a site genuinely
+        // changes role and the value drives only labelling and fulfilment
+        // choice, never the stock ledger.
         await locationsApi.update(location.id, {
+          type: values.type,
           name_ar: values.name_ar,
           name_en: values.name_en,
           is_sellable_online: values.is_sellable_online,
@@ -187,7 +190,6 @@ export function LocationFormDialog({
                     <Select
                       value={field.value}
                       onValueChange={(v) => field.onChange(v ?? field.value)}
-                      disabled={isEdit}
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">

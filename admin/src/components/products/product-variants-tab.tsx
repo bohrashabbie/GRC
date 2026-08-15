@@ -36,6 +36,7 @@ import { VariantPriceDialog } from "./variant-price-dialog"
 import { usePermission } from "@/hooks/use-permission"
 import { optionsApi, optionValuesApi, productsApi, variantsApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
+import { useDeletionMessage } from "@/lib/deletion"
 import { formatMoney, translatedLabel } from "@/lib/format"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
@@ -50,12 +51,14 @@ export function ProductVariantsTab({
 }) {
   const t = useTranslations("products")
   const c = useTranslations("common")
+  const del = useTranslations("deletion")
+  const deletionMessage = useDeletionMessage()
   const locale = useLocale()
   const queryClient = useQueryClient()
   const canAdjustStock = usePermission(PERMISSIONS.stockAdjust)
 
   const [pricing, setPricing] = useState<VariantOut | null>(null)
-  const [discontinuing, setDiscontinuing] = useState<VariantOut | null>(null)
+  const [deleting, setDeleting] = useState<VariantOut | null>(null)
   // Draft quantities, keyed by variant id. The inputs are controlled from here
   // rather than from the query data so typing does not fight a refetch, and so
   // the whole column can be saved as one transaction.
@@ -146,16 +149,28 @@ export function ProductVariantsTab({
     }
   }
 
-  async function handleDiscontinue(variant: VariantOut) {
+  async function handleDelete(variant: VariantOut) {
     try {
-      await variantsApi.discontinue(variant.id)
+      const result = await variantsApi.delete(variant.id)
       await queryClient.invalidateQueries({
         queryKey: queryKeys.products.variants(productId),
       })
-      toast.success(t("variants.discontinued"))
+      toast.success(deletionMessage(result, variant.sku))
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
       throw error
+    }
+  }
+
+  async function handleReactivate(variant: VariantOut) {
+    try {
+      await variantsApi.reactivate(variant.id)
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.products.variants(productId),
+      })
+      toast.success(t("variants.reactivated"))
+    } catch (error) {
+      toast.error(getErrorMessage(error, c("unknownError")))
     }
   }
 
@@ -266,15 +281,22 @@ export function ProductVariantsTab({
                             </Button>
                           </RequirePermission>
                           <RequirePermission permission={PERMISSIONS.catalogManage}>
-                            {variant.is_active && (
+                            {!variant.is_active && (
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="xs"
-                                onClick={() => setDiscontinuing(variant)}
+                                onClick={() => handleReactivate(variant)}
                               >
-                                {t("variants.discontinue")}
+                                {t("variants.continue")}
                               </Button>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="xs"
+                              onClick={() => setDeleting(variant)}
+                            >
+                              {c("delete")}
+                            </Button>
                           </RequirePermission>
                         </div>
                       </TableCell>
@@ -329,16 +351,14 @@ export function ProductVariantsTab({
         />
       )}
 
-      {discontinuing && (
+      {deleting && (
         <ConfirmDialog
-          open={!!discontinuing}
-          onOpenChange={(open) => !open && setDiscontinuing(null)}
-          title={t("variants.discontinueTitle")}
-          description={t("variants.discontinueDescription", {
-            sku: discontinuing.sku,
-          })}
-          confirmLabel={t("variants.discontinue")}
-          onConfirm={() => handleDiscontinue(discontinuing)}
+          open={!!deleting}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title={del("confirmTitle", { name: deleting.sku })}
+          description={del("confirmDescription")}
+          confirmLabel={c("delete")}
+          onConfirm={() => handleDelete(deleting)}
         />
       )}
     </div>

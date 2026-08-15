@@ -559,6 +559,7 @@ export type LocationCreate = {
 }
 
 export type LocationUpdate = {
+  type?: string | null
   name_ar?: string | null
   name_en?: string | null
   is_sellable_online?: boolean | null
@@ -600,7 +601,7 @@ export type SupplierCreate = {
   is_active?: boolean
 }
 
-export type SupplierUpdate = Omit<Partial<SupplierCreate>, "code" | "currency">
+export type SupplierUpdate = Omit<Partial<SupplierCreate>, "currency">
 
 /* -------------------------------------------------------------------------- */
 /* Purchasing — purchase orders & goods receipts                               */

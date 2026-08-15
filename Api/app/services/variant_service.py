@@ -8,12 +8,15 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.middleware.error import BusinessRuleError, NotFoundError
 from app.models.catalog import Product, Variant, VariantOptionValue
-from app.services import audit_service, inventory_service
+from app.models.inventory import StockMovement
+from app.models.orders import OrderItem, ReturnItem
+from app.models.purchasing import GoodsReceiptItem, PurchaseOrderItem
+from app.services import audit_service, deletion, inventory_service
 
 MAX_VARIANTS_PER_PRODUCT = 300
 
@@ -118,6 +121,96 @@ def deactivate_variant(db: Session, variant_id: int) -> None:
     variant.is_active = False
     variant.discontinued_at = datetime.now(timezone.utc)
     db.commit()
+
+
+def reactivate_variant(db: Session, variant_id: int) -> Variant:
+    """Undo a discontinue. Nothing about retiring a variant destroys anything,
+    so bringing it back is just clearing the two fields that retired it."""
+    variant = db.get(Variant, variant_id)
+    if variant is None:
+        raise NotFoundError("Variant not found")
+    variant.is_active = True
+    variant.discontinued_at = None
+    db.commit()
+    db.refresh(variant)
+    variant.option_value_ids = get_variant_option_value_ids(db, variant_id)
+    attach_stock(db, [variant])
+    return variant
+
+
+def delete_variant(db: Session, variant_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
+    """Remove the variant outright, or discontinue it if any history refers to it.
+
+    Order lines snapshot what was bought (Hard Rule 7), so an old order still
+    reads correctly after the variant goes — but variant_id stays a live FK used
+    for returns and reporting, so a sold variant is never removed. Stock
+    movements are the append-only ledger and pin it permanently.
+
+    Hard Rule 5 outranks all of it: a product always has at least one variant,
+    so removing the last live one is refused rather than quietly deactivated,
+    which would leave the product unbuyable with no explanation.
+    """
+    variant = db.get(Variant, variant_id)
+    if variant is None:
+        raise NotFoundError("Variant not found")
+
+    live_siblings = db.execute(
+        select(func.count())
+        .select_from(Variant)
+        .where(
+            Variant.product_id == variant.product_id,
+            Variant.is_active.is_(True),
+            Variant.id != variant_id,
+        )
+    ).scalar_one()
+    if variant.is_active and live_siblings == 0:
+        raise BusinessRuleError(
+            "A product must keep at least one variant. Add another before removing this one.",
+            code="last_variant",
+        )
+
+    before = {"sku": variant.sku, "is_active": variant.is_active}
+    blockers = deletion.find_blockers(
+        db,
+        [
+            ("orders", select(OrderItem.id).where(OrderItem.variant_id == variant_id)),
+            ("returns", select(ReturnItem.id).where(ReturnItem.variant_id == variant_id)),
+            ("stock_movements", select(StockMovement.id).where(StockMovement.variant_id == variant_id)),
+            (
+                "purchase_orders",
+                select(PurchaseOrderItem.id).where(PurchaseOrderItem.variant_id == variant_id),
+            ),
+            (
+                "goods_receipts",
+                select(GoodsReceiptItem.id).where(GoodsReceiptItem.variant_id == variant_id),
+            ),
+        ],
+    )
+    if blockers:
+        variant.is_active = False
+        variant.discontinued_at = datetime.now(timezone.utc)
+        mode = deletion.DEACTIVATED
+    else:
+        # A product points at its default variant; clear that first or the FK
+        # blocks the delete.
+        product = db.get(Product, variant.product_id)
+        if product is not None and product.default_variant_id == variant_id:
+            product.default_variant_id = None
+            db.flush()
+        # variant_option_values, variant_media and stock_levels all cascade.
+        db.delete(variant)
+        mode = deletion.DELETED
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action=f"variant.{mode}",
+        entity_type="variant",
+        entity_id=variant_id,
+        before=before,
+        after=None if mode == deletion.DELETED else {"is_active": False},
+    )
+    db.commit()
+    return deletion.DeletionResult(mode, blockers)
 
 
 def generate_variants(db: Session, product_id: int, combinations: list) -> list[Variant]:

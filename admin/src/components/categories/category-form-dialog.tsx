@@ -275,7 +275,7 @@ export function CategoryFormDialog({
                   <FormItem>
                     <FormLabel>{cat("fields.code")}</FormLabel>
                     <FormControl>
-                      <Input dir="ltr" disabled={isEdit} {...field} />
+                      <Input dir="ltr" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

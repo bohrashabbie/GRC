@@ -129,7 +129,7 @@ export function SupplierFormDialog({
 
     try {
       if (isEdit) {
-        await suppliersApi.update(supplier.id, payload)
+        await suppliersApi.update(supplier.id, { ...payload, code: values.code })
       } else {
         await suppliersApi.create({ ...payload, code: values.code })
       }
@@ -183,7 +183,7 @@ export function SupplierFormDialog({
                   <FormItem>
                     <FormLabel>{t("fields.code")}</FormLabel>
                     <FormControl>
-                      <Input dir="ltr" disabled={isEdit} {...field} />
+                      <Input dir="ltr" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
