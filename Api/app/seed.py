@@ -105,7 +105,17 @@ def seed_settings(db) -> None:
     for key, (value, group, is_public) in DEFAULT_SETTINGS.items():
         if db.get(Setting, key) is not None:
             continue
-        db.add(Setting(key=key, value=value, group=group, is_public=is_public))
+        # settings.updated_at is NOT NULL with no server default — upsert_setting
+        # always stamps it, so the seed has to as well.
+        db.add(
+            Setting(
+                key=key,
+                value=value,
+                group=group,
+                is_public=is_public,
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
         created += 1
     print(f"Seeded {created} new setting(s); existing values left untouched.")
 
