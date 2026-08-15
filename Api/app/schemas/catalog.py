@@ -178,6 +178,8 @@ class OptionValueCreate(BaseModel):
     # Garment measurements for size values, whole cm. Ignored for colours.
     length_cm: int | None = Field(default=None, ge=1, le=500)
     width_cm: int | None = Field(default=None, ge=1, le=500)
+    # Short badge shown next to the swatch, e.g. "New".
+    tag: str | None = Field(default=None, max_length=24)
     sort_order: int = 0
     translations: list[LabelTranslationIn] = Field(min_length=1)
 
@@ -187,6 +189,7 @@ class OptionValueUpdate(BaseModel):
     swatch_media_id: int | None = None
     length_cm: int | None = Field(default=None, ge=1, le=500)
     width_cm: int | None = Field(default=None, ge=1, le=500)
+    tag: str | None = Field(default=None, max_length=24)
     sort_order: int | None = None
     #  Retiring a value stops it being offered on new products; it is never
     #  deleted, because variants and order lines reference it (Hard Rule 4).
@@ -202,6 +205,7 @@ class OptionValueOut(BaseModel):
     swatch_media_id: int | None
     length_cm: int | None
     width_cm: int | None
+    tag: str | None
     sort_order: int
     is_active: bool
     created_at: datetime

@@ -343,6 +343,7 @@ export type OptionValueOut = {
   swatch_media_id: number | null
   length_cm: number | null
   width_cm: number | null
+  tag: string | null
   sort_order: number
   created_at: string
   translations: LabelTranslationOut[]
@@ -355,6 +356,8 @@ export type OptionValueCreate = {
   swatch_media_id?: number | null
   length_cm?: number | null
   width_cm?: number | null
+  /** Short badge shown on the swatch, e.g. "New". */
+  tag?: string | null
   sort_order?: number
   translations: LabelTranslationIn[]
 }
@@ -364,6 +367,7 @@ export type OptionValueUpdate = {
   swatch_media_id?: number | null
   length_cm?: number | null
   width_cm?: number | null
+  tag?: string | null
   sort_order?: number | null
   translations?: LabelTranslationIn[] | null
 }

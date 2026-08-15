@@ -67,6 +67,7 @@ function useValueSchema() {
         .or(z.literal("")),
       length_cm: measurement,
       width_cm: measurement,
+      tag: z.string().max(24),
       sort_order: z.coerce.number().int(),
       translations: z.object({
         ar: z.object({ label: z.string() }),
@@ -80,7 +81,7 @@ function useValueSchema() {
 }
 
 type FormValues = z.infer<ReturnType<typeof useValueSchema>>
-const FIELD_NAMES = ["code", "hex_color", "length_cm", "width_cm", "sort_order"] as const
+const FIELD_NAMES = ["code", "hex_color", "length_cm", "width_cm", "tag", "sort_order"] as const
 
 export function OptionValueFormDialog({
   optionId,
@@ -112,6 +113,7 @@ export function OptionValueFormDialog({
       hex_color: value?.hex_color ?? "",
       length_cm: value?.length_cm ?? "",
       width_cm: value?.width_cm ?? "",
+      tag: value?.tag ?? "",
       sort_order: value?.sort_order ?? 0,
       translations: toLabelTranslationForm(value?.translations),
     },
@@ -131,6 +133,7 @@ export function OptionValueFormDialog({
           hex_color: hex,
           length_cm: lengthCm,
           width_cm: widthCm,
+          tag: values.tag.trim() || null,
           sort_order: values.sort_order,
           translations,
         })
@@ -141,6 +144,7 @@ export function OptionValueFormDialog({
           hex_color: hex,
           length_cm: lengthCm,
           width_cm: widthCm,
+          tag: values.tag.trim() || null,
           sort_order: values.sort_order,
           translations,
         })
@@ -203,6 +207,20 @@ export function OptionValueFormDialog({
                     <FormControl>
                       <Input type="number" dir="ltr" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tag"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("values.tag")}</FormLabel>
+                    <FormControl>
+                      <Input maxLength={24} {...field} />
+                    </FormControl>
+                    <FormDescription>{t("values.tagHint")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

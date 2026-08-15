@@ -696,6 +696,7 @@ def product_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
                     "image": _media_image(data.media.get(value.swatch_media_id), base_url),
                     "length_cm": value.length_cm,
                     "width_cm": value.width_cm,
+                    "tag": value.tag,
                 }
                 for value in sorted((data.option_values[value_id] for value_id in value_ids), key=lambda item: (item.sort_order, item.id))
             ],

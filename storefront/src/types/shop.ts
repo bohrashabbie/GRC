@@ -113,6 +113,8 @@ export interface ProductOptionValue {
    *  colour values never carry them. */
   length_cm?: number | null;
   width_cm?: number | null;
+  /** Short merchandising badge on the value, e.g. "New". */
+  tag?: string | null;
 }
 
 export interface ProductVariant {

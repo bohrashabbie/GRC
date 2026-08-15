@@ -11,7 +11,7 @@ import re
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session, selectinload
 
-from app.middleware.error import BusinessRuleError, NotFoundError
+from app.middleware.error import BusinessRuleError, ConflictError, NotFoundError
 from app.services import audit_service, deletion, media_service
 from app.models.catalog import (
     Brand,
@@ -328,29 +328,47 @@ SWATCH_OPTION_CODE = "colour"
 SIZE_OPTION_CODE = "size"
 
 
-def _system_options_only() -> BusinessRuleError:
-    return BusinessRuleError(
-        "Color and Size are the store's two options; no others can be created.",
-        code="system_options_only",
-    )
+# What the storefront's variant selector can render. It branches on "swatch"
+# and falls back to a button group for anything else, so these three are the
+# whole vocabulary — shop_service coerces anything unknown to "button".
+OPTION_INPUT_TYPES = ("swatch", "button", "dropdown")
 
 
 def _require_system_option(option: Option) -> None:
-    """Values may only be added to the two options the storefront can render.
-
-    The options themselves are fixed, so this only ever rejects a value aimed
-    at a leftover pre-GR8 option row (`length`, or a duplicate `color`), which
-    is still in the table because variants reference it.
-    """
-    if option.code not in SYSTEM_OPTION_CODES:
-        raise BusinessRuleError(
-            f"'{option.code}' is a retired option and no longer accepts new values.",
-            code="system_option_locked",
-        )
+    """Kept as a hook for per-option rules. Colour and Size carry the swatch and
+    measurement fields respectively; every other option is a plain value list,
+    which the selector renders as buttons."""
+    return None
 
 
 def create_option(db: Session, data) -> Option:
-    raise _system_options_only()
+    """Options are staff-created. The selector iterates whatever options a
+    product has rather than naming Colour and Size, so a third one renders
+    without any storefront change; only the swatch and measurement fields stay
+    tied to the two built-in codes."""
+    if data.input_type not in OPTION_INPUT_TYPES:
+        raise BusinessRuleError(
+            f"Unsupported input type '{data.input_type}'. Expected one of: "
+            + ", ".join(OPTION_INPUT_TYPES),
+            code="invalid_option_input_type",
+        )
+    code = data.code.strip()
+    existing = db.execute(select(Option).where(Option.code == code)).scalar_one_or_none()
+    if existing is not None:
+        raise ConflictError(f"An option with code '{code}' already exists.", code="duplicate_option_code")
+
+    option = Option(
+        code=code,
+        input_type=data.input_type,
+        is_filterable=data.is_filterable,
+        sort_order=data.sort_order,
+    )
+    db.add(option)
+    db.flush()
+    _sync_label_translations(db, [], data.translations, "option_id", option.id, OptionTranslation)
+    db.commit()
+    db.refresh(option)
+    return option
 
 
 def get_option(db: Session, option_id: int) -> Option:
@@ -361,8 +379,50 @@ def get_option(db: Session, option_id: int) -> Option:
 
 
 def update_option(db: Session, option_id: int, data) -> Option:
-    get_option(db, option_id)
-    raise _system_options_only()
+    option = get_option(db, option_id)
+    fields = data.model_dump(exclude_unset=True, exclude={"translations"})
+
+    input_type = fields.get("input_type", option.input_type)
+    if input_type not in OPTION_INPUT_TYPES:
+        raise BusinessRuleError(
+            f"Unsupported input type '{input_type}'. Expected one of: "
+            + ", ".join(OPTION_INPUT_TYPES),
+            code="invalid_option_input_type",
+        )
+    if "code" in fields and fields["code"] is not None:
+        fields["code"] = fields["code"].strip()
+        # Colour and Size codes are what pins the swatch and measurement fields
+        # to the right option, so renaming one would silently strand them.
+        if option.code in SYSTEM_OPTION_CODES and fields["code"] != option.code:
+            raise BusinessRuleError(
+                f"'{option.code}' is a built-in option and its code cannot change.",
+                code="system_option_locked",
+            )
+        clash = db.execute(
+            select(Option).where(Option.code == fields["code"], Option.id != option_id)
+        ).scalar_one_or_none()
+        if clash is not None:
+            raise ConflictError(
+                f"An option with code '{fields['code']}' already exists.",
+                code="duplicate_option_code",
+            )
+
+    for field, value in fields.items():
+        if value is not None:
+            setattr(option, field, value)
+    if data.translations is not None:
+        _sync_label_translations(
+            db, list(option.translations), data.translations, "option_id", option.id, OptionTranslation
+        )
+    db.commit()
+    db.refresh(option)
+    return option
+
+
+def _takes_swatch(option: Option) -> bool:
+    """Swatch fields follow the input type, not the code — a staff-created
+    swatch option needs them just as much as the built-in colour does."""
+    return option.input_type == "swatch" or option.code == SWATCH_OPTION_CODE
 
 
 def create_option_value(db: Session, data) -> OptionValue:
@@ -376,11 +436,13 @@ def create_option_value(db: Session, data) -> OptionValue:
         # A size has no colour. Dropping the swatch here rather than trusting
         # the caller keeps a stray hex out of the storefront's colour filter,
         # which groups by hex and would otherwise show a size as a swatch.
-        hex_color=data.hex_color if option.code == SWATCH_OPTION_CODE else None,
-        swatch_media_id=data.swatch_media_id if option.code == SWATCH_OPTION_CODE else None,
+        hex_color=data.hex_color if _takes_swatch(option) else None,
+        swatch_media_id=data.swatch_media_id if _takes_swatch(option) else None,
         # The mirror of the swatch rule: a colour has no garment measurements.
         length_cm=data.length_cm if option.code == SIZE_OPTION_CODE else None,
         width_cm=data.width_cm if option.code == SIZE_OPTION_CODE else None,
+        # The badge is not tied to an option kind — a size can be "New" too.
+        tag=(data.tag or None),
         sort_order=data.sort_order,
     )
     db.add(value)
@@ -404,7 +466,7 @@ def update_option_value(db: Session, option_value_id: int, data) -> OptionValue:
     if option is None:
         raise NotFoundError("Option not found")
     _require_system_option(option)
-    if option.code == SWATCH_OPTION_CODE:
+    if _takes_swatch(option):
         for field in ("hex_color", "swatch_media_id"):
             if field in data.model_fields_set:
                 setattr(value, field, getattr(data, field))
@@ -412,6 +474,8 @@ def update_option_value(db: Session, option_value_id: int, data) -> OptionValue:
         for field in ("length_cm", "width_cm"):
             if field in data.model_fields_set:
                 setattr(value, field, getattr(data, field))
+    if "tag" in data.model_fields_set:
+        value.tag = data.tag or None
     if "is_active" in data.model_fields_set and data.is_active is not None:
         value.is_active = data.is_active
     if "sort_order" in data.model_fields_set and data.sort_order is not None:

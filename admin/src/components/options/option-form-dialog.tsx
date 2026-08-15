@@ -83,6 +83,10 @@ export function OptionFormDialog({
   const schema = useOptionSchema()
   const queryClient = useQueryClient()
   const isEdit = !!option
+  // Colour and Size codes pin the swatch and measurement fields to the right
+  // option, so the API refuses to rename them; the input follows suit rather
+  // than letting staff type a change that will bounce.
+  const isBuiltIn = option?.code === "colour" || option?.code === "size"
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -154,7 +158,7 @@ export function OptionFormDialog({
                   <FormItem>
                     <FormLabel>{cat("fields.code")}</FormLabel>
                     <FormControl>
-                      <Input dir="ltr" disabled={isEdit} {...field} />
+                      <Input dir="ltr" disabled={isBuiltIn} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

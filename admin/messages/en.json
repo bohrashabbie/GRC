@@ -365,7 +365,9 @@
         "color": "Colour",
         "sortOrder": "Order"
       },
-      "picker": "Pick a colour"
+      "picker": "Pick a colour",
+      "tag": "Badge",
+      "tagHint": "Optional short label shown on the swatch, e.g. New."
     }
   },
   "products": {

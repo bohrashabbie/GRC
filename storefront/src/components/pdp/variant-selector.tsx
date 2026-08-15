@@ -85,6 +85,15 @@ export function VariantSelector({
                   — {selectedValue.name}
                 </span>
               )}
+              {/* Staff-set badge on the chosen value ("New", "Limited"). Shown
+                  here rather than on each button: the swatch row is a grid of
+                  circles with nowhere for text, and a pill on every value would
+                  drown the values themselves. */}
+              {selectedValue?.tag && (
+                <span className="rounded-full bg-gold-100 px-2 py-0.5 text-2xs font-medium text-gold-800">
+                  {selectedValue.tag}
+                </span>
+              )}
             </legend>
 
             <ul className="flex flex-wrap gap-2.5">

@@ -10,6 +10,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     SmallInteger,
+    String,
     TIMESTAMP,
     UniqueConstraint,
 )
@@ -274,6 +275,10 @@ class OptionValue(Base, TimestampMixin):
     # NULL, exactly as sizes keep hex_color NULL.
     length_cm: Mapped[int | None] = mapped_column(Integer, nullable=True)
     width_cm: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # A short merchandising badge on the value itself — "New", "Limited". Sits
+    # on the value rather than the product because it describes the colourway,
+    # not the garment, so it follows the swatch wherever the swatch is shown.
+    tag: Mapped[str | None] = mapped_column(String(24), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     # Values a variant already uses can never be removed (Hard Rule 4), so
     # retiring one is a flag rather than a delete. This is also what keeps
