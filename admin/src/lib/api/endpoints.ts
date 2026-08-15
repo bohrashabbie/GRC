@@ -81,6 +81,9 @@ import type {
   MenuItemCreate,
   MenuItemUpdate,
   PageOut,
+  CouponCreate,
+  CouponOut,
+  CouponUpdate,
   PageCreate,
   PageUpdate,
 } from "./types"
@@ -672,4 +675,30 @@ export const pagesApi = {
   /** Back to draft. Distinct from delete now that DELETE removes the page. */
   unpublish: (pageId: number) =>
     api.patch<PageOut>(`/pages/${pageId}`, { status: "draft" }),
+}
+
+/* -------------------------------------------------------------------------- */
+/* Coupons                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export const couponsApi = {
+  list: (
+    params: { cursor?: string | null; limit?: number; is_active?: boolean | null } = {},
+    signal?: AbortSignal
+  ) =>
+    api.get<CursorPage<CouponOut>>("/coupons", {
+      query: {
+        cursor: params.cursor ?? undefined,
+        limit: params.limit,
+        is_active: params.is_active ?? undefined,
+      },
+      signal,
+    }),
+  get: (couponId: number, signal?: AbortSignal) =>
+    api.get<CouponOut>(`/coupons/${couponId}`, { signal }),
+  create: (payload: CouponCreate) => api.post<CouponOut>("/coupons", payload),
+  update: (couponId: number, payload: CouponUpdate) =>
+    api.patch<CouponOut>(`/coupons/${couponId}`, payload),
+  /** Removes the code, or deactivates it once an order has redeemed it. */
+  delete: (couponId: number) => api.del<DeletionResult>(`/coupons/${couponId}`),
 }

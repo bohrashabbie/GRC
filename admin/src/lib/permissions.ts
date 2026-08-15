@@ -52,6 +52,8 @@ export const PERMISSIONS = {
   cmsBannerManage: "cms.banner.manage",
   cmsMenuManage: "cms.menu.manage",
   cmsPageManage: "cms.page.manage",
+  couponView: "coupon.view",
+  couponManage: "coupon.manage",
   cmsPagePublish: "cms.page.publish",
   financeView: "finance.view",
   analyticsView: "analytics.view",

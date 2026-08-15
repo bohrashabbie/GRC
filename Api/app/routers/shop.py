@@ -20,6 +20,7 @@ from app.schemas.shop import (
     CheckoutIn,
     CheckoutOut,
     ContactIn,
+    CouponCheckIn,
     CustomerOut,
     LoginIn,
     PasswordChangeIn,
@@ -30,7 +31,13 @@ from app.schemas.shop import (
     VariantStockOut,
     WishlistOut,
 )
-from app.services import account_service, checkout_service, contact_service, shop_service
+from app.services import (
+    account_service,
+    checkout_service,
+    contact_service,
+    coupon_service,
+    shop_service,
+)
 
 router = APIRouter(tags=["shop"])
 
@@ -140,6 +147,14 @@ def reviews(slug: str):
 def product(slug: str, request: Request, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     locale, base_url = _context(request, accept_language)
     return shop_service.product_detail(db, slug, locale, base_url)
+
+
+@router.post("/cart/coupon")
+def check_coupon(payload: CouponCheckIn, db: Session = Depends(get_db)):
+    """Advisory quote for the cart's coupon box. The binding check happens at
+    checkout, inside the order's transaction — a code exhausted in between
+    still fails there."""
+    return coupon_service.quote(db, payload.code, payload.subtotal)
 
 
 @router.get("/settings")

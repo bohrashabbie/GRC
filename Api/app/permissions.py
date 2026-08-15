@@ -62,6 +62,9 @@ PERMISSIONS: list[PermissionDef] = [
     PermissionDef("cms.menu.manage", "marketing", "Add, edit and remove navigation menu items"),
     PermissionDef("cms.page.manage", "marketing", "Create and edit static pages"),
     PermissionDef("cms.page.publish", "marketing", "Publish or unpublish a static page"),
+    # coupons — discount codes shoppers type at checkout
+    PermissionDef("coupon.view", "marketing", "View discount codes"),
+    PermissionDef("coupon.manage", "marketing", "Create, edit and remove discount codes"),
     # finance
     PermissionDef("finance.view", "finance", "View financial reports and exports"),
     # analytics
@@ -177,6 +180,8 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "cms.menu.manage",
         "cms.page.manage",
         "cms.page.publish",
+        "coupon.view",
+        "coupon.manage",
     ],
     "accountant": ["finance.view", "order.view", "audit.view", "settings.view", "analytics.view"],
 }

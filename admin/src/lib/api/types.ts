@@ -1146,3 +1146,37 @@ export type LowStockItemOut = {
   on_hand: number
   threshold: number
 }
+
+/* -------------------------------------------------------------------------- */
+/* Coupons                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export type CouponDiscountType = "percent" | "fixed"
+
+export type CouponOut = {
+  id: number
+  code: string
+  discount_type: CouponDiscountType
+  /** Percent (0-100) when discount_type is "percent", else a KWD amount. */
+  value: string
+  min_subtotal: string | null
+  starts_at: string | null
+  ends_at: string | null
+  max_redemptions: number | null
+  times_redeemed: number
+  is_active: boolean
+  created_at: string
+}
+
+export type CouponCreate = {
+  code: string
+  discount_type: CouponDiscountType
+  value: string
+  min_subtotal?: string | null
+  starts_at?: string | null
+  ends_at?: string | null
+  max_redemptions?: number | null
+  is_active?: boolean
+}
+
+export type CouponUpdate = Partial<CouponCreate>

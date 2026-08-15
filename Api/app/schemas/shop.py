@@ -49,6 +49,9 @@ class CheckoutIn(BaseModel):
     # Widened again when a gateway lands; checkout_service holds the
     # authoritative allowlist of what can actually complete today.
     payment_method_code: Literal["mada", "card", "apple_pay", "tamara", "cod"] = "cod"
+    # The code only — never the discount it is worth. That is recomputed
+    # server-side against the same subtotal the order is built from.
+    coupon_code: str | None = Field(default=None, max_length=64)
 
 
 class CheckoutTotalsOut(BaseModel):
@@ -162,3 +165,10 @@ class AccountSummaryOut(BaseModel):
     order_count: int
     wishlist_count: int
     address_count: int
+
+
+class CouponCheckIn(BaseModel):
+    """What the cart box sends: the code, and the subtotal it is judged against."""
+
+    code: str = Field(min_length=1, max_length=64)
+    subtotal: Decimal = Field(ge=0)

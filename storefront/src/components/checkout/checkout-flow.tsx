@@ -143,6 +143,10 @@ export function CheckoutFlow({
         },
         shipping_method_id: shippingId,
         payment_method_code: paymentCode as PaymentMethodCode,
+        // The code only. The API re-validates it and recomputes what it is
+        // worth against its own subtotal, so nothing the browser calculated
+        // reaches the total.
+        coupon_code: cart?.coupon?.code ?? null,
       },
       locale,
     );

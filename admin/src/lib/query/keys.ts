@@ -124,6 +124,13 @@ export const queryKeys = {
     detail: (menuId: number) => ["menus", "detail", menuId] as const,
   },
 
+  coupons: {
+    all: ["coupons"] as const,
+    list: (params: { is_active?: boolean | null }) =>
+      ["coupons", "list", params] as const,
+    detail: (couponId: number) => ["coupons", "detail", couponId] as const,
+  },
+
   pages: {
     all: ["pages"] as const,
     list: (params: { status?: string | null }) =>

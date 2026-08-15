@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -128,6 +129,48 @@ class PaymentRefundOut(BaseModel):
     reason: str | None
     status: str
     created_by_user_id: int
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# --------------------------------------------------------------------------
+# Coupons
+# --------------------------------------------------------------------------
+
+class CouponCreate(BaseModel):
+    code: str = Field(min_length=1, max_length=64)
+    discount_type: Literal["percent", "fixed"] = "percent"
+    value: Decimal = Field(gt=0)
+    min_subtotal: Decimal | None = Field(default=None, ge=0)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    max_redemptions: int | None = Field(default=None, ge=1)
+    is_active: bool = True
+
+
+class CouponUpdate(BaseModel):
+    code: str | None = Field(default=None, min_length=1, max_length=64)
+    discount_type: Literal["percent", "fixed"] | None = None
+    value: Decimal | None = Field(default=None, gt=0)
+    min_subtotal: Decimal | None = Field(default=None, ge=0)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    max_redemptions: int | None = Field(default=None, ge=1)
+    is_active: bool | None = None
+
+
+class CouponOut(BaseModel):
+    id: int
+    code: str
+    discount_type: str
+    value: Decimal
+    min_subtotal: Decimal | None
+    starts_at: datetime | None
+    ends_at: datetime | None
+    max_redemptions: int | None
+    times_redeemed: int
+    is_active: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}

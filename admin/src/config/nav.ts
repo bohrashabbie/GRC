@@ -16,6 +16,7 @@ import {
   Tags,
   Users,
   UsersRound,
+  TicketPercent,
 } from "lucide-react"
 
 import { PERMISSIONS } from "@/lib/permissions"
@@ -135,6 +136,12 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: "pages",
         icon: FileText,
         permission: PERMISSIONS.cmsView,
+      },
+      {
+        href: "/coupons",
+        labelKey: "coupons",
+        icon: TicketPercent,
+        permission: PERMISSIONS.couponView,
       },
     ],
   },

@@ -33,7 +33,7 @@ from app.models.catalog import (
     VariantOptionValue,
 )
 from app.models.orders import Order, OrderAddress, OrderItem, OrderStatusHistory, Payment
-from app.services import inventory_service, system_service
+from app.services import coupon_service, inventory_service, system_service
 
 # The store sells in Kuwait, which levies no VAT — so the fallback is zero, not
 # a rate. This used to be 0.1500 looked up against country_code "SA" while every
@@ -261,18 +261,32 @@ def create_order(
         )
 
     subtotal = _money(subtotal)
+
+    # The code is re-validated and counted here, inside the order's own
+    # transaction — never trusting a discount the browser calculated. A code
+    # exhausted between the cart quoting it and this moment fails now.
+    discount_total = Decimal("0.00")
+    if data.coupon_code:
+        discount_total = coupon_service.redeem(
+            db,
+            data.coupon_code,
+            subtotal,
+            order_id=order_id,
+            customer_id=order.customer_id,
+        )
+        order.coupon_code_snapshot = data.coupon_code.strip()
+
     shipping_total = _shipping_total(db, data.shipping_method_id, subtotal)
-    grand_total = _money(subtotal + shipping_total)
+    # The discount comes off goods, not delivery, so the free-shipping
+    # threshold is judged on the pre-discount subtotal above.
+    grand_total = _money(subtotal - discount_total + shipping_total)
     # Customer-facing prices are VAT-inclusive, so VAT is extracted from the
     # total rather than added to it (Hard Rule 1).
     vat_rate = _tax_rate(db, "standard")
     tax_total = _money(grand_total - (grand_total / (Decimal("1") + vat_rate)))
 
     order.subtotal = subtotal
-    # Coupons are out of scope for this backend, so an order never carries a
-    # discount. The storefront's coupon box is fixture-only; nothing it does
-    # reaches this figure.
-    order.discount_total = Decimal("0.00")
+    order.discount_total = discount_total
     order.shipping_total = shipping_total
     order.tax_total = tax_total
     order.grand_total = grand_total

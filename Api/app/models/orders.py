@@ -4,7 +4,7 @@ from sqlalchemy import BigInteger, CHAR, ForeignKey, Index, Integer, Numeric, TI
 from sqlalchemy.dialects.postgresql import CITEXT, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampMixin
+from app.models.base import Base, CreatedAtMixin, TimestampMixin
 
 
 class Order(Base, TimestampMixin):
@@ -241,3 +241,51 @@ class ReturnItem(Base, TimestampMixin):
     return_: Mapped["Return"] = relationship(back_populates="items")
 
     __table_args__ = (Index("ix_return_items_return_id", "return_id"),)
+
+
+class Coupon(Base, TimestampMixin):
+    """A discount code staff create and shoppers type at checkout.
+
+    `value` means percent when discount_type is 'percent' (0-100) and a KWD
+    amount when 'fixed'. times_redeemed is a counter kept in step with
+    coupon_redemptions, incremented under a row lock so two simultaneous
+    checkouts cannot both take the last use of a capped code.
+    """
+
+    __tablename__ = "coupons"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    # CITEXT so "SUMMER10" and "summer10" are the same code — shoppers type it
+    # by hand and will not match the casing staff chose.
+    code: Mapped[str] = mapped_column(CITEXT, nullable=False, unique=True)
+    discount_type: Mapped[str] = mapped_column(nullable=False, default="percent")
+    value: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+    # Cart subtotal the code needs before it applies at all.
+    min_subtotal: Mapped[float | None] = mapped_column(Numeric(12, 3), nullable=True)
+    starts_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
+    ends_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
+    # NULL means unlimited.
+    max_redemptions: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    times_redeemed: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
+
+    __table_args__ = (Index("ix_coupons_is_active", "is_active"),)
+
+
+class CouponRedemption(Base, CreatedAtMixin):
+    """One use of a code on one order. Append-only: the ledger behind
+    times_redeemed, and what proves an order's discount was legitimate."""
+
+    __tablename__ = "coupon_redemptions"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    coupon_id: Mapped[int] = mapped_column(ForeignKey("coupons.id"), nullable=False)
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), nullable=False)
+    customer_id: Mapped[int | None] = mapped_column(ForeignKey("customers.id"), nullable=True)
+    # What the discount was actually worth, in KWD, at redemption time.
+    amount: Mapped[float] = mapped_column(Numeric(12, 3), nullable=False)
+
+    __table_args__ = (
+        Index("ix_coupon_redemptions_coupon_id", "coupon_id"),
+        UniqueConstraint("coupon_id", "order_id", name="uq_coupon_redemptions_coupon_order"),
+    )

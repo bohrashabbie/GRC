@@ -98,7 +98,8 @@
     "banners": "البانرات",
     "menus": "القوائم",
     "pages": "الصفحات",
-    "contactMessages": "رسائل التواصل"
+    "contactMessages": "رسائل التواصل",
+    "coupons": "أكواد الخصم"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -992,5 +993,50 @@
     "lowStockEmpty": "لا يوجد حاليًا ما هو أقل من حد إعادة الطلب.",
     "unitsSold": "{count} قطعة مباعة",
     "onHandOfThreshold": "{onHand} متوفر (من أصل {threshold})"
+  },
+  "coupons": {
+    "title": "أكواد الخصم",
+    "description": "أكواد الخصم التي يدخلها المتسوقون عند الدفع.",
+    "newCoupon": "كود خصم جديد",
+    "createTitle": "كود خصم جديد",
+    "editTitle": "تعديل كود الخصم",
+    "formDescription": "تتم مطابقة الكود دون حساسية لحالة الأحرف، فيمكن للمتسوق كتابته بأي شكل.",
+    "created": "تم إنشاء كود الخصم",
+    "updated": "تم تحديث كود الخصم",
+    "empty": "لا توجد أكواد خصم بعد.",
+    "minSpend": "حد أدنى {amount}",
+    "usedUnlimited": "استُخدم {used}",
+    "columns": {
+      "code": "الكود",
+      "discount": "الخصم",
+      "conditions": "الشروط",
+      "usage": "الاستخدام",
+      "window": "فترة الصلاحية"
+    },
+    "discountTypes": {
+      "percent": "نسبة مئوية",
+      "fixed": "مبلغ ثابت"
+    },
+    "fields": {
+      "code": "الكود",
+      "discountType": "نوع الخصم",
+      "percentValue": "نسبة الخصم",
+      "fixedValue": "قيمة الخصم (د.ك)",
+      "minSubtotal": "الحد الأدنى للطلب (د.ك)",
+      "startsAt": "يبدأ",
+      "endsAt": "ينتهي",
+      "maxRedemptions": "حد الاستخدام",
+      "isActive": "مفعّل"
+    },
+    "hints": {
+      "code": "ما يكتبه المتسوق. حالة الأحرف غير مهمة.",
+      "minSubtotal": "اتركه فارغًا ليُطبّق على أي قيمة طلب.",
+      "maxRedemptions": "اتركه فارغًا لاستخدام غير محدود."
+    },
+    "validation": {
+      "codeRequired": "الكود مطلوب.",
+      "valueRequired": "يجب أن يكون الخصم أكبر من صفر.",
+      "percentMax": "لا يمكن أن تتجاوز نسبة الخصم 100%."
+    }
   }
 }

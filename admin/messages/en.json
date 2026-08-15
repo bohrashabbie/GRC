@@ -98,7 +98,8 @@
     "banners": "Banners",
     "menus": "Menus",
     "pages": "Pages",
-    "contactMessages": "Contact messages"
+    "contactMessages": "Contact messages",
+    "coupons": "Coupons"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -992,5 +993,50 @@
     "lowStockEmpty": "Nothing below its reorder threshold right now.",
     "unitsSold": "{count} units sold",
     "onHandOfThreshold": "{onHand} on hand (of {threshold})"
+  },
+  "coupons": {
+    "title": "Coupons",
+    "description": "Discount codes shoppers enter at checkout.",
+    "newCoupon": "New coupon",
+    "createTitle": "New coupon",
+    "editTitle": "Edit coupon",
+    "formDescription": "The code is matched case-insensitively, so shoppers can type it however they like.",
+    "created": "Coupon created",
+    "updated": "Coupon updated",
+    "empty": "No coupons yet.",
+    "minSpend": "Min spend {amount}",
+    "usedUnlimited": "{used} used",
+    "columns": {
+      "code": "Code",
+      "discount": "Discount",
+      "conditions": "Conditions",
+      "usage": "Used",
+      "window": "Active window"
+    },
+    "discountTypes": {
+      "percent": "Percentage",
+      "fixed": "Fixed amount"
+    },
+    "fields": {
+      "code": "Code",
+      "discountType": "Discount type",
+      "percentValue": "Percent off",
+      "fixedValue": "Amount off (KWD)",
+      "minSubtotal": "Minimum spend (KWD)",
+      "startsAt": "Starts",
+      "endsAt": "Ends",
+      "maxRedemptions": "Usage limit",
+      "isActive": "Active"
+    },
+    "hints": {
+      "code": "What the shopper types. Case does not matter.",
+      "minSubtotal": "Leave blank to apply at any order value.",
+      "maxRedemptions": "Leave blank for unlimited uses."
+    },
+    "validation": {
+      "codeRequired": "A code is required.",
+      "valueRequired": "The discount must be greater than zero.",
+      "percentMax": "A percentage discount cannot exceed 100%."
+    }
   }
 }

@@ -88,8 +88,12 @@ export async function rebuildCart(
   return getCart(stored, locale, couponCode, shippingPrice);
 }
 
-export async function checkCoupon(code: string, locale: LocaleCode): Promise<boolean> {
-  return validateCoupon(code, locale);
+export async function checkCoupon(
+  code: string,
+  locale: LocaleCode,
+  subtotal: string,
+): Promise<boolean> {
+  return validateCoupon(code, locale, subtotal);
 }
 
 /** Live availability for the ids the cart is holding, so steppers can clamp. */

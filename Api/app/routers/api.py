@@ -6,6 +6,7 @@ from app.routers import (
     auth,
     banners,
     brands,
+    coupons,
     categories,
     contact_messages,
     customers,
@@ -32,6 +33,7 @@ api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(roles.router, prefix="/roles", tags=["roles"])
 api_router.include_router(brands.router, prefix="/brands", tags=["brands"])
+api_router.include_router(coupons.router, prefix="/coupons", tags=["coupons"])
 api_router.include_router(categories.router, prefix="/categories", tags=["categories"])
 api_router.include_router(options.router, prefix="/options", tags=["options"])
 api_router.include_router(option_values.router, prefix="/option-values", tags=["option-values"])

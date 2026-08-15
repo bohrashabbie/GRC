@@ -455,6 +455,9 @@ export interface PlaceOrderInput {
   };
   shipping_method_id: string;
   payment_method_code: PaymentMethodCode;
+  /** The code only. What it is worth is recomputed by the API against the
+   *  same subtotal the order is built from — never sent from here. */
+  coupon_code?: string | null;
 }
 
 export interface PlacedOrder {

@@ -190,7 +190,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const applyCoupon = useCallback(
     async (code: string) => {
-      const isValid = await checkCoupon(code, locale);
+      // A code can carry a minimum spend, so whether it applies depends on the
+      // cart it is being applied to, not the code alone.
+      const subtotal = cart?.totals.subtotal ?? "0";
+      const isValid = await checkCoupon(code, locale, subtotal);
       setCouponError(!isValid);
       if (!isValid) return false;
 
@@ -199,7 +202,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       await sync();
       return true;
     },
-    [locale, sync],
+    [cart, locale, sync],
   );
 
   const removeCoupon = useCallback(async () => {

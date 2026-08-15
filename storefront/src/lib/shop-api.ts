@@ -493,10 +493,27 @@ export async function getCart(
   );
 }
 
-export async function validateCoupon(code: string, locale: LocaleCode): Promise<boolean> {
+/**
+ * Advisory check for the cart's coupon box.
+ *
+ * The subtotal goes with it because a code can carry a minimum spend, so
+ * whether it applies is not a property of the code alone. This is not binding:
+ * checkout re-validates and redeems inside the order's own transaction, so a
+ * code exhausted between here and there still fails at the till.
+ */
+export async function validateCoupon(
+  code: string,
+  locale: LocaleCode,
+  subtotal: string,
+): Promise<boolean> {
   if (USE_FIXTURES) return fixtureValidateCoupon(code);
   try {
-    await shopFetch("/cart/coupon", { locale, revalidate: false, method: "POST", body: { code } });
+    await shopFetch("/cart/coupon", {
+      locale,
+      revalidate: false,
+      method: "POST",
+      body: { code, subtotal },
+    });
     return true;
   } catch {
     return false;
