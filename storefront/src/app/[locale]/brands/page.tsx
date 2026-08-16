@@ -55,14 +55,23 @@ export default async function BrandsPage({ params }: PageProps) {
       {brands.length === 0 ? (
         <p className="mt-10 text-sm text-ink-500">{t("empty")}</p>
       ) : (
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        // Centred, not grid-aligned: the store carries very few brands, and a
+        // three-column grid left a single card stranded against two empty
+        // columns, reading as a layout that failed rather than a short list.
+        <ul className="mt-8 flex flex-wrap justify-center gap-4 sm:gap-5">
           {brands.map((brand) => (
-            <li key={brand.id}>
+            <li key={brand.id} className="w-full max-w-[17rem] sm:w-64">
               <Link
                 href={brand.href}
-                className="flex h-full flex-col gap-2 rounded-lg border border-sand-200 p-5 transition-colors hover:border-gold-300 hover:bg-sand-50"
+                className="group flex h-full flex-col items-center gap-3 rounded-xl bg-white px-6 py-8 text-center ring-1 ring-inset ring-hairline-strong transition-[box-shadow,transform] duration-300 ease-out-soft hover:-translate-y-0.5 hover:ring-2 hover:ring-gold-500 focus-visible:ring-2 focus-visible:ring-gold-500"
               >
-                <span className="text-base font-semibold text-ink-900">
+                <span
+                  aria-hidden="true"
+                  className="flex size-12 items-center justify-center rounded-full bg-sand-100 font-display text-xl text-ink-500 transition-colors group-hover:text-gold-600"
+                >
+                  {brand.name.trim().charAt(0)}
+                </span>
+                <span className="font-display text-base leading-tight text-ink-900">
                   {brand.name}
                 </span>
                 {brand.description && (
@@ -70,7 +79,7 @@ export default async function BrandsPage({ params }: PageProps) {
                     {brand.description}
                   </span>
                 )}
-                <span className="mt-auto pt-2 text-2xs text-ink-400">
+                <span className="text-2xs uppercase tracking-wide text-ink-500">
                   {t("productCount", { count: brand.product_count })}
                 </span>
               </Link>
