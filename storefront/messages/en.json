@@ -36,7 +36,8 @@
     "nextSlide": "Next slide",
     "goToSlide": "Go to slide {number}",
     "shopByBrand": "Shop by brand",
-    "shopByBrandIntro": "The houses we carry, and everything they make."
+    "shopByBrandIntro": "The houses we carry, and everything they make.",
+    "brandProductCount": "{count, plural, one {# product} other {# products}}"
   },
   "usp": {
     "shippingTitle": "Free shipping over 200 KWD",

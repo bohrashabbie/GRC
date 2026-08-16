@@ -36,7 +36,8 @@
     "nextSlide": "الشريحة التالية",
     "goToSlide": "الانتقال إلى الشريحة {number}",
     "shopByBrand": "تسوق حسب الماركة",
-    "shopByBrandIntro": "الماركات التي نقدمها، وكل ما تنتجه."
+    "shopByBrandIntro": "الماركات التي نقدمها، وكل ما تنتجه.",
+    "brandProductCount": "{count, plural, zero {# منتج} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}"
   },
   "usp": {
     "shippingTitle": "شحن مجاني فوق 200 دينار",
