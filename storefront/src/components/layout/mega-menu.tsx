@@ -125,6 +125,18 @@ export function MegaMenu({ categories }: { categories: CategoryNode[] }) {
             </li>
           );
         })}
+
+        {/* Brands sits alongside the category tabs rather than inside the tree:
+            it is a different axis through the catalogue, and without an entry
+            point here the brand pages are reachable only by typing the URL. */}
+        <li onMouseEnter={scheduleClose}>
+          <Link
+            href="/brands"
+            className="flex h-full items-center px-3 py-3.5 text-sm text-ink-800 transition-colors hover:text-gold-600"
+          >
+            {t("brands")}
+          </Link>
+        </li>
       </ul>
     </nav>
   );

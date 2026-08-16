@@ -19,7 +19,8 @@
     "closeMenu": "Close menu",
     "allCategories": "All categories",
     "viewAll": "View all",
-    "home": "Home"
+    "home": "Home",
+    "brands": "Brands"
   },
   "nav": {
     "shop": "Shop",
@@ -33,7 +34,9 @@
     "shopByCategoryIntro": "Seven departments, from everyday thobes to occasion bisht.",
     "previousSlide": "Previous slide",
     "nextSlide": "Next slide",
-    "goToSlide": "Go to slide {number}"
+    "goToSlide": "Go to slide {number}",
+    "shopByBrand": "Shop by brand",
+    "shopByBrandIntro": "The houses we carry, and everything they make."
   },
   "usp": {
     "shippingTitle": "Free shipping over 200 KWD",

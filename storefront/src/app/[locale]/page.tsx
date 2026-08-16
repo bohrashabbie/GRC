@@ -1,11 +1,12 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { HeroSlider } from "@/components/home/hero-slider";
+import { BrandStrip } from "@/components/home/brand-strip";
 import { CategoryTiles } from "@/components/home/category-tiles";
 import { ProductRail } from "@/components/product/product-rail";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { UspStrip } from "@/components/layout/usp-strip";
-import { getBanners, getCategoryTree, getCollection } from "@/lib/shop-api";
+import { getBanners, getBrands, getCategoryTree, getCollection } from "@/lib/shop-api";
 import type { Locale } from "@/i18n/routing";
 
 /** Read-heavy and highly cacheable — revalidate rather than render per request. */
@@ -17,12 +18,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   const typedLocale = locale as Locale;
 
-  const [t, tHeader, heroBanners, categories, bestSellers, offers, newArrivals] =
+  const [t, tHeader, heroBanners, categories, brands, bestSellers, offers, newArrivals] =
     await Promise.all([
       getTranslations("home"),
       getTranslations("header"),
       getBanners("home_hero", typedLocale),
       getCategoryTree(typedLocale),
+      getBrands(typedLocale),
       getCollection("best_sellers", typedLocale),
       getCollection("offers", typedLocale),
       getCollection("new_arrivals", typedLocale),
@@ -83,6 +85,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <ProductRail products={newArrivals.products} />
         </div>
       </section>
+
+      {/* Hidden entirely when no product carries a brand, rather than rendering
+          a heading over an empty row. */}
+      {brands.length > 0 && (
+        <section className="section-y">
+          <div className="container-site">
+            <SectionHeading
+              title={t("shopByBrand")}
+              intro={t("shopByBrandIntro")}
+              href="/brands"
+              hrefLabel={tHeader("viewAll")}
+              className="mb-8"
+            />
+            <BrandStrip brands={brands} />
+          </div>
+        </section>
+      )}
 
       <UspStrip />
     </>

@@ -188,6 +188,18 @@ export function MobileMenuProvider({
                     )}
                   </li>
                 ))}
+
+                {/* Same entry point the desktop mega menu carries, so brands
+                    are reachable on phones too rather than desktop-only. */}
+                <li>
+                  <Link
+                    href="/brands"
+                    onClick={close}
+                    className="flex px-4 py-4 text-sm text-ink-900"
+                  >
+                    {t("brands")}
+                  </Link>
+                </li>
               </ul>
             )}
           </div>
