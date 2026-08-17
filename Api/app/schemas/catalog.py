@@ -82,7 +82,9 @@ class BrandOut(BaseModel):
 class CategoryCreate(BaseModel):
     parent_id: int | None = None
     dimension: str
-    code: str
+    # Optional: the admin no longer asks for one. The service derives an
+    # ltree-safe label from the name when this is omitted.
+    code: str | None = None
     image_media_id: int | None = None
     sort_order: int = 0
     show_in_menu: bool = True

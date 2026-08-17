@@ -76,7 +76,7 @@ function CategoriesContent() {
 
   async function openEdit(categoryId: number) {
     // The tree endpoint returns a trimmed node; the form needs the full record
-    // (parent_id, code, sort_order), so fetch it before opening.
+    // (parent_id, sort_order), so fetch it before opening.
     try {
       const full = await categoriesApi.get(categoryId)
       setEditing(full)
@@ -241,7 +241,6 @@ function CategoryTreeRow({
         <span className="flex-1 truncate text-sm font-medium text-foreground">
           {name}
         </span>
-        <code className="text-xs text-muted-foreground">{node.code}</code>
         <RequirePermission permission={PERMISSIONS.catalogManage}>
           <div className="flex gap-1.5">
             <Button variant="outline" size="xs" onClick={() => onEdit(node.id)}>

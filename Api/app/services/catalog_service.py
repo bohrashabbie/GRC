@@ -186,14 +186,38 @@ def attach_category_image_keys(db: Session, categories: list[Category]) -> None:
         category.image_key = keys.get(category.image_media_id)
 
 
+def _auto_category_code(db: Session, translations) -> str:
+    """Derive the ltree label for a category the admin did not name a code for.
+
+    Codes are not a thing the business has — staff name a category and nothing
+    else. The tree still needs one, because categories.path is an ltree and
+    ltree labels are ASCII-only: _ltree_label strips Arabic entirely, so an
+    Arabic name would collapse every category to the same label and every
+    sibling would collide. The English name is used where there is one, with a
+    neutral stem otherwise, and a numeric suffix resolves any clash.
+    """
+    by_locale = {t.locale: t.name for t in translations}
+    english = by_locale.get("en") or ""
+    base = _ltree_label(slugify(english, "en")) if english.strip() else ""
+    if not base or base == "n":
+        base = "cat"
+    candidate = base
+    suffix = 2
+    while db.execute(select(Category.id).where(Category.code == candidate)).first() is not None:
+        candidate = f"{base}_{suffix}"
+        suffix += 1
+    return candidate
+
+
 def create_category(db: Session, data) -> Category:
-    path, depth = _compute_path(db, data.parent_id, data.code)
+    code = data.code or _auto_category_code(db, data.translations)
+    path, depth = _compute_path(db, data.parent_id, code)
     category = Category(
         parent_id=data.parent_id,
         dimension=data.dimension,
         path=path,
         depth=depth,
-        code=data.code,
+        code=code,
         image_media_id=data.image_media_id,
         sort_order=data.sort_order,
         show_in_menu=data.show_in_menu,

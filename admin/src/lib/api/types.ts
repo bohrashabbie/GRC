@@ -286,7 +286,8 @@ export type CategoryTreeNode = {
 export type CategoryCreate = {
   parent_id?: number | null
   dimension: string
-  code: string
+  /** Omitted by the admin — the API derives an ltree-safe label from the name. */
+  code?: string | null
   image_media_id?: number | null
   sort_order?: number
   show_in_menu?: boolean

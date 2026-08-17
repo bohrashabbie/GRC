@@ -56,7 +56,6 @@ function useCategorySchema() {
   const c = useTranslations("catalog")
   return z
     .object({
-      code: z.string().min(1, c("validation.codeRequired")),
       dimension: z.string().min(1),
       parent_id: z.string(),
       sort_order: z.coerce.number().int(),
@@ -74,7 +73,7 @@ function useCategorySchema() {
 }
 
 type FormValues = z.infer<ReturnType<typeof useCategorySchema>>
-const FIELD_NAMES = ["code", "dimension", "parent_id", "sort_order"] as const
+const FIELD_NAMES = ["dimension", "parent_id", "sort_order"] as const
 
 export function CategoryFormDialog({
   category,
@@ -98,7 +97,6 @@ export function CategoryFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      code: category?.code ?? "",
       dimension: category?.dimension ?? defaultDimension ?? CATEGORY_DIMENSIONS[0],
       parent_id: category?.parent_id ? String(category.parent_id) : NO_PARENT,
       sort_order: category?.sort_order ?? 0,
@@ -141,7 +139,6 @@ export function CategoryFormDialog({
     try {
       if (isEdit) {
         await categoriesApi.update(category.id, {
-          code: values.code,
           dimension: values.dimension,
           parent_id: parentId,
           sort_order: values.sort_order,
@@ -152,7 +149,6 @@ export function CategoryFormDialog({
         })
       } else {
         await categoriesApi.create({
-          code: values.code,
           dimension: values.dimension,
           parent_id: parentId,
           sort_order: values.sort_order,
@@ -268,19 +264,6 @@ export function CategoryFormDialog({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{cat("fields.code")}</FormLabel>
-                    <FormControl>
-                      <Input dir="ltr" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="sort_order"
