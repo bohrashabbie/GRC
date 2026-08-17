@@ -413,7 +413,8 @@
       "isBestSeller": "Shows the best-seller badge and includes this product in the storefront's Best Sellers rail.",
       "defaultVariant": "Every product has at least one variant — a default one is created automatically.",
       "trackInventory": "Off for made-to-order or digital items — always purchasable, and the per-variant quantities below are ignored.",
-      "shortDescription": "One or two lines shown in listings and search results."
+      "shortDescription": "One or two lines shown in listings and search results.",
+      "moneyFormat": "Use up to three decimals, e.g. 12.500"
     },
     "columns": {
       "name": "Product",
@@ -478,7 +479,6 @@
         "sku": "SKU",
         "options": "Options",
         "price": "Price",
-        "comparePrice": "Compare at",
         "costPrice": "Cost",
         "barcode": "Barcode",
         "status": "Status",
@@ -492,7 +492,15 @@
       "stockInvalid": "Quantities must be whole numbers, zero or more.",
       "trackingOffNotice": "Inventory tracking is off for this product, so these quantities are recorded but never checked at checkout.",
       "continue": "Continue",
-      "reactivated": "Variant is active again"
+      "reactivated": "Variant is active again",
+      "realPrice": "Real price",
+      "realPriceHint": "The normal price of this size and colour.",
+      "offerPrice": "Offer price",
+      "offerPriceHint": "Leave empty if this is not on offer.",
+      "offerPreview": "Customers pay this. The real price shows crossed out, with a −{percent}% badge.",
+      "offerMustBeLower": "The offer price must be lower than the real price.",
+      "realPriceRequired": "Set a real price before adding an offer price.",
+      "costPriceHint": "What you pay your supplier. Never shown to customers."
     }
   },
   "locations": {

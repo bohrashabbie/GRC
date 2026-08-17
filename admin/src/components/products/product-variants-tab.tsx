@@ -206,8 +206,8 @@ export function ProductVariantsTab({
                   <TableRow>
                     <TableHead>{t("variants.columns.sku")}</TableHead>
                     <TableHead>{t("variants.columns.options")}</TableHead>
-                    <TableHead>{t("variants.columns.price")}</TableHead>
-                    <TableHead>{t("variants.columns.comparePrice")}</TableHead>
+                    <TableHead>{t("variants.realPrice")}</TableHead>
+                    <TableHead>{t("variants.offerPrice")}</TableHead>
                     <TableHead className="w-40">
                       {t("variants.columns.stock")}
                     </TableHead>
@@ -228,9 +228,23 @@ export function ProductVariantsTab({
                               .map((id) => valueLabelById.get(id) ?? `#${id}`)
                               .join(" · ")}
                       </TableCell>
-                      <TableCell>{formatMoney(variant.price, locale)}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatMoney(variant.compare_at_price, locale)}
+                      {/* A compare-at price means the variant is on offer: the
+                          higher number is the real price and what it charges
+                          today is the offer. Shown the way staff enter it. */}
+                      <TableCell>
+                        {formatMoney(
+                          variant.compare_at_price ?? variant.price,
+                          locale
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {variant.compare_at_price ? (
+                          <span className="font-medium text-foreground">
+                            {formatMoney(variant.price, locale)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
