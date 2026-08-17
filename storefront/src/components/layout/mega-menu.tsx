@@ -40,7 +40,8 @@ export function MegaMenu({ categories }: { categories: CategoryNode[] }) {
         if (event.key === "Escape") setOpenSlug(null);
       }}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpenSlug(null);
+        if (!event.currentTarget.contains(event.relatedTarget as Node))
+          setOpenSlug(null);
       }}
     >
       <ul className="container-site flex items-stretch gap-1">
@@ -90,7 +91,9 @@ export function MegaMenu({ categories }: { categories: CategoryNode[] }) {
                           <span className="border-b border-transparent transition-colors group-hover:border-gold-500">
                             {child.name}
                           </span>
-                          <span className="tabular text-2xs text-ink-400">{child.product_count}</span>
+                          <span className="tabular text-2xs text-ink-400">
+                            {child.product_count}
+                          </span>
                         </Link>
                       ))}
                     </div>
@@ -126,9 +129,19 @@ export function MegaMenu({ categories }: { categories: CategoryNode[] }) {
           );
         })}
 
-        {/* Brands sits alongside the category tabs rather than inside the tree:
-            it is a different axis through the catalogue, and without an entry
-            point here the brand pages are reachable only by typing the URL. */}
+        {/* Offers and Brands sit alongside the category tabs rather than inside
+            the tree: both are different axes through the catalogue, and without
+            an entry point here each was reachable only from a home page rail.
+            Offers carries the gold accent — it is the promotional link, and the
+            one shoppers go looking for by name. */}
+        <li onMouseEnter={scheduleClose}>
+          <Link
+            href="/collections/offers"
+            className="flex h-full items-center px-3 py-3.5 text-sm font-medium text-gold-600 transition-colors hover:text-gold-700"
+          >
+            {t("offers")}
+          </Link>
+        </li>
         <li onMouseEnter={scheduleClose}>
           <Link
             href="/brands"

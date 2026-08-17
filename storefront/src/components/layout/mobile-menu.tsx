@@ -23,7 +23,8 @@ const MobileMenuContext = createContext<{ open: () => void } | null>(null);
 
 export function useMobileMenu() {
   const context = useContext(MobileMenuContext);
-  if (!context) throw new Error("useMobileMenu must be used inside <MobileMenuProvider>");
+  if (!context)
+    throw new Error("useMobileMenu must be used inside <MobileMenuProvider>");
   return context;
 }
 
@@ -148,7 +149,9 @@ export function MobileMenuProvider({
                     className="flex items-center justify-between px-4 py-3.5 text-sm text-ink-900"
                   >
                     <span className="font-medium">{drilled.name}</span>
-                    <span className="text-2xs text-gold-700">{t("viewAll")}</span>
+                    <span className="text-2xs text-gold-700">
+                      {t("viewAll")}
+                    </span>
                   </Link>
                 </li>
                 {drilled.children.map((child) => (
@@ -159,7 +162,9 @@ export function MobileMenuProvider({
                       className="flex items-center justify-between px-4 py-3.5 text-sm text-ink-600"
                     >
                       {child.name}
-                      <span className="tabular text-2xs text-ink-400">{child.product_count}</span>
+                      <span className="tabular text-2xs text-ink-400">
+                        {child.product_count}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -189,8 +194,17 @@ export function MobileMenuProvider({
                   </li>
                 ))}
 
-                {/* Same entry point the desktop mega menu carries, so brands
-                    are reachable on phones too rather than desktop-only. */}
+                {/* Same entry points the desktop mega menu carries, so offers
+                    and brands are reachable on phones too, not desktop-only. */}
+                <li>
+                  <Link
+                    href="/collections/offers"
+                    onClick={close}
+                    className="flex px-4 py-4 text-sm font-medium text-gold-600"
+                  >
+                    {t("offers")}
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/brands"
