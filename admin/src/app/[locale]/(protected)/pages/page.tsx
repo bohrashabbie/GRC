@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageFormDialog } from "@/components/pages/page-form-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import {
   ListEmptyState,
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { pagesApi } from "@/lib/api/endpoints"
 import { useDeletionMessage } from "@/lib/deletion"
+import { usePermission } from "@/hooks/use-permission"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
@@ -46,6 +48,8 @@ function PagesContent() {
   const [unpublishing, setUnpublishing] = useState<PageOut | undefined>()
   const [deleting, setDeleting] = useState<PageOut | null>(null)
   const deletionMessage = useDeletionMessage()
+  const canManage = usePermission(PERMISSIONS.cmsPageManage)
+  const canPublish = usePermission(PERMISSIONS.cmsPagePublish)
 
   async function handleDelete(page: PageOut) {
     try {
@@ -136,43 +140,31 @@ function PagesContent() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <StatusBadge
                     status={page.status === "published" ? "active" : "inactive"}
                     label={t(`statuses.${page.status}`)}
                   />
-                  <RequirePermission permission={PERMISSIONS.cmsPageManage}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
+                  <RowActions
+                    onEdit={
+                      canManage ? () => {
                         setEditing(page)
                         setFormOpen(true)
-                      }}
-                    >
-                      {c("edit")}
-                    </Button>
-                  </RequirePermission>
-                  {page.status === "published" && (
-                    <RequirePermission permission={PERMISSIONS.cmsPagePublish}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setUnpublishing(page)}
-                      >
-                        {t("unpublish")}
-                      </Button>
-                    </RequirePermission>
-                  )}
-                  <RequirePermission permission={PERMISSIONS.cmsPagePublish}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleting(page)}
-                    >
-                      {c("delete")}
-                    </Button>
-                  </RequirePermission>
+                      } : undefined
+                    }
+                    onDelete={canPublish ? () => setDeleting(page) : undefined}
+                    extra={
+                      canPublish && page.status === "published" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUnpublishing(page)}
+                        >
+                          {t("unpublish")}
+                        </Button>
+                      ) : null
+                    }
+                  />
                 </div>
               </div>
             ))}

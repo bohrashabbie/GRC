@@ -12,6 +12,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { CouponFormDialog } from "@/components/coupons/coupon-form-dialog"
 import { useCursorList } from "@/hooks/use-cursor-list"
@@ -112,28 +113,16 @@ function CouponsContent() {
     },
     {
       id: "actions",
-      header: "",
+      header: c("actions"),
       cell: ({ row }) => (
         <RequirePermission permission={PERMISSIONS.couponManage}>
-          <div className="flex justify-end gap-1.5">
-            <Button
-              variant="outline"
-              size="xs"
-              onClick={() => {
-                setEditing(row.original)
-                setFormOpen(true)
-              }}
-            >
-              {c("edit")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={() => setDeleting(row.original)}
-            >
-              {c("delete")}
-            </Button>
-          </div>
+          <RowActions
+            onEdit={() => {
+              setEditing(row.original)
+              setFormOpen(true)
+            }}
+            onDelete={() => setDeleting(row.original)}
+          />
         </RequirePermission>
       ),
     },

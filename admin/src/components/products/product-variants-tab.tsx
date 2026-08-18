@@ -26,6 +26,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { StatusBadge } from "@/components/status-badge"
 import { StockBadge } from "@/components/stock-badge"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import {
   ListEmptyState,
   ListErrorState,
@@ -56,6 +57,8 @@ export function ProductVariantsTab({
   const locale = useLocale()
   const queryClient = useQueryClient()
   const canAdjustStock = usePermission(PERMISSIONS.stockAdjust)
+  const canEditPrice = usePermission(PERMISSIONS.variantPriceEdit)
+  const canManageCatalog = usePermission(PERMISSIONS.catalogManage)
 
   const [pricing, setPricing] = useState<VariantOut | null>(null)
   const [deleting, setDeleting] = useState<VariantOut | null>(null)
@@ -223,10 +226,7 @@ export function ProductVariantsTab({
                       {t("variants.columns.stock")}
                     </TableHead>
                     <TableHead>{t("variants.columns.status")}</TableHead>
-                    <TableHead />
-                    {/* Swallows the leftover width so the row's buttons stay
-                        beside the row instead of at the far edge. */}
-                    <TableHead className="w-full p-0" />
+                    <TableHead className="w-px">{c("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -288,40 +288,37 @@ export function ProductVariantsTab({
                           label={variant.is_active ? c("active") : c("inactive")}
                         />
                       </TableCell>
-                      <TableCell className="ps-6">
-                        <div className="flex gap-1.5">
-                          <RequirePermission
-                            permission={PERMISSIONS.variantPriceEdit}
-                          >
-                            <Button
-                              variant="outline"
-                              size="xs"
-                              onClick={() => setPricing(variant)}
-                            >
-                              {t("variants.editPrice")}
-                            </Button>
-                          </RequirePermission>
-                          <RequirePermission permission={PERMISSIONS.catalogManage}>
-                            {!variant.is_active && (
-                              <Button
-                                variant="outline"
-                                size="xs"
-                                onClick={() => handleReactivate(variant)}
-                              >
-                                {t("variants.continue")}
-                              </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              onClick={() => setDeleting(variant)}
-                            >
-                              {c("delete")}
-                            </Button>
-                          </RequirePermission>
-                        </div>
+                      <TableCell className="w-px whitespace-nowrap">
+                        <RowActions
+                          onDelete={
+                            canManageCatalog
+                              ? () => setDeleting(variant)
+                              : undefined
+                          }
+                          extra={
+                            <>
+                              {canEditPrice && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setPricing(variant)}
+                                >
+                                  {t("variants.editPrice")}
+                                </Button>
+                              )}
+                              {canManageCatalog && !variant.is_active && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleReactivate(variant)}
+                                >
+                                  {t("variants.continue")}
+                                </Button>
+                              )}
+                            </>
+                          }
+                        />
                       </TableCell>
-                      <TableCell className="w-full p-0" />
                     </TableRow>
                   ))}
                 </TableBody>

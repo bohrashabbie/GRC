@@ -5,7 +5,6 @@ import { useFormatter, useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -15,6 +14,7 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { SettingEditDialog } from "@/components/settings/setting-edit-dialog"
 import {
@@ -38,7 +38,6 @@ export default function SettingsPage() {
 
 function SettingsContent() {
   const t = useTranslations("settings")
-  const c = useTranslations("common")
   const format = useFormatter()
   const [editing, setEditing] = useState<SettingOut | null>(null)
 
@@ -99,13 +98,7 @@ function SettingsContent() {
                     {format.dateTime(new Date(setting.updated_at), "short")}
                   </span>
                   <RequirePermission permission={PERMISSIONS.settingsUpdate}>
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      onClick={() => setEditing(setting)}
-                    >
-                      {c("edit")}
-                    </Button>
+                    <RowActions onEdit={() => setEditing(setting)} />
                   </RequirePermission>
                 </li>
               ))}

@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   ListEmptyState,
   ListErrorState,
@@ -24,18 +25,11 @@ import {
 } from "@/components/states/list-states"
 
 const ACTIONS_COLUMN = "actions"
-const SPACER_COLUMN = "__spacer"
 
-function spacerColumn<TData>(): ColumnDef<TData, unknown> {
-  return { id: SPACER_COLUMN, header: "", cell: () => null }
-}
-
-/** Full remaining width for the spacer, and a gap before the buttons so they
- * read as the end of the row rather than as part of the last data column. */
+/** The actions column is as wide as its buttons and no wider, so it stays a
+ * narrow strip the eye can run down instead of a moving target. */
 function cellClassName(columnId: string): string | undefined {
-  if (columnId === SPACER_COLUMN) return "w-full p-0"
-  if (columnId === ACTIONS_COLUMN) return "ps-6"
-  return undefined
+  return columnId === ACTIONS_COLUMN ? "w-px whitespace-nowrap" : undefined
 }
 
 type DataTableProps<TData> = {
@@ -71,16 +65,9 @@ export function DataTable<TData>({
   onLoadMore,
 }: DataTableProps<TData>) {
   const c = useTranslations("common")
-  // A row's buttons belong to that row, so they sit right after its last
-  // column instead of being flung to the far edge of the page — a full page
-  // width between a name and its Delete button is how staff end up deleting
-  // the wrong record. The spacer swallows the leftover width so the real
-  // columns, actions included, keep their natural size.
-  const hasActions = columns.some((column) => column.id === ACTIONS_COLUMN)
-  const laidOut = hasActions ? [...columns, spacerColumn<TData>()] : columns
   const table = useReactTable({
     data,
-    columns: laidOut,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   })
 
@@ -115,10 +102,15 @@ export function DataTable<TData>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.map((row) => (
+              // Banded rows: what lets the eye follow one record across the
+              // table to the buttons that act on it.
               <TableRow
                 key={row.id}
                 onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                className={onRowClick ? "cursor-pointer" : undefined}
+                className={cn(
+                  "even:bg-muted/30",
+                  onRowClick && "cursor-pointer"
+                )}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell

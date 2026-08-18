@@ -19,6 +19,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { OptionValueFormDialog } from "@/components/options/option-value-form-dialog"
 import {
@@ -205,22 +206,10 @@ function OptionDetailContent() {
                       </span>
                       {canManageValues && (
                         <RequirePermission permission={PERMISSIONS.catalogManage}>
-                          <div className="flex gap-1.5">
-                            <Button
-                              variant="outline"
-                              size="xs"
-                              onClick={() => openEditValue(value)}
-                            >
-                              {c("edit")}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              onClick={() => setDeletingValue(value)}
-                            >
-                              {c("delete")}
-                            </Button>
-                          </div>
+                          <RowActions
+                            onEdit={() => openEditValue(value)}
+                            onDelete={() => setDeletingValue(value)}
+                          />
                         </RequirePermission>
                       )}
                     </li>

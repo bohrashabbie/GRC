@@ -10,6 +10,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { OptionFormDialog } from "@/components/options/option-form-dialog"
 import { useCursorList } from "@/hooks/use-cursor-list"
@@ -70,24 +71,17 @@ function OptionsContent() {
     },
     {
       id: "actions",
-      header: "",
+      header: c("actions"),
+      // The row itself navigates to the option's values; RowActions stops the
+      // click from reaching it.
       cell: ({ row }) => (
         <RequirePermission permission={PERMISSIONS.catalogManage}>
-          <div className="flex justify-end">
-            <Button
-              variant="outline"
-              size="xs"
-              onClick={(event) => {
-                // The row itself navigates to the option's values, so the edit
-                // button has to stop the click reaching it.
-                event.stopPropagation()
-                setEditing(row.original)
-                setFormOpen(true)
-              }}
-            >
-              {c("edit")}
-            </Button>
-          </div>
+          <RowActions
+            onEdit={() => {
+              setEditing(row.original)
+              setFormOpen(true)
+            }}
+          />
         </RequirePermission>
       ),
     },

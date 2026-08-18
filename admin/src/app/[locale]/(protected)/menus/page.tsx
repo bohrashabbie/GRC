@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { MenuItemFormDialog } from "@/components/menus/menu-item-form-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import {
   ListEmptyState,
@@ -161,25 +162,15 @@ function MenusContent() {
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             {!item.is_active && (
                               <StatusBadge status="inactive" label={c("inactive")} />
                             )}
                             <RequirePermission permission={PERMISSIONS.cmsMenuManage}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setEditingItem(item)}
-                              >
-                                {c("edit")}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDeletingItem(item)}
-                              >
-                                {c("delete")}
-                              </Button>
+                              <RowActions
+                                onEdit={() => setEditingItem(item)}
+                                onDelete={() => setDeletingItem(item)}
+                              />
                             </RequirePermission>
                           </div>
                         </div>

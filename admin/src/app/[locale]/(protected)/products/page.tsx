@@ -22,6 +22,7 @@ import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
 import { StatusBadge } from "@/components/status-badge"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { ProductCreateDialog } from "@/components/products/product-create-dialog"
 import { useCursorList } from "@/hooks/use-cursor-list"
@@ -218,22 +219,15 @@ function ProductsContent() {
     },
     {
       id: "actions",
-      header: "",
+      header: c("actions"),
       cell: ({ row }) =>
         row.original.status !== "archived" ? (
           <RequirePermission permission={PERMISSIONS.catalogManage}>
-            <div className="flex justify-end">
-              <Button
-                variant="destructive"
-                size="xs"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  setDeleting(row.original)
-                }}
-              >
-                {t("delete")}
-              </Button>
-            </div>
+            <RowActions
+              onEdit={() => router.push("/products/" + row.original.id)}
+              onDelete={() => setDeleting(row.original)}
+              deleteLabel={t("delete")}
+            />
           </RequirePermission>
         ) : null,
     },

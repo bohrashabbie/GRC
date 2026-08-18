@@ -19,6 +19,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { CategoryFormDialog } from "@/components/categories/category-form-dialog"
 import {
@@ -210,53 +211,45 @@ function CategoryTreeRow({
   onEdit: (id: number) => void
   onDelete: (id: number, name: string) => void
 }) {
-  const c = useTranslations("common")
   const [expanded, setExpanded] = useState(true)
   const name = translatedName(node.translations, locale)
   const hasChildren = node.children.length > 0
 
   return (
     <li>
-      <div
-        className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted/50"
-        style={{ paddingInlineStart: `${node.depth * 1.25 + 0.5}rem` }}
-      >
-        {hasChildren ? (
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            aria-label={expanded ? "Collapse" : "Expand"}
-            className="text-muted-foreground"
-          >
-            <ChevronRight
-              className={`size-3.5 transition-transform rtl:-scale-x-100 ${
-                expanded ? "rotate-90 rtl:-rotate-90" : ""
-              }`}
-            />
-          </button>
-        ) : (
-          <span className="size-3.5" />
-        )}
-
-        {/* The name does not stretch: Edit and Delete sit right beside the
-            category they act on, because a page of empty space between a name
-            and its Delete button is how the wrong category gets deleted. */}
-        <span className="max-w-[22rem] truncate text-sm font-medium text-foreground">
-          {name}
-        </span>
-        <RequirePermission permission={PERMISSIONS.catalogManage}>
-          <div className="flex gap-1.5 ps-2">
-            <Button variant="outline" size="xs" onClick={() => onEdit(node.id)}>
-              {c("edit")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={() => onDelete(node.id, name)}
+      <div className="flex items-center gap-3 rounded-lg py-1.5 pe-2 hover:bg-muted/50">
+        {/* The indent lives inside a fixed-width name column, so every row's
+            buttons line up in one strip however deep the branch is - close to
+            the name they act on, and never a page-width away from it. */}
+        <div
+          className="flex min-w-0 items-center gap-2 sm:w-96"
+          style={{ paddingInlineStart: `${node.depth * 1.25 + 0.5}rem` }}
+        >
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              aria-label={expanded ? "Collapse" : "Expand"}
+              className="text-muted-foreground"
             >
-              {c("delete")}
-            </Button>
-          </div>
+              <ChevronRight
+                className={`size-3.5 transition-transform rtl:-scale-x-100 ${
+                  expanded ? "rotate-90 rtl:-rotate-90" : ""
+                }`}
+              />
+            </button>
+          ) : (
+            <span className="size-3.5" />
+          )}
+          <span className="truncate text-sm font-medium text-foreground">
+            {name}
+          </span>
+        </div>
+        <RequirePermission permission={PERMISSIONS.catalogManage}>
+          <RowActions
+            onEdit={() => onEdit(node.id)}
+            onDelete={() => onDelete(node.id, name)}
+          />
         </RequirePermission>
       </div>
 

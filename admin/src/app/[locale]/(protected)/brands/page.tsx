@@ -12,6 +12,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog"
 import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { BrandFormDialog } from "@/components/brands/brand-form-dialog"
 import { useCursorList } from "@/hooks/use-cursor-list"
@@ -83,21 +84,13 @@ function BrandsContent() {
     },
     {
       id: "actions",
-      header: "",
+      header: c("actions"),
       cell: ({ row }) => (
         <RequirePermission permission={PERMISSIONS.catalogManage}>
-          <div className="flex justify-end gap-1.5">
-            <Button variant="outline" size="xs" onClick={() => openEdit(row.original)}>
-              {c("edit")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={() => setDeleting(row.original)}
-            >
-              {c("delete")}
-            </Button>
-          </div>
+          <RowActions
+            onEdit={() => openEdit(row.original)}
+            onDelete={() => setDeleting(row.original)}
+          />
         </RequirePermission>
       ),
     },

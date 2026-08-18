@@ -10,6 +10,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import {
   ListEmptyState,
@@ -118,31 +119,29 @@ function BannersContent() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <StatusBadge
                     status={banner.is_active ? "active" : "inactive"}
                     label={banner.is_active ? c("active") : c("inactive")}
                   />
                   <RequirePermission permission={PERMISSIONS.cmsBannerManage}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
+                    <RowActions
+                      onEdit={() => {
                         setEditing(banner)
                         setFormOpen(true)
                       }}
-                    >
-                      {c("edit")}
-                    </Button>
-                    {banner.is_active && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeactivating(banner)}
-                      >
-                        {c("deactivate")}
-                      </Button>
-                    )}
+                      extra={
+                        banner.is_active ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeactivating(banner)}
+                          >
+                            {c("deactivate")}
+                          </Button>
+                        ) : null
+                      }
+                    />
                   </RequirePermission>
                 </div>
               </div>
