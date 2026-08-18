@@ -19,7 +19,14 @@ import {
 } from "@/components/states/list-states"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { pagesApi } from "@/lib/api/endpoints"
 import { useDeletionMessage } from "@/lib/deletion"
 import { usePermission } from "@/hooks/use-permission"
@@ -124,52 +131,60 @@ function PagesContent() {
       ) : items.length === 0 ? (
         <ListEmptyState title={t("empty")} />
       ) : (
-        <Card>
-          <CardContent className="flex flex-col divide-y p-0">
-            {items.map((page) => (
-              <div
-                key={page.id}
-                className="flex flex-wrap items-center gap-4 p-4"
-              >
-                {/* Fixed-width name column: the buttons line up with each
-                    other and still sit next to the page they belong to. */}
-                <div className="flex min-w-0 flex-col gap-1 sm:w-72">
-                  <span className="truncate font-medium">{title(page)}</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {page.code} · {slug(page)}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <StatusBadge
-                    status={page.status === "published" ? "active" : "inactive"}
-                    label={t(`statuses.${page.status}`)}
-                  />
-                  <RowActions
-                    onEdit={
-                      canManage ? () => {
-                        setEditing(page)
-                        setFormOpen(true)
-                      } : undefined
-                    }
-                    onDelete={canPublish ? () => setDeleting(page) : undefined}
-                    extra={
-                      canPublish && page.status === "published" ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setUnpublishing(page)}
-                        >
-                          {t("unpublish")}
-                        </Button>
-                      ) : null
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.page")}</TableHead>
+                <TableHead>{t("columns.slug")}</TableHead>
+                <TableHead>{c("status")}</TableHead>
+                <TableHead className="w-px">{c("actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((page) => (
+                <TableRow key={page.id} className="even:bg-muted/30">
+                  <TableCell className="font-medium text-foreground">
+                    {title(page)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {slug(page)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      status={page.status === "published" ? "active" : "inactive"}
+                      label={t(`statuses.${page.status}`)}
+                    />
+                  </TableCell>
+                  <TableCell className="w-px whitespace-nowrap">
+                    <RowActions
+                      onEdit={
+                        canManage
+                          ? () => {
+                              setEditing(page)
+                              setFormOpen(true)
+                            }
+                          : undefined
+                      }
+                      onDelete={canPublish ? () => setDeleting(page) : undefined}
+                      extra={
+                        canPublish && page.status === "published" ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setUnpublishing(page)}
+                          >
+                            {t("unpublish")}
+                          </Button>
+                        ) : null
+                      }
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {formOpen && (

@@ -15,6 +15,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PageHeader } from "@/components/page-header"
@@ -170,51 +178,76 @@ function OptionDetailContent() {
                 <ListEmptyState description={t("values.empty")} />
               )}
               {values.length > 0 && (
-                <ul className="flex flex-col gap-2">
-                  {values.map((value) => (
-                    <li
-                      key={value.id}
-                      className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
-                    >
-                      {value.hex_color && (
-                        <span
-                          aria-hidden
-                          className="size-6 shrink-0 rounded-md border border-border"
-                          style={{ backgroundColor: value.hex_color }}
-                        />
-                      )}
-                      {/* A fixed column, not flex-1: the row's buttons stay
-                          beside the value they act on. */}
-                      <span className="truncate text-sm font-medium text-foreground sm:w-48">
-                        {translatedLabel(value.translations, locale)}
-                      </span>
-                      <code className="text-xs text-muted-foreground">
-                        {value.code}
-                      </code>
-                      {value.length_cm != null && (
-                        <span className="text-xs text-muted-foreground">
-                          {t("values.lengthCm")}: {value.length_cm}
-                        </span>
-                      )}
-                      {value.width_cm != null && (
-                        <span className="text-xs text-muted-foreground">
-                          {t("values.widthCm")}: {value.width_cm}
-                        </span>
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        #{value.sort_order}
-                      </span>
-                      {canManageValues && (
-                        <RequirePermission permission={PERMISSIONS.catalogManage}>
-                          <RowActions
-                            onEdit={() => openEditValue(value)}
-                            onDelete={() => setDeletingValue(value)}
-                          />
-                        </RequirePermission>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+                <div className="overflow-x-auto rounded-lg border border-border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("values.columns.label")}</TableHead>
+                        {isSwatchOption ? (
+                          <TableHead>{t("values.columns.color")}</TableHead>
+                        ) : (
+                          <>
+                            <TableHead>{t("values.lengthCm")}</TableHead>
+                            <TableHead>{t("values.widthCm")}</TableHead>
+                          </>
+                        )}
+                        <TableHead>{t("values.columns.sortOrder")}</TableHead>
+                        <TableHead className="w-px">{c("actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {values.map((value) => (
+                        <TableRow key={value.id} className="even:bg-muted/30">
+                          <TableCell className="font-medium text-foreground">
+                            {translatedLabel(value.translations, locale)}
+                          </TableCell>
+                          {isSwatchOption ? (
+                            <TableCell>
+                              {value.hex_color ? (
+                                <span className="flex items-center gap-2">
+                                  <span
+                                    aria-hidden
+                                    className="size-5 shrink-0 rounded-md border border-border"
+                                    style={{ backgroundColor: value.hex_color }}
+                                  />
+                                  <span className="text-xs text-muted-foreground">
+                                    {value.hex_color}
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                          ) : (
+                            <>
+                              <TableCell className="tabular-nums">
+                                {value.length_cm ?? "—"}
+                              </TableCell>
+                              <TableCell className="tabular-nums">
+                                {value.width_cm ?? "—"}
+                              </TableCell>
+                            </>
+                          )}
+                          <TableCell className="tabular-nums">
+                            {value.sort_order}
+                          </TableCell>
+                          <TableCell className="w-px whitespace-nowrap">
+                            {canManageValues && (
+                              <RequirePermission
+                                permission={PERMISSIONS.catalogManage}
+                              >
+                                <RowActions
+                                  onEdit={() => openEditValue(value)}
+                                  onDelete={() => setDeletingValue(value)}
+                                />
+                              </RequirePermission>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>

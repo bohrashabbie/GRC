@@ -19,7 +19,14 @@ import {
 } from "@/components/states/list-states"
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { bannersApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { PERMISSIONS } from "@/lib/permissions"
@@ -102,52 +109,61 @@ function BannersContent() {
       ) : banners.length === 0 ? (
         <ListEmptyState title={t("empty")} />
       ) : (
-        <Card>
-          <CardContent className="flex flex-col divide-y p-0">
-            {banners.map((banner) => (
-              <div
-                key={banner.id}
-                className="flex flex-wrap items-center gap-4 p-4"
-              >
-                {/* Fixed-width name column: the buttons line up with each
-                    other and still sit next to the banner they belong to. */}
-                <div className="flex min-w-0 flex-col gap-1 sm:w-72">
-                  <span className="truncate font-medium">{headline(banner)}</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {t("placements.home_hero")} · {t("fields.sortOrder")}{" "}
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.banner")}</TableHead>
+                <TableHead>{t("columns.placement")}</TableHead>
+                <TableHead>{t("columns.order")}</TableHead>
+                <TableHead>{c("status")}</TableHead>
+                <TableHead className="w-px">{c("actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {banners.map((banner) => (
+                <TableRow key={banner.id} className="even:bg-muted/30">
+                  <TableCell className="font-medium text-foreground">
+                    {headline(banner)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {t("placements.home_hero")}
+                  </TableCell>
+                  <TableCell className="tabular-nums">
                     {banner.sort_order}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <StatusBadge
-                    status={banner.is_active ? "active" : "inactive"}
-                    label={banner.is_active ? c("active") : c("inactive")}
-                  />
-                  <RequirePermission permission={PERMISSIONS.cmsBannerManage}>
-                    <RowActions
-                      onEdit={() => {
-                        setEditing(banner)
-                        setFormOpen(true)
-                      }}
-                      extra={
-                        banner.is_active ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeactivating(banner)}
-                          >
-                            {c("deactivate")}
-                          </Button>
-                        ) : null
-                      }
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge
+                      status={banner.is_active ? "active" : "inactive"}
+                      label={banner.is_active ? c("active") : c("inactive")}
                     />
-                  </RequirePermission>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+                  </TableCell>
+                  <TableCell className="w-px whitespace-nowrap">
+                    <RequirePermission permission={PERMISSIONS.cmsBannerManage}>
+                      <RowActions
+                        onEdit={() => {
+                          setEditing(banner)
+                          setFormOpen(true)
+                        }}
+                        extra={
+                          banner.is_active ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setDeactivating(banner)}
+                            >
+                              {c("deactivate")}
+                            </Button>
+                          ) : null
+                        }
+                      />
+                    </RequirePermission>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {formOpen && (

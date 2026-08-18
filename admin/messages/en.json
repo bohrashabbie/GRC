@@ -835,6 +835,11 @@
     "noImage": "No image set."
   },
   "banners": {
+    "columns": {
+      "banner": "Banner",
+      "placement": "Placement",
+      "order": "Order"
+    },
     "title": "Banners",
     "description": "Hero slides shown in the homepage banner slider.",
     "newBanner": "New banner",
@@ -889,6 +894,10 @@
     }
   },
   "pages": {
+    "columns": {
+      "page": "Page",
+      "slug": "Slug"
+    },
     "title": "Pages",
     "description": "Static pages such as shipping, returns and terms.",
     "editTitle": "Edit page",
@@ -933,6 +942,10 @@
     "created": "Page created"
   },
   "menus": {
+    "columns": {
+      "item": "Item",
+      "destination": "Destination"
+    },
     "title": "Menus",
     "description": "Header and footer navigation shown on the storefront.",
     "empty": "No menus yet.",

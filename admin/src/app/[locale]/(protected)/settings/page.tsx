@@ -11,6 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
@@ -38,6 +46,7 @@ export default function SettingsPage() {
 
 function SettingsContent() {
   const t = useTranslations("settings")
+  const cm = useTranslations("common")
   const format = useFormatter()
   const [editing, setEditing] = useState<SettingOut | null>(null)
 
@@ -77,32 +86,46 @@ function SettingsContent() {
             <CardTitle>{humanizeStatus(group)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="flex flex-col gap-2">
-              {byGroup.get(group)!.map((setting) => (
-                <li
-                  key={setting.key}
-                  className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
-                >
-                  <div className="flex min-w-0 flex-col gap-0.5 sm:w-96">
-                    <code className="text-xs font-medium text-foreground">
-                      {setting.key}
-                    </code>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {JSON.stringify(setting.value)}
-                    </span>
-                  </div>
-                  {setting.is_public && (
-                    <Badge variant="outline">{t("public")}</Badge>
-                  )}
-                  <span className="text-xs text-muted-foreground">
-                    {format.dateTime(new Date(setting.updated_at), "short")}
-                  </span>
-                  <RequirePermission permission={PERMISSIONS.settingsUpdate}>
-                    <RowActions onEdit={() => setEditing(setting)} />
-                  </RequirePermission>
-                </li>
-              ))}
-            </ul>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("key")}</TableHead>
+                    <TableHead>{t("value")}</TableHead>
+                    <TableHead>{t("public")}</TableHead>
+                    <TableHead>{t("updatedAt")}</TableHead>
+                    <TableHead className="w-px">{cm("actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {byGroup.get(group)!.map((setting) => (
+                    <TableRow key={setting.key} className="even:bg-muted/30">
+                      <TableCell className="font-medium text-foreground">
+                        {setting.key}
+                      </TableCell>
+                      <TableCell className="max-w-md truncate text-muted-foreground">
+                        {JSON.stringify(setting.value)}
+                      </TableCell>
+                      <TableCell>
+                        {setting.is_public ? (
+                          <Badge variant="outline">{t("public")}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {format.dateTime(new Date(setting.updated_at), "short")}
+                      </TableCell>
+                      <TableCell className="w-px whitespace-nowrap">
+                        <RequirePermission permission={PERMISSIONS.settingsUpdate}>
+                          <RowActions onEdit={() => setEditing(setting)} />
+                        </RequirePermission>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       ))}

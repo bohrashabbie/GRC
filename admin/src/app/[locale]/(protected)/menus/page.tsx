@@ -20,6 +20,14 @@ import {
 import { StatusBadge } from "@/components/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { menusApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { PERMISSIONS } from "@/lib/permissions"
@@ -136,45 +144,55 @@ function MenusContent() {
                       {t("noItems")}
                     </p>
                   ) : (
-                    <div className="flex flex-col divide-y">
-                      {rows.map(({ item, depth }) => (
-                        <div
-                          key={item.id}
-                          className="flex flex-wrap items-center gap-4 px-6 py-3"
-                        >
-                          {/* Fixed-width label column: the buttons line up
-                              with each other and still sit next to the menu
-                              item they belong to. */}
-                          <div
-                            className="flex min-w-0 flex-col gap-0.5 sm:w-72"
-                            style={{ paddingInlineStart: depth * 20 }}
-                          >
-                            <span className="truncate text-sm font-medium">
-                              {labelOf(item)}
-                              {item.badge_code && (
-                                <span className="ms-2 rounded bg-muted px-1.5 py-0.5 text-xs">
-                                  {item.badge_code}
+                    <div className="overflow-x-auto border-t border-border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{t("columns.item")}</TableHead>
+                            <TableHead>{t("columns.destination")}</TableHead>
+                            <TableHead>{c("status")}</TableHead>
+                            <TableHead className="w-px">{c("actions")}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {rows.map(({ item, depth }) => (
+                            <TableRow key={item.id} className="even:bg-muted/30">
+                              <TableCell className="font-medium text-foreground">
+                                <span
+                                  className="flex items-center gap-2"
+                                  style={{ paddingInlineStart: depth * 20 }}
+                                >
+                                  {labelOf(item)}
+                                  {item.badge_code && (
+                                    <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-normal">
+                                      {item.badge_code}
+                                    </span>
+                                  )}
                                 </span>
-                              )}
-                            </span>
-                            <span className="truncate text-xs text-muted-foreground">
-                              {destination(item)}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            {!item.is_active && (
-                              <StatusBadge status="inactive" label={c("inactive")} />
-                            )}
-                            <RequirePermission permission={PERMISSIONS.cmsMenuManage}>
-                              <RowActions
-                                onEdit={() => setEditingItem(item)}
-                                onDelete={() => setDeletingItem(item)}
-                              />
-                            </RequirePermission>
-                          </div>
-                        </div>
-                      ))}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground">
+                                {destination(item)}
+                              </TableCell>
+                              <TableCell>
+                                <StatusBadge
+                                  status={item.is_active ? "active" : "inactive"}
+                                  label={item.is_active ? c("active") : c("inactive")}
+                                />
+                              </TableCell>
+                              <TableCell className="w-px whitespace-nowrap">
+                                <RequirePermission
+                                  permission={PERMISSIONS.cmsMenuManage}
+                                >
+                                  <RowActions
+                                    onEdit={() => setEditingItem(item)}
+                                    onDelete={() => setDeletingItem(item)}
+                                  />
+                                </RequirePermission>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </CardContent>

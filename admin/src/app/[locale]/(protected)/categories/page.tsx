@@ -7,7 +7,14 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import {
   Select,
   SelectContent,
@@ -55,6 +62,10 @@ function CategoriesContent() {
   const [dimensionParam, setDimensionParam] = useQueryParam("dimension")
   const dimension = dimensionParam ?? CATEGORY_DIMENSIONS[0]
 
+  // Which branches are folded shut. Kept here rather than in each row,
+  // because the tree renders as one flat table.
+  const [collapsed, setCollapsed] = useState<ReadonlySet<number>>(new Set())
+
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<CategoryOut | undefined>()
   const [deleting, setDeleting] = useState<{
@@ -74,6 +85,15 @@ function CategoriesContent() {
   // delete reads as a delete. Pruning a branch takes its children with it,
   // which matches the API refusing to delete a parent that still has any.
   const liveTree = pruneInactive(treeQuery.data ?? [])
+  const visibleRows = flattenTree(liveTree, collapsed)
+
+  function toggleBranch(categoryId: number) {
+    setCollapsed((current) => {
+      const next = new Set(current)
+      if (!next.delete(categoryId)) next.add(categoryId)
+      return next
+    })
+  }
 
   async function openEdit(categoryId: number) {
     // The tree endpoint returns a trimmed node; the form needs the full record
@@ -136,36 +156,73 @@ function CategoriesContent() {
         </SelectContent>
       </Select>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("treeTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {treeQuery.isLoading && <ListLoadingSkeleton rows={5} />}
-          {treeQuery.isError && (
-            <ListErrorState
-              error={treeQuery.error}
-              onRetry={() => treeQuery.refetch()}
-            />
-          )}
-          {treeQuery.data && liveTree.length === 0 && (
-            <ListEmptyState description={t("empty")} />
-          )}
-          {treeQuery.data && liveTree.length > 0 && (
-            <ul className="flex flex-col gap-1">
-              {liveTree.map((node) => (
-                <CategoryTreeRow
-                  key={node.id}
-                  node={node}
-                  locale={locale}
-                  onEdit={openEdit}
-                  onDelete={(id, name) => setDeleting({ id, name })}
-                />
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+      {treeQuery.isLoading && <ListLoadingSkeleton rows={5} />}
+      {treeQuery.isError && (
+        <ListErrorState
+          error={treeQuery.error}
+          onRetry={() => treeQuery.refetch()}
+        />
+      )}
+      {treeQuery.data && liveTree.length === 0 && (
+        <ListEmptyState description={t("empty")} />
+      )}
+      {treeQuery.data && liveTree.length > 0 && (
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.name")}</TableHead>
+                <TableHead className="w-px">{c("actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visibleRows.map(({ node, depth }) => {
+                const name = translatedName(node.translations, locale)
+                const hasChildren = node.children.length > 0
+                const isCollapsed = collapsed.has(node.id)
+                return (
+                  <TableRow key={node.id} className="even:bg-muted/30">
+                    <TableCell>
+                      <div
+                        className="flex items-center gap-2"
+                        style={{ paddingInlineStart: depth * 1.5 + "rem" }}
+                      >
+                        {hasChildren ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleBranch(node.id)}
+                            aria-label={isCollapsed ? "Expand" : "Collapse"}
+                            className="text-muted-foreground"
+                          >
+                            <ChevronRight
+                              className={`size-3.5 transition-transform rtl:-scale-x-100 ${
+                                isCollapsed ? "" : "rotate-90 rtl:-rotate-90"
+                              }`}
+                            />
+                          </button>
+                        ) : (
+                          <span className="size-3.5" />
+                        )}
+                        <span className="font-medium text-foreground">
+                          {name}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="w-px whitespace-nowrap">
+                      <RequirePermission permission={PERMISSIONS.catalogManage}>
+                        <RowActions
+                          onEdit={() => openEdit(node.id)}
+                          onDelete={() => setDeleting({ id: node.id, name })}
+                        />
+                      </RequirePermission>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {formOpen && (
         <CategoryFormDialog
@@ -198,74 +255,21 @@ function pruneInactive(nodes: CategoryTreeNode[]): CategoryTreeNode[] {
     .map((node) => ({ ...node, children: pruneInactive(node.children) }))
 }
 
-/** One node plus its children, indented by depth. Recursion mirrors the
- * nested shape the /categories/tree endpoint already returns. */
-function CategoryTreeRow({
-  node,
-  locale,
-  onEdit,
-  onDelete,
-}: {
-  node: CategoryTreeNode
-  locale: string
-  onEdit: (id: number) => void
-  onDelete: (id: number, name: string) => void
-}) {
-  const [expanded, setExpanded] = useState(true)
-  const name = translatedName(node.translations, locale)
-  const hasChildren = node.children.length > 0
-
-  return (
-    <li>
-      <div className="flex items-center gap-3 rounded-lg py-1.5 pe-2 hover:bg-muted/50">
-        {/* The indent lives inside a fixed-width name column, so every row's
-            buttons line up in one strip however deep the branch is - close to
-            the name they act on, and never a page-width away from it. */}
-        <div
-          className="flex min-w-0 items-center gap-2 sm:w-96"
-          style={{ paddingInlineStart: `${node.depth * 1.25 + 0.5}rem` }}
-        >
-          {hasChildren ? (
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              aria-label={expanded ? "Collapse" : "Expand"}
-              className="text-muted-foreground"
-            >
-              <ChevronRight
-                className={`size-3.5 transition-transform rtl:-scale-x-100 ${
-                  expanded ? "rotate-90 rtl:-rotate-90" : ""
-                }`}
-              />
-            </button>
-          ) : (
-            <span className="size-3.5" />
-          )}
-          <span className="truncate text-sm font-medium text-foreground">
-            {name}
-          </span>
-        </div>
-        <RequirePermission permission={PERMISSIONS.catalogManage}>
-          <RowActions
-            onEdit={() => onEdit(node.id)}
-            onDelete={() => onDelete(node.id, name)}
-          />
-        </RequirePermission>
-      </div>
-
-      {hasChildren && expanded && (
-        <ul className="flex flex-col gap-1">
-          {node.children.map((child) => (
-            <CategoryTreeRow
-              key={child.id}
-              node={child}
-              locale={locale}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ))}
-        </ul>
-      )}
-    </li>
-  )
+/** The tree as one list of rows, parents before their children, with the
+ * children of a folded branch left out. Depth rides along so the name cell can
+ * indent; the table itself stays flat, so every row's buttons land in the same
+ * column as they do on every other listing. */
+function flattenTree(
+  nodes: CategoryTreeNode[],
+  collapsed: ReadonlySet<number>,
+  depth = 0
+): { node: CategoryTreeNode; depth: number }[] {
+  const rows: { node: CategoryTreeNode; depth: number }[] = []
+  for (const node of nodes) {
+    rows.push({ node, depth })
+    if (node.children.length > 0 && !collapsed.has(node.id)) {
+      rows.push(...flattenTree(node.children, collapsed, depth + 1))
+    }
+  }
+  return rows
 }
