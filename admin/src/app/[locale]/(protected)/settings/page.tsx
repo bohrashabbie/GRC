@@ -84,7 +84,7 @@ function SettingsContent() {
                   key={setting.key}
                   className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
                 >
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <div className="flex min-w-0 flex-col gap-0.5 sm:w-96">
                     <code className="text-xs font-medium text-foreground">
                       {setting.key}
                     </code>

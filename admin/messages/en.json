@@ -284,7 +284,6 @@
     "empty": "No brands yet. Create the first one to start tagging products.",
     "columns": {
       "name": "Brand",
-      "code": "Code",
       "sortOrder": "Order",
       "status": "Status"
     }
@@ -458,7 +457,7 @@
     },
     "variants": {
       "title": "Variants",
-      "description": "Every sellable combination, with its own SKU, price, and stock.",
+      "description": "Every sellable combination, with its own price and stock.",
       "matrixTitle": "Add variant combinations",
       "matrixDescription": "Tick the combinations that actually exist — combinations are created explicitly, never as a full cartesian product.",
       "generate": "Create selected variants",
@@ -468,6 +467,7 @@
       "noOptions": "No options defined yet. Create options and values first, then come back to build variants.",
       "limitExceeded": "Too many combinations selected. The backend caps a product at 300 variants.",
       "empty": "No variants yet.",
+      "defaultVariant": "Default",
       "editPrice": "Edit price",
       "priceUpdated": "Price updated.",
       "variantUpdated": "Variant updated.",
@@ -476,7 +476,6 @@
       "discontinueTitle": "Discontinue this variant?",
       "discontinueDescription": "{sku} stops being sellable. It is never deleted, because orders reference it.",
       "columns": {
-        "sku": "SKU",
         "options": "Options",
         "price": "Price",
         "costPrice": "Cost",
@@ -549,7 +548,6 @@
     "deactivateDescription": "{name} can no longer be selected for new purchase orders. Existing orders are unaffected.",
     "empty": "No suppliers yet.",
     "fields": {
-      "code": "Code",
       "name": "Name",
       "contactName": "Contact name",
       "email": "Email",
@@ -563,7 +561,6 @@
     },
     "columns": {
       "name": "Supplier",
-      "code": "Code",
       "contact": "Contact",
       "terms": "Terms",
       "status": "Status"

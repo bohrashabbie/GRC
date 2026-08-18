@@ -27,7 +27,7 @@ from app.models.catalog import (
     ProductMedia,
     VariantOptionValue,
 )
-from app.utils import slugify
+from app.utils import slugify, unique_code
 
 _LTREE_UNSAFE = re.compile(r"[^A-Za-z0-9_]+")
 
@@ -85,9 +85,28 @@ def _sync_label_translations(db: Session, existing: list, translations_in: list,
 # Brands
 # --------------------------------------------------------------------------
 
+def _auto_brand_code(db: Session, translations) -> str:
+    """Derive a code for a brand the admin did not name one for.
+
+    Codes are not something the business has — staff name a brand and nothing
+    else — but brands.code is NOT NULL and unique, so one still has to exist.
+    English is preferred because it slugs to ASCII; an Arabic-only brand falls
+    back to its Arabic slug, and a neutral stem covers a name that slugs to
+    nothing. A numeric suffix resolves any clash.
+    """
+    by_locale = {t.locale: t.name for t in translations}
+    english = (by_locale.get("en") or "").strip()
+    arabic = (by_locale.get("ar") or "").strip()
+    base = slugify(english, "en") if english else slugify(arabic, "ar")
+    return unique_code(db, Brand, base, "brand")
+
+
 def create_brand(db: Session, data) -> Brand:
     brand = Brand(
-        code=data.code, logo_media_id=data.logo_media_id, sort_order=data.sort_order, is_active=data.is_active
+        code=data.code or _auto_brand_code(db, data.translations),
+        logo_media_id=data.logo_media_id,
+        sort_order=data.sort_order,
+        is_active=data.is_active,
     )
     db.add(brand)
     db.flush()
@@ -199,14 +218,9 @@ def _auto_category_code(db: Session, translations) -> str:
     by_locale = {t.locale: t.name for t in translations}
     english = by_locale.get("en") or ""
     base = _ltree_label(slugify(english, "en")) if english.strip() else ""
-    if not base or base == "n":
-        base = "cat"
-    candidate = base
-    suffix = 2
-    while db.execute(select(Category.id).where(Category.code == candidate)).first() is not None:
-        candidate = f"{base}_{suffix}"
-        suffix += 1
-    return candidate
+    if base == "n":
+        base = ""
+    return unique_code(db, Category, base, "cat")
 
 
 def create_category(db: Session, data) -> Category:

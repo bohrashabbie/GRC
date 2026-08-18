@@ -37,10 +37,8 @@ const OPTIONAL_INT = z
   .optional()
 
 function useSupplierSchema() {
-  const cat = useTranslations("catalog")
   const v = useTranslations("validation")
   return z.object({
-    code: z.string().min(1, cat("validation.codeRequired")),
     name: z.string().min(1),
     contact_name: z.string().optional(),
     email: z.string().email(v("emailInvalid")).or(z.literal("")).optional(),
@@ -59,7 +57,6 @@ function useSupplierSchema() {
 
 type FormValues = z.infer<ReturnType<typeof useSupplierSchema>>
 const FIELD_NAMES = [
-  "code",
   "name",
   "contact_name",
   "email",
@@ -88,7 +85,6 @@ export function SupplierFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      code: supplier?.code ?? "",
       name: supplier?.name ?? "",
       contact_name: supplier?.contact_name ?? "",
       email: supplier?.email ?? "",
@@ -129,9 +125,9 @@ export function SupplierFormDialog({
 
     try {
       if (isEdit) {
-        await suppliersApi.update(supplier.id, { ...payload, code: values.code })
+        await suppliersApi.update(supplier.id, payload)
       } else {
-        await suppliersApi.create({ ...payload, code: values.code })
+        await suppliersApi.create(payload)
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all })
       toast.success(isEdit ? t("updated") : t("created"))
@@ -162,34 +158,19 @@ export function SupplierFormDialog({
             className="flex flex-col gap-4"
             noValidate
           >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("fields.name")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("fields.code")}</FormLabel>
-                    <FormControl>
-                      <Input dir="ltr" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("fields.name")}</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField

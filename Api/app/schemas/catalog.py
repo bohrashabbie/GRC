@@ -48,7 +48,9 @@ class LabelTranslationOut(BaseModel):
 # --------------------------------------------------------------------------
 
 class BrandCreate(BaseModel):
-    code: str
+    # Optional: the admin no longer asks for one. The service derives a unique
+    # slug-shaped code from the name when this is omitted.
+    code: str | None = None
     logo_media_id: int | None = None
     sort_order: int = 0
     is_active: bool = True

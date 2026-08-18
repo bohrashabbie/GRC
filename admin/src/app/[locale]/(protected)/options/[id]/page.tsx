@@ -182,7 +182,9 @@ function OptionDetailContent() {
                           style={{ backgroundColor: value.hex_color }}
                         />
                       )}
-                      <span className="flex-1 text-sm font-medium text-foreground">
+                      {/* A fixed column, not flex-1: the row's buttons stay
+                          beside the value they act on. */}
+                      <span className="truncate text-sm font-medium text-foreground sm:w-48">
                         {translatedLabel(value.translations, locale)}
                       </span>
                       <code className="text-xs text-muted-foreground">

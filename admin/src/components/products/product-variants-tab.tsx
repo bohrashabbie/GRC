@@ -96,6 +96,18 @@ export function ProductVariantsTab({
     return map
   }, [valueQueries, locale])
 
+  // What a variant is called wherever it has to be named: its option values,
+  // or the default label for the one variant a simple product carries. Staff
+  // never see the SKU — it is generated, not chosen, and means nothing to them.
+  function variantLabel(variant: VariantOut) {
+    if (variant.option_value_ids.length === 0) {
+      return t("variants.defaultVariant")
+    }
+    return variant.option_value_ids
+      .map((id) => valueLabelById.get(id) ?? `#${id}`)
+      .join(" · ")
+  }
+
   const variantsData = variantsQuery.data
 
   // Re-seed the draft whenever the server's numbers change, so a save (or
@@ -155,7 +167,7 @@ export function ProductVariantsTab({
       await queryClient.invalidateQueries({
         queryKey: queryKeys.products.variants(productId),
       })
-      toast.success(deletionMessage(result, variant.sku))
+      toast.success(deletionMessage(result, variantLabel(variant)))
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
       throw error
@@ -204,7 +216,6 @@ export function ProductVariantsTab({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("variants.columns.sku")}</TableHead>
                     <TableHead>{t("variants.columns.options")}</TableHead>
                     <TableHead>{t("variants.realPrice")}</TableHead>
                     <TableHead>{t("variants.offerPrice")}</TableHead>
@@ -213,20 +224,16 @@ export function ProductVariantsTab({
                     </TableHead>
                     <TableHead>{t("variants.columns.status")}</TableHead>
                     <TableHead />
+                    {/* Swallows the leftover width so the row's buttons stay
+                        beside the row instead of at the far edge. */}
+                    <TableHead className="w-full p-0" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {variants.map((variant) => (
                     <TableRow key={variant.id}>
                       <TableCell className="font-medium">
-                        <code className="text-xs">{variant.sku}</code>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {variant.option_value_ids.length === 0
-                          ? "—"
-                          : variant.option_value_ids
-                              .map((id) => valueLabelById.get(id) ?? `#${id}`)
-                              .join(" · ")}
+                        {variantLabel(variant)}
                       </TableCell>
                       {/* A compare-at price means the variant is on offer: the
                           higher number is the real price and what it charges
@@ -281,8 +288,8 @@ export function ProductVariantsTab({
                           label={variant.is_active ? c("active") : c("inactive")}
                         />
                       </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-1.5">
+                      <TableCell className="ps-6">
+                        <div className="flex gap-1.5">
                           <RequirePermission
                             permission={PERMISSIONS.variantPriceEdit}
                           >
@@ -314,6 +321,7 @@ export function ProductVariantsTab({
                           </RequirePermission>
                         </div>
                       </TableCell>
+                      <TableCell className="w-full p-0" />
                     </TableRow>
                   ))}
                 </TableBody>
@@ -359,6 +367,7 @@ export function ProductVariantsTab({
         <VariantPriceDialog
           key={pricing.id}
           variant={pricing}
+          label={variantLabel(pricing)}
           productId={productId}
           open={!!pricing}
           onOpenChange={(open) => !open && setPricing(null)}
@@ -369,7 +378,7 @@ export function ProductVariantsTab({
         <ConfirmDialog
           open={!!deleting}
           onOpenChange={(open) => !open && setDeleting(null)}
-          title={del("confirmTitle", { name: deleting.sku })}
+          title={del("confirmTitle", { name: variantLabel(deleting) })}
           description={del("confirmDescription")}
           confirmLabel={c("delete")}
           onConfirm={() => handleDelete(deleting)}

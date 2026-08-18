@@ -23,6 +23,21 @@ import {
   ListLoadingSkeleton,
 } from "@/components/states/list-states"
 
+const ACTIONS_COLUMN = "actions"
+const SPACER_COLUMN = "__spacer"
+
+function spacerColumn<TData>(): ColumnDef<TData, unknown> {
+  return { id: SPACER_COLUMN, header: "", cell: () => null }
+}
+
+/** Full remaining width for the spacer, and a gap before the buttons so they
+ * read as the end of the row rather than as part of the last data column. */
+function cellClassName(columnId: string): string | undefined {
+  if (columnId === SPACER_COLUMN) return "w-full p-0"
+  if (columnId === ACTIONS_COLUMN) return "ps-6"
+  return undefined
+}
+
 type DataTableProps<TData> = {
   columns: ColumnDef<TData, unknown>[]
   data: TData[]
@@ -56,9 +71,16 @@ export function DataTable<TData>({
   onLoadMore,
 }: DataTableProps<TData>) {
   const c = useTranslations("common")
+  // A row's buttons belong to that row, so they sit right after its last
+  // column instead of being flung to the far edge of the page — a full page
+  // width between a name and its Delete button is how staff end up deleting
+  // the wrong record. The spacer swallows the leftover width so the real
+  // columns, actions included, keep their natural size.
+  const hasActions = columns.some((column) => column.id === ACTIONS_COLUMN)
+  const laidOut = hasActions ? [...columns, spacerColumn<TData>()] : columns
   const table = useReactTable({
     data,
-    columns,
+    columns: laidOut,
     getCoreRowModel: getCoreRowModel(),
   })
 
@@ -76,7 +98,10 @@ export function DataTable<TData>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={cellClassName(header.column.id)}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -96,7 +121,10 @@ export function DataTable<TData>({
                 className={onRowClick ? "cursor-pointer" : undefined}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className={cellClassName(cell.column.id)}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

@@ -139,10 +139,13 @@ function MenusContent() {
                       {rows.map(({ item, depth }) => (
                         <div
                           key={item.id}
-                          className="flex flex-wrap items-center justify-between gap-3 px-6 py-3"
+                          className="flex flex-wrap items-center gap-4 px-6 py-3"
                         >
+                          {/* Fixed-width label column: the buttons line up
+                              with each other and still sit next to the menu
+                              item they belong to. */}
                           <div
-                            className="flex min-w-0 flex-col gap-0.5"
+                            className="flex min-w-0 flex-col gap-0.5 sm:w-72"
                             style={{ paddingInlineStart: depth * 20 }}
                           >
                             <span className="truncate text-sm font-medium">
@@ -153,7 +156,7 @@ function MenusContent() {
                                 </span>
                               )}
                             </span>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="truncate text-xs text-muted-foreground">
                               {destination(item)}
                             </span>
                           </div>

@@ -18,6 +18,7 @@ from app.models.purchasing import (
     Supplier,
 )
 from app.services import audit_service, deletion, inventory_service
+from app.utils import slugify, unique_code
 
 
 def _sequence_number(prefix: str) -> str:
@@ -29,8 +30,21 @@ def _sequence_number(prefix: str) -> str:
 # Suppliers
 # --------------------------------------------------------------------------
 
+def _auto_supplier_code(db: Session, name: str) -> str:
+    """Derive a code for a supplier the admin did not name one for.
+
+    Codes are not something the business has — staff name a supplier and
+    nothing else — but suppliers.code is NOT NULL and unique, so one still has
+    to exist. It is a slug of the name, with a neutral stem for a name that
+    slugs to nothing and a numeric suffix to resolve a clash.
+    """
+    return unique_code(db, Supplier, slugify(name), "supplier")
+
+
 def create_supplier(db: Session, data) -> Supplier:
-    supplier = Supplier(**data.model_dump())
+    fields = data.model_dump()
+    fields["code"] = fields.get("code") or _auto_supplier_code(db, data.name)
+    supplier = Supplier(**fields)
     db.add(supplier)
     db.commit()
     db.refresh(supplier)

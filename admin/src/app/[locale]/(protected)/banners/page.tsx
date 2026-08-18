@@ -106,11 +106,13 @@ function BannersContent() {
             {banners.map((banner) => (
               <div
                 key={banner.id}
-                className="flex flex-wrap items-center justify-between gap-3 p-4"
+                className="flex flex-wrap items-center gap-4 p-4"
               >
-                <div className="flex min-w-0 flex-col gap-1">
+                {/* Fixed-width name column: the buttons line up with each
+                    other and still sit next to the banner they belong to. */}
+                <div className="flex min-w-0 flex-col gap-1 sm:w-72">
                   <span className="truncate font-medium">{headline(banner)}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="truncate text-xs text-muted-foreground">
                     {t("placements.home_hero")} · {t("fields.sortOrder")}{" "}
                     {banner.sort_order}
                   </span>

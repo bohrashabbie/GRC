@@ -238,11 +238,14 @@ function CategoryTreeRow({
           <span className="size-3.5" />
         )}
 
-        <span className="flex-1 truncate text-sm font-medium text-foreground">
+        {/* The name does not stretch: Edit and Delete sit right beside the
+            category they act on, because a page of empty space between a name
+            and its Delete button is how the wrong category gets deleted. */}
+        <span className="max-w-[22rem] truncate text-sm font-medium text-foreground">
           {name}
         </span>
         <RequirePermission permission={PERMISSIONS.catalogManage}>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 ps-2">
             <Button variant="outline" size="xs" onClick={() => onEdit(node.id)}>
               {c("edit")}
             </Button>

@@ -235,7 +235,8 @@ export type BrandOut = {
 }
 
 export type BrandCreate = {
-  code: string
+  /** Omitted by the admin — the API derives a unique code from the name. */
+  code?: string | null
   logo_media_id?: number | null
   sort_order?: number
   is_active?: boolean
@@ -593,7 +594,8 @@ export type SupplierOut = {
 }
 
 export type SupplierCreate = {
-  code: string
+  /** Omitted by the admin — the API derives a unique code from the name. */
+  code?: string | null
   name: string
   contact_name?: string | null
   email?: string | null

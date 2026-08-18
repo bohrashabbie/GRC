@@ -125,11 +125,13 @@ function PagesContent() {
             {items.map((page) => (
               <div
                 key={page.id}
-                className="flex flex-wrap items-center justify-between gap-3 p-4"
+                className="flex flex-wrap items-center gap-4 p-4"
               >
-                <div className="flex min-w-0 flex-col gap-1">
+                {/* Fixed-width name column: the buttons line up with each
+                    other and still sit next to the page they belong to. */}
+                <div className="flex min-w-0 flex-col gap-1 sm:w-72">
                   <span className="truncate font-medium">{title(page)}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="truncate text-xs text-muted-foreground">
                     {page.code} · {slug(page)}
                   </span>
                 </div>

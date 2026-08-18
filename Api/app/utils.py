@@ -14,7 +14,7 @@ from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
-from sqlalchemy import Select, tuple_
+from sqlalchemy import Select, select, tuple_
 from sqlalchemy.orm import Session
 
 _ARABIC_DIACRITICS = re.compile(r"[ؗ-ًؚ-ْٰۖ-ۭ]")
@@ -34,6 +34,22 @@ def slugify(text: str, locale: str = "en") -> str:
     text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
     text = _NON_SLUG_ASCII.sub("-", text.lower())
     return text.strip("-")
+
+
+def unique_code(db: Session, model, base: str, stem: str) -> str:
+    """First free code of the form base, base_2, base_3 … on a table whose
+    code column is unique. `stem` covers a name that slugs to nothing.
+
+    Codes are derived rather than typed: they are not something the business
+    has, but several tables still need one to be NOT NULL and unique.
+    """
+    base = base or stem
+    candidate = base
+    suffix = 2
+    while db.execute(select(model.id).where(model.code == candidate)).first() is not None:
+        candidate = f"{base}_{suffix}"
+        suffix += 1
+    return candidate
 
 
 def quantize_money(value: Any) -> Decimal:

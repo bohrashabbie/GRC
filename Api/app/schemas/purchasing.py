@@ -7,7 +7,9 @@ from pydantic import BaseModel, Field
 
 
 class SupplierCreate(BaseModel):
-    code: str
+    # Optional: the admin no longer asks for one. The service derives a unique
+    # slug-shaped code from the supplier name when this is omitted.
+    code: str | None = None
     name: str
     contact_name: str | None = None
     email: str | None = None

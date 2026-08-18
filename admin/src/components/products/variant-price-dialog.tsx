@@ -75,11 +75,14 @@ type FormValues = z.infer<ReturnType<typeof useSchema>>
 
 export function VariantPriceDialog({
   variant,
+  label,
   productId,
   open,
   onOpenChange,
 }: {
   variant: VariantOut
+  /** What the variant is called on screen — its option values, not its SKU. */
+  label: string
   productId: number
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -135,7 +138,7 @@ export function VariantPriceDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("variants.editPrice")}</DialogTitle>
-          <DialogDescription>{variant.sku}</DialogDescription>
+          <DialogDescription>{label}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

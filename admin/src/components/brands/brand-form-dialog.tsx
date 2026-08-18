@@ -16,19 +16,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Form } from "@/components/ui/form"
 import { TranslationNameFields } from "@/components/translations-fields"
 import { brandsApi } from "@/lib/api/endpoints"
-import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
 import {
   fromNameTranslationForm,
@@ -41,7 +31,6 @@ function useBrandSchema() {
   const c = useTranslations("catalog")
   return z
     .object({
-      code: z.string().min(1, c("validation.codeRequired")),
       translations: z.object({
         ar: z.object({ name: z.string(), slug: z.string() }),
         en: z.object({ name: z.string(), slug: z.string() }),
@@ -56,7 +45,6 @@ function useBrandSchema() {
 }
 
 type FormValues = z.infer<ReturnType<typeof useBrandSchema>>
-const FIELD_NAMES = ["code"] as const
 
 export function BrandFormDialog({
   brand,
@@ -70,7 +58,6 @@ export function BrandFormDialog({
 }) {
   const t = useTranslations("brands")
   const c = useTranslations("common")
-  const cat = useTranslations("catalog")
   const schema = useBrandSchema()
   const queryClient = useQueryClient()
   const isEdit = !!brand
@@ -78,7 +65,6 @@ export function BrandFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      code: brand?.code ?? "",
       translations: toNameTranslationForm(brand?.translations),
     },
   })
@@ -87,21 +73,16 @@ export function BrandFormDialog({
     const translations = fromNameTranslationForm(values.translations)
     try {
       if (isEdit) {
-        await brandsApi.update(brand.id, { code: values.code, translations })
+        await brandsApi.update(brand.id, { translations })
       } else {
-        await brandsApi.create({ code: values.code, translations })
+        await brandsApi.create({ translations })
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.brands.all })
       toast.success(isEdit ? t("updated") : t("created"))
       onOpenChange(false)
     } catch (error) {
-      if (isApiError(error) && error.isValidation) {
-        const unmatched = applyFieldErrors(error, form.setError, FIELD_NAMES)
-        if (unmatched.length > 0) {
-          toast.error(unmatched.map((f) => f.message).join(" "))
-        }
-        return
-      }
+      // The name fields are all this form has and zod already guards them, so
+      // there is no control left for a server field error to land on.
       toast.error(getErrorMessage(error, c("unknownError")))
     }
   }
@@ -121,25 +102,6 @@ export function BrandFormDialog({
             noValidate
           >
             <TranslationNameFields control={form.control} />
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{cat("fields.code")}</FormLabel>
-                    <FormControl>
-                      <Input dir="ltr" disabled={isEdit} {...field} />
-                    </FormControl>
-                    {!isEdit && (
-                      <FormDescription>{cat("hints.code")}</FormDescription>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <DialogFooter>
               <Button
