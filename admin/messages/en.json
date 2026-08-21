@@ -417,7 +417,7 @@
       "basePrice": "VAT-inclusive price in KWD. Variants can override it.",
       "categories": "A product can sit in several categories across dimensions.",
       "isBestSeller": "Shows the best-seller badge and includes this product in the storefront's Best Sellers rail.",
-      "defaultVariant": "Every product has at least one variant — a default one is created automatically.",
+      "defaultVariant": "Every product has at least one variant. Sizes and colours are added on the product's page once it exists.",
       "trackInventory": "Off for made-to-order or digital items — always purchasable, and the per-variant quantities below are ignored.",
       "shortDescription": "One or two lines shown in listings and search results.",
       "moneyFormat": "Use up to three decimals, e.g. 12.500"
@@ -474,7 +474,6 @@
       "noOptions": "No options defined yet. Create options and values first, then come back to build variants.",
       "limitExceeded": "Too many combinations selected. The backend caps a product at 300 variants.",
       "empty": "No variants yet.",
-      "defaultVariant": "Default",
       "editPrice": "Edit price",
       "priceUpdated": "Price updated.",
       "variantUpdated": "Variant updated.",

@@ -5,7 +5,6 @@ import { type Control, type FieldValues, type Path } from "react-hook-form"
 
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,11 +24,9 @@ export function TranslationNameFields<T extends FieldValues>({
   control,
   /** "name" for SEO/product translations, "label" for options. */
   field = "name",
-  showSlug = false,
 }: {
   control: Control<T>
   field?: "name" | "label"
-  showSlug?: boolean
 }) {
   const t = useTranslations("catalog")
 
@@ -55,22 +52,6 @@ export function TranslationNameFields<T extends FieldValues>({
             )}
           />
 
-          {showSlug && (
-            <FormField
-              control={control}
-              name={`translations.${locale}.slug` as Path<T>}
-              render={({ field: f }) => (
-                <FormItem>
-                  <FormLabel>{t(`fields.slug_${locale}`)}</FormLabel>
-                  <FormControl>
-                    <Input dir="ltr" {...f} />
-                  </FormControl>
-                  <FormDescription>{t("hints.slugPerLocale")}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
         </div>
       ))}
     </div>
