@@ -67,12 +67,22 @@ export default async function BrandsPage({ params }: PageProps) {
                 href={brand.href}
                 className="group flex h-full flex-col items-center gap-3 rounded-xl bg-white px-6 py-8 text-center ring-1 ring-inset ring-hairline-strong transition-[box-shadow,transform] duration-300 ease-out-soft hover:-translate-y-0.5 hover:ring-2 hover:ring-gold-500 focus-visible:ring-2 focus-visible:ring-gold-500"
               >
-                <span
-                  aria-hidden="true"
-                  className="flex size-12 items-center justify-center rounded-full bg-sand-100 font-display text-xl text-ink-500 transition-colors group-hover:text-gold-600"
-                >
-                  {brand.name.trim().charAt(0)}
-                </span>
+                {brand.logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={brand.logo.url}
+                    alt=""
+                    loading="lazy"
+                    className="h-12 w-24 object-contain"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="flex size-12 items-center justify-center rounded-full bg-sand-100 font-display text-xl text-ink-500 transition-colors group-hover:text-gold-600"
+                  >
+                    {brand.name.trim().charAt(0)}
+                  </span>
+                )}
                 <span className="font-display text-base leading-tight text-ink-900">
                   {brand.name}
                 </span>

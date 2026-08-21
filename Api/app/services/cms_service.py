@@ -391,15 +391,21 @@ def get_page(db: Session, page_id: int) -> Page:
 
 
 def get_published_page_by_slug(db: Session, slug: str, locale: str) -> Page:
+    """The page that answers to this slug in ANY language, rendered in the one
+    asked for.
+
+    Slugs are per-locale, so /ar/pages/contact-us — what the language switch
+    produces from the English page, and what anyone sharing that link sends —
+    would otherwise 404 even though the page exists in Arabic. Same rule the
+    catalog uses.
+    """
     stmt = (
         select(Page)
         .join(PageTranslation, PageTranslation.page_id == Page.id)
         .options(selectinload(Page.translations))
-        .where(
-            PageTranslation.slug == slug,
-            PageTranslation.locale == locale,
-            Page.status == "published",
-        )
+        .where(PageTranslation.slug == slug, Page.status == "published")
+        # This locale's own slug wins when both languages happen to use it.
+        .order_by((PageTranslation.locale == locale).desc())
     )
     page = db.execute(stmt).scalars().first()
     if page is None:

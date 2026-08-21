@@ -196,8 +196,8 @@ def public_settings(db: Session = Depends(get_db)):
 @router.get("/brands")
 def brands(request: Request, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     """Brands that have at least one product, most stocked first."""
-    locale, _ = _context(request, accept_language)
-    return shop_service.brand_list(db, locale)
+    locale, base_url = _context(request, accept_language)
+    return shop_service.brand_list(db, locale, base_url)
 
 
 @router.get("/brands/{slug}")

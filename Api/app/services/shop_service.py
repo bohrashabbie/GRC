@@ -937,18 +937,36 @@ def collection(db: Session, code: str, locale: str, base_url: str) -> dict:
     }
 
 
-def _brand_card(row, translation, product_count: int) -> dict:
+def _brand_card(row, translation, product_count: int, logo: dict | None = None) -> dict:
     return {
         "id": str(row.id),
         "slug": translation.slug,
         "name": translation.name,
         "description": translation.description,
         "product_count": product_count,
+        # None until staff upload one; the storefront falls back to the initial.
+        "logo": logo,
         "href": f"/brands/{translation.slug}",
     }
 
 
-def brand_list(db: Session, locale: str) -> dict:
+def _brand_logos(db: Session, brands, base_url: str) -> dict[int, dict]:
+    """One query for the logos of the brands about to be rendered."""
+    ids = [brand.logo_media_id for brand in brands if brand.logo_media_id]
+    if not ids:
+        return {}
+    rows = db.execute(select(Media).where(Media.id.in_(set(ids)))).scalars()
+    by_id = {row.id: row for row in rows}
+    images = {}
+    for brand in brands:
+        media = by_id.get(brand.logo_media_id) if brand.logo_media_id else None
+        image = _media_image(media, base_url)
+        if image is not None:
+            images[brand.id] = image
+    return images
+
+
+def brand_list(db: Session, locale: str, base_url: str) -> dict:
     """Every brand that has something to show.
 
     A brand with no live products is skipped rather than rendered as an empty
@@ -961,6 +979,7 @@ def brand_list(db: Session, locale: str) -> dict:
         if product.brand_id is not None:
             counts[product.brand_id] = counts.get(product.brand_id, 0) + 1
 
+    logos = _brand_logos(db, list(data.brands.values()), base_url)
     items = []
     for row in data.brands.values():
         if not row.is_active:
@@ -969,7 +988,7 @@ def brand_list(db: Session, locale: str) -> dict:
         count = counts.get(row.id, 0)
         if translation is None or count == 0:
             continue
-        items.append(_brand_card(row, translation, count))
+        items.append(_brand_card(row, translation, count, logos.get(row.id)))
     items.sort(key=lambda entry: (-entry["product_count"], entry["name"]))
     return {"items": items}
 
@@ -989,7 +1008,12 @@ def brand_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
     products = [product for product in data.products if product.brand_id == row.id]
     products.sort(key=lambda item: (item.published_at or item.created_at, item.id), reverse=True)
     return {
-        **_brand_card(row, translation, len(products)),
+        **_brand_card(
+            row,
+            translation,
+            len(products),
+            _brand_logos(db, [row], base_url).get(row.id),
+        ),
         "total_count": len(products),
         "products": [_card(item, data, locale, base_url) for item in products[:24]],
     }

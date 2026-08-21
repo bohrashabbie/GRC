@@ -214,6 +214,8 @@ export interface BrandSummary {
   description: string | null;
   /** Live products carrying this brand. Never zero — the API omits empty brands. */
   product_count: number;
+  /** Uploaded in the admin; null until someone does. */
+  logo: MediaImage | null;
   href: string;
 }
 
