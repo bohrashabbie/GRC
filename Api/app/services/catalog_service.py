@@ -116,6 +116,14 @@ def create_brand(db: Session, data) -> Brand:
     return brand
 
 
+def attach_brand_logo_keys(db: Session, brands: list[Brand]) -> None:
+    """Resolve each brand's logo_media_id to a storage key, one query for the
+    whole page."""
+    keys = media_service.storage_keys(db, [brand.logo_media_id for brand in brands])
+    for brand in brands:
+        brand.logo_key = keys.get(brand.logo_media_id)
+
+
 def get_brand(db: Session, brand_id: int) -> Brand:
     brand = db.get(Brand, brand_id, options=[selectinload(Brand.translations)])
     if brand is None:
@@ -379,6 +387,42 @@ def _require_system_option(option: Option) -> None:
     return None
 
 
+def _auto_option_code(db: Session, translations) -> str:
+    """Derive an option's code from its label.
+
+    The code is a key the storefront reads (colour and size drive the swatch
+    and the size guide), never something the business names. Asking staff for
+    one produced an option literally called "#FFFFFF", so it is derived: the
+    English label, ASCII-slugged, with a numeric suffix to settle a clash.
+    """
+    by_locale = {t.locale: t.label for t in translations}
+    english = (by_locale.get("en") or "").strip()
+    arabic = (by_locale.get("ar") or "").strip()
+    base = slugify(english, "en") if english else slugify(arabic, "ar")
+    return unique_code(db, Option, base, "option")
+
+
+def _auto_option_value_code(db: Session, option_id: int, translations) -> str:
+    """Same for a value, but unique within its option rather than globally -
+    two options may each have a "small"."""
+    by_locale = {t.locale: t.label for t in translations}
+    english = (by_locale.get("en") or "").strip()
+    arabic = (by_locale.get("ar") or "").strip()
+    base = (slugify(english, "en") if english else slugify(arabic, "ar")) or "value"
+    candidate = base
+    suffix = 2
+    taken = {
+        row[0]
+        for row in db.execute(
+            select(OptionValue.code).where(OptionValue.option_id == option_id)
+        ).all()
+    }
+    while candidate in taken:
+        candidate = f"{base}_{suffix}"
+        suffix += 1
+    return candidate
+
+
 def create_option(db: Session, data) -> Option:
     """Options are staff-created. The selector iterates whatever options a
     product has rather than naming Colour and Size, so a third one renders
@@ -390,7 +434,7 @@ def create_option(db: Session, data) -> Option:
             + ", ".join(OPTION_INPUT_TYPES),
             code="invalid_option_input_type",
         )
-    code = data.code.strip()
+    code = data.code.strip() if data.code else _auto_option_code(db, data.translations)
     existing = db.execute(select(Option).where(Option.code == code)).scalar_one_or_none()
     if existing is not None:
         raise ConflictError(f"An option with code '{code}' already exists.", code="duplicate_option_code")
@@ -470,7 +514,7 @@ def create_option_value(db: Session, data) -> OptionValue:
     _require_system_option(option)
     value = OptionValue(
         option_id=data.option_id,
-        code=data.code,
+        code=data.code or _auto_option_value_code(db, data.option_id, data.translations),
         # A size has no colour. Dropping the swatch here rather than trusting
         # the caller keeps a stray hex out of the storefront's colour filter,
         # which groups by hex and would otherwise show a size as a swatch.

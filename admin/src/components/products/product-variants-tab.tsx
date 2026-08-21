@@ -99,12 +99,14 @@ export function ProductVariantsTab({
     return map
   }, [valueQueries, locale])
 
-  // What a variant is called wherever it has to be named: its option values,
-  // or the default label for the one variant a simple product carries. Staff
-  // never see the SKU — it is generated, not chosen, and means nothing to them.
+  // What a variant is called wherever it has to be named: its option values.
+  // Staff never see the SKU — it is generated, not chosen, and means nothing
+  // to them — and a product with one plain variant shows nothing at all,
+  // because naming it "Default" only ever raised the question of what a
+  // non-default one would be.
   function variantLabel(variant: VariantOut) {
     if (variant.option_value_ids.length === 0) {
-      return t("variants.defaultVariant")
+      return "—"
     }
     return variant.option_value_ids
       .map((id) => valueLabelById.get(id) ?? `#${id}`)

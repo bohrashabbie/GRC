@@ -60,7 +60,6 @@ function useValueSchema() {
   const measurement = z.literal("").or(z.coerce.number().int().min(1).max(500))
   return z
     .object({
-      code: z.string().min(1, c("validation.codeRequired")),
       hex_color: z
         .string()
         .regex(HEX_PATTERN, o("values.hexHint"))
@@ -81,7 +80,7 @@ function useValueSchema() {
 }
 
 type FormValues = z.infer<ReturnType<typeof useValueSchema>>
-const FIELD_NAMES = ["code", "hex_color", "length_cm", "width_cm", "tag", "sort_order"] as const
+const FIELD_NAMES = ["hex_color", "length_cm", "width_cm", "tag", "sort_order"] as const
 
 export function OptionValueFormDialog({
   optionId,
@@ -109,7 +108,6 @@ export function OptionValueFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      code: value?.code ?? "",
       hex_color: value?.hex_color ?? "",
       length_cm: value?.length_cm ?? "",
       width_cm: value?.width_cm ?? "",
@@ -128,7 +126,6 @@ export function OptionValueFormDialog({
       withMeasurements && values.width_cm !== "" ? values.width_cm : null
     try {
       if (isEdit) {
-        // The API doesn't allow changing an option value's code after creation.
         await optionValuesApi.update(value.id, {
           hex_color: hex,
           length_cm: lengthCm,
@@ -140,7 +137,6 @@ export function OptionValueFormDialog({
       } else {
         await optionValuesApi.create({
           option_id: optionId,
-          code: values.code,
           hex_color: hex,
           length_cm: lengthCm,
           width_cm: widthCm,
@@ -185,19 +181,6 @@ export function OptionValueFormDialog({
             <TranslationNameFields control={form.control} field="label" />
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{cat("fields.code")}</FormLabel>
-                    <FormControl>
-                      <Input dir="ltr" disabled={isEdit} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="sort_order"

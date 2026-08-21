@@ -59,6 +59,19 @@ def _translation_row(rows: Iterable, locale: str):
     return next((row for row in rows if row.locale == locale), None) or next(iter(rows), None)
 
 
+def _has_slug(rows: Iterable, slug: str) -> bool:
+    """Does this record answer to that slug in ANY language?
+
+    Slugs are per-locale, so the Arabic page and the English page of one
+    category have different ones. Matching only the requested locale's slug
+    meant switching language on a category or product page - which keeps the
+    URL and swaps the locale prefix - landed on a 404, and so did every link
+    shared between an Arabic and an English speaker. The record is found by
+    either slug and then rendered in the language that was asked for.
+    """
+    return any(row.slug == slug for row in rows)
+
+
 def _money(value: Decimal | int | str) -> str:
     return f"{Decimal(value):.3f}"
 
@@ -274,7 +287,10 @@ def _card(product: Product, data: CatalogData, locale: str, base_url: str) -> di
         for value_id in data.variant_values.get(variant.id, []):
             value = data.option_values.get(value_id)
             option = data.options.get(value.option_id) if value else None
-            if option and option.code.lower() in {"colour", "color"}:
+            # A value staff deactivated is gone as far as customers are
+            # concerned, even where a variant still carries it: the swatch
+            # would otherwise outlive the delete.
+            if option and value.is_active and option.code.lower() in {"colour", "color"}:
                 colour_values[value.id] = value
 
     badges: list[str] = []
@@ -376,6 +392,13 @@ def category_by_slug(db: Session, slug: str, locale: str, base_url: str) -> dict
     _roots, payloads = _category_payloads(db, locale, base_url)
     category = next((item for item in payloads.values() if item["slug"] == slug), None)
     if category is None:
+        # Not this locale's slug — try the other language's before giving up.
+        row = next(
+            (item for item in _category_rows(db) if _has_slug(item.translations, slug)),
+            None,
+        )
+        category = payloads.get(row.id) if row else None
+    if category is None:
         raise NotFoundError("Category not found")
     return category
 
@@ -384,11 +407,7 @@ def category_path(db: Session, slug: str, locale: str, base_url: str) -> list[di
     categories = _category_rows(db)
     by_id = {category.id: category for category in categories}
     target = next(
-        (
-            category
-            for category in categories
-            if (_translation_row(category.translations, locale) and _translation_row(category.translations, locale).slug == slug)
-        ),
+        (category for category in categories if _has_slug(category.translations, slug)),
         None,
     )
     if target is None:
@@ -469,12 +488,7 @@ def product_list(
 
     if brand:
         target = next(
-            (
-                row
-                for row in data.brands.values()
-                if (_translation_row(row.translations, locale) or None)
-                and _translation_row(row.translations, locale).slug == brand
-            ),
+            (row for row in data.brands.values() if _has_slug(row.translations, brand)),
             None,
         )
         products = [] if target is None else [
@@ -484,11 +498,7 @@ def product_list(
     if category:
         categories = _category_rows(db)
         target = next(
-            (
-                item
-                for item in categories
-                if (_translation_row(item.translations, locale) and _translation_row(item.translations, locale).slug == category)
-            ),
+            (item for item in categories if _has_slug(item.translations, category)),
             None,
         )
         products = [] if target is None else [
@@ -578,7 +588,7 @@ def product_list(
                 seen.add(value_id)
                 value = data.option_values.get(value_id)
                 option = data.options.get(value.option_id) if value else None
-                if not value or not option:
+                if not value or not option or not value.is_active:
                     continue
                 if option.code.lower() in {"colour", "color"}:
                     colour_counts[value_id] = colour_counts.get(value_id, 0) + 1
@@ -655,11 +665,7 @@ def product_list(
 def product_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
     data = _load_catalog(db)
     product = next(
-        (
-            item
-            for item in data.products
-            if (_translation_row(item.translations, locale) and _translation_row(item.translations, locale).slug == slug)
-        ),
+        (item for item in data.products if _has_slug(item.translations, slug)),
         None,
     )
     if product is None:
@@ -845,7 +851,7 @@ def product_slugs(db: Session, locale: str) -> list[str]:
 def related_products(db: Session, slug: str, locale: str, base_url: str, limit: int = 8) -> list[dict]:
     data = _load_catalog(db)
     product = next(
-        (item for item in data.products if any(row.locale == locale and row.slug == slug for row in item.translations)),
+        (item for item in data.products if _has_slug(item.translations, slug)),
         None,
     )
     if product is None:
@@ -942,7 +948,7 @@ def brand_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
     match = None
     for row in data.brands.values():
         translation = _translation_row(row.translations, locale)
-        if translation is not None and translation.slug == slug and row.is_active:
+        if translation is not None and row.is_active and _has_slug(row.translations, slug):
             match = (row, translation)
             break
     if match is None:

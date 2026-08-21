@@ -31,14 +31,27 @@ from app.models.inventory import Location, StockLevel, StockMovement
 from app.models.orders import Return, Shipment
 from app.models.purchasing import GoodsReceipt, PurchaseOrder
 from app.services import audit_service, deletion
+from app.utils import slugify, unique_code
 
 
 # --------------------------------------------------------------------------
 # Locations
 # --------------------------------------------------------------------------
 
+def _auto_location_code(db: Session, name: str) -> str:
+    """Derive a location's code from its English name.
+
+    It is unique, so staff typing one hit "already exists" with nothing on
+    screen explaining it - and a warehouse does not have a code the business
+    recognises anyway.
+    """
+    return unique_code(db, Location, slugify(name), "location")
+
+
 def create_location(db: Session, data) -> Location:
-    location = Location(**data.model_dump())
+    fields = data.model_dump()
+    fields["code"] = fields.get("code") or _auto_location_code(db, data.name_en)
+    location = Location(**fields)
     db.add(location)
     db.commit()
     db.refresh(location)

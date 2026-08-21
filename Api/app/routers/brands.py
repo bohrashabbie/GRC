@@ -35,12 +35,15 @@ def list_brands(
     if is_active is not None:
         stmt = stmt.where(Brand.is_active == is_active)
     items, next_cursor = paginate(db, stmt, Brand, cursor, limit)
+    catalog_service.attach_brand_logo_keys(db, items)
     return {"items": [BrandOut.model_validate(b) for b in items], "next_cursor": next_cursor}
 
 
 @router.get("/{brand_id}", response_model=BrandOut)
 def get_brand(brand_id: int, db: Session = Depends(get_db), _user=Depends(require("catalog.view"))) -> Brand:
-    return catalog_service.get_brand(db, brand_id)
+    brand = catalog_service.get_brand(db, brand_id)
+    catalog_service.attach_brand_logo_keys(db, [brand])
+    return brand
 
 
 @router.patch("/{brand_id}", response_model=BrandOut)

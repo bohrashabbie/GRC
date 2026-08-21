@@ -43,9 +43,7 @@ import { queryKeys } from "@/lib/query/keys"
 import type { LocationOut } from "@/lib/api/types"
 
 function useLocationSchema() {
-  const cat = useTranslations("catalog")
   return z.object({
-    code: z.string().min(1, cat("validation.codeRequired")),
     type: z.string().min(1),
     name_ar: z.string().min(1),
     name_en: z.string().min(1),
@@ -57,7 +55,6 @@ function useLocationSchema() {
 
 type FormValues = z.infer<ReturnType<typeof useLocationSchema>>
 const FIELD_NAMES = [
-  "code",
   "type",
   "name_ar",
   "name_en",
@@ -82,7 +79,6 @@ export function LocationFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      code: location?.code ?? "",
       type: location?.type ?? LOCATION_TYPE_VALUES[0],
       name_ar: location?.name_ar ?? "",
       name_en: location?.name_en ?? "",
@@ -168,19 +164,6 @@ export function LocationFormDialog({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("fields.code")}</FormLabel>
-                    <FormControl>
-                      <Input dir="ltr" disabled={isEdit} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="type"

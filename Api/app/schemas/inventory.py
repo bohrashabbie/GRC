@@ -6,7 +6,9 @@ from pydantic import BaseModel, Field
 
 
 class LocationCreate(BaseModel):
-    code: str
+    # Optional: the admin no longer asks for one. The service derives it from
+    # the English name when omitted.
+    code: str | None = None
     type: str = Field(description="warehouse | store | virtual")
     name_ar: str
     name_en: str

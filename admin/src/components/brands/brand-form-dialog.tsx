@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
 import { useForm } from "react-hook-form"
+import { useState } from "react"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -17,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
+import { MediaPicker } from "@/components/media/media-picker"
 import { TranslationNameFields } from "@/components/translations-fields"
 import { brandsApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
@@ -62,6 +64,12 @@ export function BrandFormDialog({
   const queryClient = useQueryClient()
   const isEdit = !!brand
 
+  // The logo sits outside the zod schema: it is set by uploading, not typing.
+  const [logoMediaId, setLogoMediaId] = useState<number | null>(
+    brand?.logo_media_id ?? null
+  )
+  const [logoKey, setLogoKey] = useState<string | null>(brand?.logo_key ?? null)
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -73,9 +81,12 @@ export function BrandFormDialog({
     const translations = fromNameTranslationForm(values.translations)
     try {
       if (isEdit) {
-        await brandsApi.update(brand.id, { translations })
+        await brandsApi.update(brand.id, {
+          logo_media_id: logoMediaId,
+          translations,
+        })
       } else {
-        await brandsApi.create({ translations })
+        await brandsApi.create({ logo_media_id: logoMediaId, translations })
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.brands.all })
       toast.success(isEdit ? t("updated") : t("created"))
@@ -102,6 +113,17 @@ export function BrandFormDialog({
             noValidate
           >
             <TranslationNameFields control={form.control} />
+
+            <MediaPicker
+              value={logoMediaId}
+              storageKey={logoKey}
+              onChange={(mediaId, storageKey) => {
+                setLogoMediaId(mediaId)
+                setLogoKey(storageKey)
+              }}
+              label={t("fields.logo")}
+              hint={t("fields.logoHint")}
+            />
 
             <DialogFooter>
               <Button

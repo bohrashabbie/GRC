@@ -69,6 +69,9 @@ class BrandOut(BaseModel):
     id: int
     code: str
     logo_media_id: int | None
+    # Resolved by the router, so a brand with a logo does not render as though
+    # it has none — the client only ever received the id otherwise.
+    logo_key: str | None = None
     sort_order: int
     is_active: bool
     created_at: datetime
@@ -147,7 +150,9 @@ CategoryTreeNode.model_rebuild()
 # --------------------------------------------------------------------------
 
 class OptionCreate(BaseModel):
-    code: str
+    # Optional: the admin no longer asks for one. The service derives it from
+    # the English label when omitted.
+    code: str | None = None
     input_type: str
     is_filterable: bool = False
     sort_order: int = 0
@@ -176,7 +181,8 @@ class OptionOut(BaseModel):
 
 class OptionValueCreate(BaseModel):
     option_id: int
-    code: str
+    # Optional: derived from the English label, unique within the option.
+    code: str | None = None
     hex_color: str | None = None
     swatch_media_id: int | None = None
     # Garment measurements for size values, whole cm. Ignored for colours.

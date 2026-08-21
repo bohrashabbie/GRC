@@ -187,7 +187,7 @@ export function CategoryFormDialog({
             className="flex flex-col gap-4"
             noValidate
           >
-            <TranslationNameFields control={form.control} showSlug />
+            <TranslationNameFields control={form.control} />
 
             <MediaPicker
               value={imageMediaId}

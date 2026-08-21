@@ -228,6 +228,8 @@ export type BrandOut = {
   id: number
   code: string
   logo_media_id: number | null
+  /** Storage key for the logo, resolved by the API. */
+  logo_key?: string | null
   sort_order: number
   is_active: boolean
   created_at: string
@@ -322,7 +324,8 @@ export type OptionOut = {
 }
 
 export type OptionCreate = {
-  code: string
+  /** Omitted by the admin — the API derives it from the label. */
+  code?: string | null
   input_type: string
   is_filterable?: boolean
   sort_order?: number
@@ -353,7 +356,8 @@ export type OptionValueOut = {
 
 export type OptionValueCreate = {
   option_id: number
-  code: string
+  /** Omitted by the admin — the API derives it from the label. */
+  code?: string | null
   hex_color?: string | null
   swatch_media_id?: number | null
   length_cm?: number | null
@@ -555,7 +559,8 @@ export type LocationOut = {
 }
 
 export type LocationCreate = {
-  code: string
+  /** Omitted by the admin — the API derives it from the English name. */
+  code?: string | null
   type: string
   name_ar: string
   name_en: string

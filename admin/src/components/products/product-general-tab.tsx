@@ -192,7 +192,7 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
             <CardTitle>{t("tabs.general")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <TranslationNameFields control={form.control} showSlug />
+            <TranslationNameFields control={form.control} />
 
             <div className="grid gap-4 lg:grid-cols-2">
               {(["ar", "en"] as const).map((loc) => (

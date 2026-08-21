@@ -50,7 +50,6 @@ function useOptionSchema() {
   const c = useTranslations("catalog")
   return z
     .object({
-      code: z.string().min(1, c("validation.codeRequired")),
       input_type: z.string().min(1),
       is_filterable: z.boolean(),
       sort_order: z.coerce.number().int(),
@@ -66,7 +65,7 @@ function useOptionSchema() {
 }
 
 type FormValues = z.infer<ReturnType<typeof useOptionSchema>>
-const FIELD_NAMES = ["code", "input_type", "sort_order"] as const
+const FIELD_NAMES = ["input_type", "sort_order"] as const
 
 export function OptionFormDialog({
   option,
@@ -83,15 +82,9 @@ export function OptionFormDialog({
   const schema = useOptionSchema()
   const queryClient = useQueryClient()
   const isEdit = !!option
-  // Colour and Size codes pin the swatch and measurement fields to the right
-  // option, so the API refuses to rename them; the input follows suit rather
-  // than letting staff type a change that will bounce.
-  const isBuiltIn = option?.code === "colour" || option?.code === "size"
-
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      code: option?.code ?? "",
       input_type: option?.input_type ?? OPTION_INPUT_TYPES[0],
       is_filterable: option?.is_filterable ?? false,
       sort_order: option?.sort_order ?? 0,
@@ -104,7 +97,6 @@ export function OptionFormDialog({
     try {
       if (isEdit) {
         await optionsApi.update(option.id, {
-          code: values.code,
           input_type: values.input_type,
           is_filterable: values.is_filterable,
           sort_order: values.sort_order,
@@ -112,7 +104,6 @@ export function OptionFormDialog({
         })
       } else {
         await optionsApi.create({
-          code: values.code,
           input_type: values.input_type,
           is_filterable: values.is_filterable,
           sort_order: values.sort_order,
@@ -151,19 +142,6 @@ export function OptionFormDialog({
             <TranslationNameFields control={form.control} field="label" />
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{cat("fields.code")}</FormLabel>
-                    <FormControl>
-                      <Input dir="ltr" disabled={isBuiltIn} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="input_type"

@@ -56,13 +56,6 @@ function OptionsContent() {
       ),
     },
     {
-      accessorKey: "code",
-      header: t("columns.code"),
-      cell: ({ row }) => (
-        <code className="text-xs text-muted-foreground">{row.original.code}</code>
-      ),
-    },
-    {
       accessorKey: "input_type",
       header: t("columns.inputType"),
       cell: ({ row }) => (

@@ -19,7 +19,7 @@ import { useCursorList } from "@/hooks/use-cursor-list"
 import { brandsApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { useDeletionMessage } from "@/lib/deletion"
-import { translatedName } from "@/lib/format"
+import { mediaUrl, translatedName } from "@/lib/format"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import type { BrandOut } from "@/lib/api/types"
@@ -73,6 +73,27 @@ function BrandsContent() {
   }
 
   const columns: ColumnDef<BrandOut, unknown>[] = [
+    {
+      id: "logo",
+      header: "",
+      cell: ({ row }) =>
+        row.original.logo_key ? (
+          // Served from the API's own origin, outside Next's image optimiser,
+          // so this stays a plain img like the rest of the admin.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={mediaUrl(row.original.logo_key)}
+            alt=""
+            loading="lazy"
+            className="h-9 w-9 rounded-md border border-border object-contain"
+          />
+        ) : (
+          <div
+            className="h-9 w-9 rounded-md border border-dashed border-border"
+            aria-hidden="true"
+          />
+        ),
+    },
     {
       id: "name",
       header: t("columns.name"),

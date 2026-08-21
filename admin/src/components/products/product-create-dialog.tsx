@@ -149,7 +149,7 @@ export function ProductCreateDialog({
             className="flex flex-col gap-4"
             noValidate
           >
-            <TranslationNameFields control={form.control} showSlug />
+            <TranslationNameFields control={form.control} />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField

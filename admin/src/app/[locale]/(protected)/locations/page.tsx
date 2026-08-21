@@ -75,13 +75,6 @@ function LocationsContent() {
       ),
     },
     {
-      accessorKey: "code",
-      header: t("columns.code"),
-      cell: ({ row }) => (
-        <code className="text-xs text-muted-foreground">{row.original.code}</code>
-      ),
-    },
-    {
       accessorKey: "type",
       header: t("columns.type"),
       cell: ({ row }) => (

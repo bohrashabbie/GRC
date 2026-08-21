@@ -271,6 +271,10 @@
     }
   },
   "brands": {
+    "fields": {
+      "logo": "Logo",
+      "logoHint": "Shown on the storefront's brand pages. PNG or SVG on a transparent background works best."
+    },
     "title": "Brands",
     "description": "Brands shown on products across the storefront.",
     "newBrand": "New brand",
@@ -378,7 +382,7 @@
     "description": "Everything sold in the store, with their variants.",
     "newProduct": "New product",
     "createTitle": "Create product",
-    "createDescription": "Set the basics and translations. Variants are added on the product's page after it's created.",
+    "createDescription": "Set the basics and translations. Variants are added on the product's page after it's created. A new product starts as a draft: it only appears in the shop once you set its status to Active.",
     "created": "Product created.",
     "updated": "Product updated.",
     "offer": "Offer",
@@ -442,8 +446,8 @@
       "uploading": "Uploading…",
       "uploaded": "Image uploaded and attached.",
       "empty": "No media uploaded for this product yet.",
-      "tagToColour": "Tag to colour value",
-      "noColour": "Not colour-specific",
+      "tagToColour": "Which colour is this photo of?",
+      "noColour": "Any colour — show it for all of them",
       "isPrimary": "Primary image",
       "attachFailed": "The file uploaded but couldn't be attached to this product.",
       "noListEndpoint": "The API has no endpoint that lists a product's existing media, so only files uploaded in this session are shown here.",
