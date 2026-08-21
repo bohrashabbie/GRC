@@ -207,6 +207,14 @@ export async function getProductList(
         colour: query.colour?.join(","),
         size: query.size?.join(","),
         season: query.season?.join(","),
+        // Options beyond colour and size go over as their own code, which is
+        // exactly what /shop/v1/products reads them back as.
+        ...Object.fromEntries(
+          Object.entries(query.options ?? {}).map(([code, values]) => [
+            code,
+            values.join(","),
+          ]),
+        ),
         min_price: query.minPrice,
         max_price: query.maxPrice,
         sort: query.sort,

@@ -52,12 +52,27 @@ function pickerValue(hex: string | undefined): string {
   return `#${r}${r}${g}${g}${b}${b}`
 }
 
+const CM_PER_INCH = 2.54
+
+/** Centimetres from the API, shown as the inches staff measure in. */
+function toInches(cm: number | null | undefined): number | "" {
+  if (cm === null || cm === undefined) return ""
+  return Math.round((cm / CM_PER_INCH) * 10) / 10
+}
+
+/** Back to whole centimetres, which is what the column stores. */
+function toCentimetres(inches: number): number {
+  return Math.round(inches * CM_PER_INCH)
+}
+
 function useValueSchema() {
   const c = useTranslations("catalog")
   const o = useTranslations("options")
   // Empty string means "not entered" — the literal must come first so ""
   // never reaches the numeric coercion (which would turn it into 0).
-  const measurement = z.literal("").or(z.coerce.number().int().min(1).max(500))
+  // Staff work in inches; the column is centimetres, so the form converts on
+  // the way in and out. 197 in is the 500 cm the API accepts.
+  const measurement = z.literal("").or(z.coerce.number().min(0.5).max(197))
   return z
     .object({
       hex_color: z
@@ -109,21 +124,32 @@ export function OptionValueFormDialog({
     resolver: zodResolver(schema),
     defaultValues: {
       hex_color: value?.hex_color ?? "",
-      length_cm: value?.length_cm ?? "",
-      width_cm: value?.width_cm ?? "",
+      length_cm: toInches(value?.length_cm),
+      width_cm: toInches(value?.width_cm),
       tag: value?.tag ?? "",
       sort_order: value?.sort_order ?? 0,
       translations: toLabelTranslationForm(value?.translations),
     },
   })
 
+  /** "= 150 cm" under an inches box, or nothing while it is empty. */
+  function equivalent(raw: string): string {
+    const inches = Number(raw)
+    if (!raw.trim() || !Number.isFinite(inches) || inches <= 0) return ""
+    return t("values.equivalentCm", { cm: toCentimetres(inches) })
+  }
+
   async function onSubmit(values: FormValues) {
     const translations = fromLabelTranslationForm(values.translations)
     const hex = withSwatch && values.hex_color ? values.hex_color : null
     const lengthCm =
-      withMeasurements && values.length_cm !== "" ? values.length_cm : null
+      withMeasurements && values.length_cm !== ""
+        ? toCentimetres(values.length_cm)
+        : null
     const widthCm =
-      withMeasurements && values.width_cm !== "" ? values.width_cm : null
+      withMeasurements && values.width_cm !== ""
+        ? toCentimetres(values.width_cm)
+        : null
     try {
       if (isEdit) {
         await optionValuesApi.update(value.id, {
@@ -218,10 +244,22 @@ export function OptionValueFormDialog({
                     name="length_cm"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t("values.lengthCm")}</FormLabel>
+                        <FormLabel>{t("values.lengthIn")}</FormLabel>
                         <FormControl>
-                          <Input type="number" dir="ltr" min={1} max={500} {...field} />
+                          <Input
+                            type="number"
+                            dir="ltr"
+                            step="0.1"
+                            min={0.5}
+                            max={197}
+                            {...field}
+                          />
                         </FormControl>
+                        {/* The stored value is centimetres, so it is shown
+                            rather than hidden — staff quote both. */}
+                        <FormDescription>
+                          {equivalent(String(field.value ?? ""))}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -231,10 +269,20 @@ export function OptionValueFormDialog({
                     name="width_cm"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t("values.widthCm")}</FormLabel>
+                        <FormLabel>{t("values.widthIn")}</FormLabel>
                         <FormControl>
-                          <Input type="number" dir="ltr" min={1} max={500} {...field} />
+                          <Input
+                            type="number"
+                            dir="ltr"
+                            step="0.1"
+                            min={0.5}
+                            max={197}
+                            {...field}
+                          />
                         </FormControl>
+                        <FormDescription>
+                          {equivalent(String(field.value ?? ""))}
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

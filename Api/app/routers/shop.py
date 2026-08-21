@@ -88,6 +88,24 @@ def product_slugs(accept_language: str | None = Header(None), db: Session = Depe
     return shop_service.product_slugs(db, shop_service.locale_from_header(accept_language))
 
 
+_RESERVED_LIST_PARAMS = frozenset(
+    {
+        "category",
+        "q",
+        "colour",
+        "size",
+        "season",
+        "min_price",
+        "max_price",
+        "sort",
+        "collection",
+        "brand",
+        "cursor",
+        "limit",
+    }
+)
+
+
 @router.get("/products")
 def products(
     request: Request,
@@ -109,6 +127,14 @@ def products(
     db: Session = Depends(get_db),
 ):
     locale, base_url = _context(request, accept_language)
+    # Any query parameter that is not one of this endpoint's own is read as an
+    # option filter keyed by that option's code, so a third option created in
+    # the admin filters the listing without a change here.
+    extra_options = {
+        key: value
+        for key, value in request.query_params.items()
+        if key not in _RESERVED_LIST_PARAMS and value
+    }
     return shop_service.product_list(
         db,
         locale,
@@ -118,6 +144,7 @@ def products(
         colour=colour,
         size=size,
         season=season,
+        options=extra_options,
         min_price=min_price,
         max_price=max_price,
         sort=sort,

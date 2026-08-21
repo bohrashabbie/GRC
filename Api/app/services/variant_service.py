@@ -256,15 +256,19 @@ def generate_variants(db: Session, product_id: int, combinations: list) -> list[
             details={"existing": len(real_existing), "requested": len(new_combos), "limit": MAX_VARIANTS_PER_PRODUCT},
         )
 
+    # Retire the placeholder as soon as any real combination exists, not only
+    # on the call that creates one: a rerun that adds nothing new used to
+    # return early and leave the phantom "no options" variant on sale.
+    if placeholder is not None and (real_existing or new_combos):
+        placeholder.is_active = False
+        placeholder.discontinued_at = datetime.now(timezone.utc)
+
     if not new_combos:
         for v in real_existing:
             v.option_value_ids = get_variant_option_value_ids(db, v.id)
         attach_stock(db, real_existing)
+        db.commit()
         return real_existing
-
-    if placeholder is not None:
-        placeholder.is_active = False
-        placeholder.discontinued_at = datetime.now(timezone.utc)
 
     next_position = len(real_existing)
     created: list[Variant] = []

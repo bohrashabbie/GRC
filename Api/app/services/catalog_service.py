@@ -574,12 +574,12 @@ def update_option_value(db: Session, option_value_id: int, data) -> OptionValue:
 def delete_option_value(
     db: Session, option_value_id: int, *, actor_user_id: int | None
 ) -> deletion.DeletionResult:
-    """Remove a colour or size value outright, or retire it if a variant uses it.
+    """Remove a colour or size value, or refuse when something still uses it.
 
     variant_option_values cascades, so deleting a value in use would strip it
     from the variant's combination and leave that variant silently identifying
     as something else — including on orders already placed against it. Product
-    media pinned to the value (the per-colour galleries) blocks for the same
+    media pinned to the value (the per-colour galleries) counts for the same
     reason: the FK is nullable, so those images would just drift loose.
     """
     value = get_option_value(db, option_value_id)
@@ -597,12 +597,16 @@ def delete_option_value(
         ],
     )
     if blockers:
-        value.is_active = False
-        mode = deletion.DEACTIVATED
-    else:
-        # option_value_translations cascades on the FK.
-        db.delete(value)
-        mode = deletion.DELETED
+        # Deleting a value a variant wears used to retire it quietly, which
+        # left the value on the variant but out of the storefront's filters —
+        # a half-deleted state nobody asked for. Staff would rather be told, so
+        # the delete is refused with a count of what is in the way and they
+        # decide what happens to those variants first.
+        raise deletion.blocked("colour or size value", blockers)
+
+    # option_value_translations cascades on the FK.
+    db.delete(value)
+    mode = deletion.DELETED
     audit_service.record(
         db,
         actor_user_id=actor_user_id,

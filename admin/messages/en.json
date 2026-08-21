@@ -360,8 +360,11 @@
       "hexColor": "Colour (hex)",
       "hexHint": "Pick a colour with the box, or paste a hex such as #1B3A2F.",
       "lengthCm": "Length (cm)",
+      "lengthIn": "Length (inches)",
+      "widthIn": "Width (inches)",
+      "equivalentCm": "= {cm} cm",
       "widthCm": "Width (cm)",
-      "measurementsHint": "The garment measurements this size stands for. Leave empty if not applicable.",
+      "measurementsHint": "The garment measurements this size stands for, in inches. Stored in centimetres, which is what the storefront size guide shows. Leave empty if not applicable.",
       "columns": {
         "label": "Value",
         "code": "Code",

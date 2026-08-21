@@ -32,6 +32,19 @@ function readString(value: string | string[] | undefined): string | undefined {
   return raw && raw.trim() ? raw.trim() : undefined;
 }
 
+/** Everything in a listing URL that is not an option filter. */
+const RESERVED_PARAMS = new Set([
+  "sort",
+  "q",
+  "min_price",
+  "max_price",
+  "cursor",
+  "colour",
+  "size",
+  "season",
+  "page",
+]);
+
 export function parseListQuery(
   params: RawSearchParams,
   category?: string,
@@ -48,6 +61,15 @@ export function parseListQuery(
     colour: readList(params.colour),
     size: readList(params.size),
     season: readList(params.season),
+    // A filter for an option the shop added after this code was written
+    // arrives under that option's own code — pass it straight through rather
+    // than dropping it, so the panel and the results agree.
+    options: Object.fromEntries(
+      Object.entries(params)
+        .filter(([key]) => !RESERVED_PARAMS.has(key))
+        .map(([key, value]) => [key, readList(value)])
+        .filter(([, values]) => (values as string[]).length > 0),
+    ),
     minPrice: readNumber(params.min_price),
     maxPrice: readNumber(params.max_price),
     sort: SORT_OPTIONS.includes(sort as SortOption) ? sort : undefined,
@@ -68,6 +90,11 @@ export function queryKey(query: ListQuery): string {
     colour: [...(query.colour ?? [])].sort(),
     size: [...(query.size ?? [])].sort(),
     season: [...(query.season ?? [])].sort(),
+    options: Object.fromEntries(
+      Object.entries(query.options ?? {})
+        .map(([code, values]): [string, string[]] => [code, [...values].sort()])
+        .sort((a, b) => a[0].localeCompare(b[0])),
+    ),
     minPrice: query.minPrice ?? null,
     maxPrice: query.maxPrice ?? null,
     sort: query.sort ?? null,
@@ -80,6 +107,10 @@ export function activeFilterCount(query: ListQuery): number {
     (query.colour?.length ?? 0) +
     (query.size?.length ?? 0) +
     (query.season?.length ?? 0) +
+    Object.values(query.options ?? {}).reduce(
+      (total, values) => total + values.length,
+      0,
+    ) +
     (query.minPrice !== undefined || query.maxPrice !== undefined ? 1 : 0)
   );
 }

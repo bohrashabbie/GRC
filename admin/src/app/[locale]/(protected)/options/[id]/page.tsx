@@ -52,6 +52,13 @@ export default function OptionDetailPage() {
   )
 }
 
+/** Sizes are quoted in inches and stored in centimetres, so the list shows
+ *  both rather than making staff convert in their heads. */
+function measurement(cm: number | null): string {
+  if (cm === null) return "—"
+  return `${Math.round((cm / 2.54) * 10) / 10}" (${cm} cm)`
+}
+
 function OptionDetailContent() {
   const t = useTranslations("options")
   const c = useTranslations("common")
@@ -187,8 +194,8 @@ function OptionDetailContent() {
                           <TableHead>{t("values.columns.color")}</TableHead>
                         ) : (
                           <>
-                            <TableHead>{t("values.lengthCm")}</TableHead>
-                            <TableHead>{t("values.widthCm")}</TableHead>
+                            <TableHead>{t("values.lengthIn")}</TableHead>
+                            <TableHead>{t("values.widthIn")}</TableHead>
                           </>
                         )}
                         <TableHead>{t("values.columns.sortOrder")}</TableHead>
@@ -221,10 +228,10 @@ function OptionDetailContent() {
                           ) : (
                             <>
                               <TableCell className="tabular-nums">
-                                {value.length_cm ?? "—"}
+                                {measurement(value.length_cm)}
                               </TableCell>
                               <TableCell className="tabular-nums">
-                                {value.width_cm ?? "—"}
+                                {measurement(value.width_cm)}
                               </TableCell>
                             </>
                           )}

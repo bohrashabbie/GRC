@@ -28,10 +28,16 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
   const [isPending, startTransition] = useTransition();
 
   // Default to the first combination that actually exists and is in stock,
-  // falling back to the first that merely exists.
+  // falling back to the first that merely exists. Only variants that carry a
+  // value for every option can seed a selection — one missing an axis leaves
+  // that axis unset, and then no variant matches and nothing can be added.
   const initialSelection = useMemo<Selection>(() => {
-    const inStock = product.variants.find((v) => v.stock_state !== "out_of_stock");
-    const seed = inStock ?? product.variants[0];
+    const complete = product.variants.filter((v) =>
+      product.options.every((option) => v.option_values[option.id]),
+    );
+    const candidates = complete.length ? complete : product.variants;
+    const inStock = candidates.find((v) => v.stock_state !== "out_of_stock");
+    const seed = inStock ?? candidates[0];
     if (!seed) return {};
 
     return Object.fromEntries(

@@ -410,6 +410,9 @@ export interface ListQuery {
   colour?: string[];
   size?: string[];
   season?: string[];
+  /** Any other option the shop has, keyed by that option's code. Colour and
+   *  size keep their own fields because their URLs predate this. */
+  options?: Record<string, string[]>;
   minPrice?: number;
   maxPrice?: number;
   sort?: string;

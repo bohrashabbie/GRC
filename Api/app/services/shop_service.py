@@ -261,8 +261,25 @@ def _stock_state(quantity: int, threshold: int | None, tracked: bool = True) -> 
     return inventory_service.stock_state(quantity, threshold, tracked)
 
 
-def _card(product: Product, data: CatalogData, locale: str, base_url: str) -> dict:
+def _sellable_variants(product: Product, data: CatalogData) -> list:
+    """Active variants, minus the option-less placeholder Hard Rule 5 creates
+    with every product.
+
+    Once a product has real combinations that placeholder is unreachable: the
+    selector needs a value for every option, and this row has none. Left in, it
+    is picked as the cheapest/first variant and the customer lands on a product
+    with nothing selected and no way to add to the basket — which is what "the
+    sizes don't work" turned out to mean.
+    """
     variants = [variant for variant in product.variants if variant.is_active]
+    with_options = [
+        variant for variant in variants if data.variant_values.get(variant.id)
+    ]
+    return with_options or variants
+
+
+def _card(product: Product, data: CatalogData, locale: str, base_url: str) -> dict:
+    variants = _sellable_variants(product, data)
     variants.sort(key=lambda item: (_effective_price(product, item), item.position, item.id))
     chosen = variants[0] if variants else None
     price = _effective_price(product, chosen) if chosen else Decimal(product.base_price)
@@ -470,6 +487,7 @@ def product_list(
     colour: str | None = None,
     size: str | None = None,
     season: str | None = None,
+    options: dict[str, str] | None = None,
     min_price: Decimal | None = None,
     max_price: Decimal | None = None,
     sort: str | None = None,
@@ -517,19 +535,26 @@ def product_list(
         ]
 
     scoped = list(products)
+    # Colour and size are named parameters for the URLs that already exist;
+    # every other option arrives in `options` keyed by its own code, so adding
+    # a third option in the admin gives the storefront a working filter with
+    # no code change here.
     requested_options = {
         "colour": _csv(colour),
         "size": _csv(size),
     }
+    for code, raw in (options or {}).items():
+        requested_options.setdefault(code, set()).update(_csv(raw))
     for code, requested in requested_options.items():
         if not requested:
             continue
+        wanted = {"colour", "color"} if code == "colour" else {code}
         products = [
             product
             for product in products
             if any(
                 data.options.get(value.option_id)
-                and data.options[value.option_id].code.lower() in ({"colour", "color"} if code == "colour" else {code})
+                and data.options[value.option_id].code.lower() in wanted
                 and value.code in requested
                 for variant in product.variants
                 if variant.is_active
@@ -576,8 +601,7 @@ def product_list(
     next_cursor = _cursor_encode(page[-1][0].id) if len(cards) > limit and page else None
 
     scoped_cards = [_card(product, data, locale, base_url) for product in scoped]
-    colour_counts: dict[int, int] = {}
-    size_counts: dict[int, int] = {}
+    option_counts: dict[int, dict[int, int]] = {}
     season_counts: dict[str, dict[str, str | int]] = {}
     for product in scoped:
         seen: set[int] = set()
@@ -590,10 +614,8 @@ def product_list(
                 option = data.options.get(value.option_id) if value else None
                 if not value or not option or not value.is_active:
                     continue
-                if option.code.lower() in {"colour", "color"}:
-                    colour_counts[value_id] = colour_counts.get(value_id, 0) + 1
-                if option.code.lower() == "size":
-                    size_counts[value_id] = size_counts.get(value_id, 0) + 1
+                counts = option_counts.setdefault(option.id, {})
+                counts[value_id] = counts.get(value_id, 0) + 1
         for value, attribute in data.product_attributes.get(product.id, []):
             if attribute.code.casefold() != "season":
                 continue
@@ -606,12 +628,14 @@ def product_list(
                 "count": int(season_counts.get(key, {}).get("count", 0)) + 1,
             }
 
-    def option_facet(code: str, counts: dict[int, int], facet_type: str) -> dict:
-        label = {"colour": {"ar": "اللون", "en": "Colour"}, "size": {"ar": "المقاس", "en": "Size"}}[code][locale]
+    def option_facet(option: Option, counts: dict[int, int]) -> dict:
+        is_colour = option.code.lower() in {"colour", "color"}
         return {
-            "code": code,
-            "label": label,
-            "type": facet_type,
+            # Colour keeps the "colour" key whichever way it is spelled, so an
+            # existing /c/thobes?colour=navy link keeps working.
+            "code": "colour" if is_colour else option.code,
+            "label": _translated(option.translations, locale, "label", option.code),
+            "type": "swatch" if is_colour or option.input_type == "swatch" else "checkbox",
             "values": [
                 {
                     "value": data.option_values[value_id].code,
@@ -626,8 +650,16 @@ def product_list(
 
     prices = [Decimal(card["price"]) for card in scoped_cards]
     facets = [
-        option_facet("colour", colour_counts, "swatch"),
-        option_facet("size", size_counts, "checkbox"),
+        option_facet(data.options[option_id], counts)
+        for option_id, counts in sorted(
+            option_counts.items(),
+            key=lambda item: (data.options[item[0]].sort_order, item[0]),
+        )
+        if data.options.get(option_id) is not None
+        and data.options[option_id].is_filterable
+        and counts
+    ]
+    facets += [
         {
             "code": "season",
             "label": "الموسم" if locale == "ar" else "Season",
@@ -655,8 +687,7 @@ def product_list(
         "facets": facets,
         "total_count": total_count,
         "applied": {
-            "colour": sorted(requested_options["colour"]),
-            "size": sorted(requested_options["size"]),
+            **{code: sorted(values) for code, values in requested_options.items()},
             "season": sorted(requested_seasons),
         },
     }
@@ -672,7 +703,7 @@ def product_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
         raise NotFoundError("Product not found")
     card = _card(product, data, locale, base_url)
     translation = _translation_row(product.translations, locale)
-    variants = sorted((item for item in product.variants if item.is_active), key=lambda item: (item.position, item.id))
+    variants = sorted(_sellable_variants(product, data), key=lambda item: (item.position, item.id))
 
     used_option_ids = {
         data.option_values[value_id].option_id
