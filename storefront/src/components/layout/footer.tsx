@@ -9,13 +9,7 @@ import {
   VisaLogo,
   WhatsappIcon,
 } from "@/components/ui/icons";
-import {
-  CONTACT_EMAIL,
-  CREDIT_NAME,
-  SOCIALS,
-  WHATSAPP_DISPLAY,
-  WHATSAPP_HREF,
-} from "@/lib/site-contact";
+import { CREDIT_NAME, contactFromSettings } from "@/lib/site-contact";
 import { getMenu, getPublicSettings } from "@/lib/shop-api";
 import type { Locale } from "@/i18n/routing";
 
@@ -47,6 +41,10 @@ export async function Footer({ locale }: { locale: Locale }) {
   // from the footer once already for being placeholders.
   const crNumber = String(settings["store.cr_number"] ?? "").trim();
   const vatNumber = String(settings["store.vat_number"] ?? "").trim();
+
+  // Email, phone, address, hours and the social links are all Settings keys
+  // now (group "contact"), so staff change them without a deploy.
+  const contact = contactFromSettings(settings, locale);
 
   return (
     <footer className="bg-ink-900 text-sand-200">
@@ -81,7 +79,7 @@ export async function Footer({ locale }: { locale: Locale }) {
           <div className="mt-8">
             <p className="eyebrow text-gold-400">{t("followUs")}</p>
             <ul className="mt-3 flex items-center gap-2">
-              {SOCIALS.map(({ href, label, Icon }) => (
+              {contact.socials.map(({ href, label, Icon }) => (
                 <li key={label}>
                   <a
                     href={href}
@@ -99,27 +97,50 @@ export async function Footer({ locale }: { locale: Locale }) {
 
           <div className="mt-8">
             <p className="eyebrow text-gold-400">{t("contactTitle")}</p>
+            {/* Each line renders only once it has a value: a blank setting
+                removes the line rather than leaving a dead link. */}
             <ul className="mt-3 space-y-2 text-sm">
-              <li>
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  dir="ltr"
-                  className="text-sand-300 transition-colors hover:text-gold-300"
-                >
-                  {CONTACT_EMAIL}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={WHATSAPP_HREF}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex items-center gap-2 text-sand-300 transition-colors hover:text-gold-300"
-                >
-                  <WhatsappIcon className="size-4.5" />
-                  <span dir="ltr" className="tabular">{WHATSAPP_DISPLAY}</span>
-                </a>
-              </li>
+              {contact.email && (
+                <li>
+                  <a
+                    href={`mailto:${contact.email}`}
+                    dir="ltr"
+                    className="text-sand-300 transition-colors hover:text-gold-300"
+                  >
+                    {contact.email}
+                  </a>
+                </li>
+              )}
+              {contact.whatsappHref && (
+                <li>
+                  <a
+                    href={contact.whatsappHref}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex items-center gap-2 text-sand-300 transition-colors hover:text-gold-300"
+                  >
+                    <WhatsappIcon className="size-4.5" />
+                    <span dir="ltr" className="tabular">
+                      {contact.phoneDisplay}
+                    </span>
+                  </a>
+                </li>
+              )}
+              {contact.phoneHref && (
+                <li>
+                  <a
+                    href={contact.phoneHref}
+                    dir="ltr"
+                    className="tabular text-sand-300 transition-colors hover:text-gold-300"
+                  >
+                    {contact.phoneDisplay}
+                  </a>
+                </li>
+              )}
+              {contact.address && (
+                <li className="text-sand-300">{contact.address}</li>
+              )}
+              {contact.hours && <li className="text-sand-300">{contact.hours}</li>}
             </ul>
           </div>
         </div>

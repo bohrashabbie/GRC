@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { ContactForm } from "@/components/contact/contact-form";
 import { getPage } from "@/lib/shop-api";
+import { getSiteContact } from "@/lib/site-contact";
 import { formatDate } from "@/lib/format";
 import { localeAlternates, type Locale } from "@/i18n/routing";
 
@@ -43,6 +44,9 @@ export default async function StaticPage({ params }: PageProps) {
   if (!page) notFound();
 
   const t = await getTranslations("common");
+  // Email, phone, address and hours all live in Settings, so the contact page
+  // shows whatever staff last saved rather than a number baked into the build.
+  const contact = await getSiteContact(typedLocale);
 
   return (
     <div className="container-site py-10 lg:py-16">
@@ -64,6 +68,38 @@ export default async function StaticPage({ params }: PageProps) {
             body is the intro copy and this form is the actual channel. */}
         {page.template === "contact" && (
           <div className="mt-10 max-w-2xl border-t border-hairline pt-10">
+            {/* The details staff keep in Settings, above the form: most people
+                would rather call or message than fill anything in. */}
+            <ul className="mb-8 space-y-2 text-sm text-ink-700">
+              {contact.email && (
+                <li>
+                  <a href={`mailto:${contact.email}`} dir="ltr" className="hover:text-gold-600">
+                    {contact.email}
+                  </a>
+                </li>
+              )}
+              {contact.phoneHref && (
+                <li>
+                  <a href={contact.phoneHref} dir="ltr" className="tabular hover:text-gold-600">
+                    {contact.phoneDisplay}
+                  </a>
+                </li>
+              )}
+              {contact.whatsappHref && (
+                <li>
+                  <a
+                    href={contact.whatsappHref}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="hover:text-gold-600"
+                  >
+                    WhatsApp
+                  </a>
+                </li>
+              )}
+              {contact.address && <li>{contact.address}</li>}
+              {contact.hours && <li>{contact.hours}</li>}
+            </ul>
             <ContactForm />
           </div>
         )}

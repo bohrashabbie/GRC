@@ -1,7 +1,6 @@
 import { useTranslations } from "next-intl";
 
 import { WhatsappIcon } from "@/components/ui/icons";
-import { WHATSAPP_HREF } from "@/lib/site-contact";
 
 /**
  * Floating "chat with us" button, present on every page. Official WhatsApp
@@ -13,12 +12,16 @@ import { WHATSAPP_HREF } from "@/lib/site-contact";
  * natural reading side in both RTL and LTR. z-40 keeps it under the cart
  * drawer and mobile menu overlays (z-50).
  */
-export function WhatsappButton() {
+export function WhatsappButton({ href }: { href: string }) {
   const t = useTranslations("footer");
+
+  // No number set in the admin means no floating button, rather than one that
+  // opens an empty chat.
+  if (!href) return null;
 
   return (
     <a
-      href={WHATSAPP_HREF}
+      href={href}
       target="_blank"
       rel="noreferrer noopener"
       aria-label={t("chatOnWhatsapp")}

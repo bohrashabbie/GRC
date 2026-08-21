@@ -22,6 +22,7 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { PageHeader } from "@/components/page-header"
 import { RequirePermission } from "@/components/permission/require-permission"
+import { ContactDetailsCard } from "@/components/settings/contact-details-card"
 import { RowActions } from "@/components/row-actions"
 import { RequireRoutePermission } from "@/components/permission/require-route-permission"
 import { SettingEditDialog } from "@/components/settings/setting-edit-dialog"
@@ -44,6 +45,8 @@ export default function SettingsPage() {
   )
 }
 
+const CONTACT_GROUP = "contact"
+
 function SettingsContent() {
   const t = useTranslations("settings")
   const cm = useTranslations("common")
@@ -56,8 +59,11 @@ function SettingsContent() {
   })
 
   // Grouped by the backend's `group` column so related settings sit together.
+  // The contact group is left out: it has a proper form above rather than a
+  // row of raw JSON, and showing both invites editing the same key twice.
   const byGroup = new Map<string, SettingOut[]>()
   for (const setting of settingsQuery.data ?? []) {
+    if (setting.group === CONTACT_GROUP) continue
     const list = byGroup.get(setting.group) ?? []
     list.push(setting)
     byGroup.set(setting.group, list)
@@ -68,6 +74,8 @@ function SettingsContent() {
     <div className="flex flex-col gap-4">
       <Breadcrumbs items={[{ label: t("title") }]} />
       <PageHeader title={t("title")} description={t("description")} />
+
+      <ContactDetailsCard />
 
       {settingsQuery.isLoading && <ListLoadingSkeleton rows={5} />}
       {settingsQuery.isError && (

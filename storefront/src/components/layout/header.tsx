@@ -6,6 +6,7 @@ import { AccountMenu } from "@/components/account/account-menu";
 import { CartButton } from "@/components/cart/cart-button";
 import { HeartIcon } from "@/components/ui/icons";
 import { getCategoryTree } from "@/lib/shop-api";
+import { getSiteContact } from "@/lib/site-contact";
 import type { Locale } from "@/i18n/routing";
 import { TopBar } from "./top-bar";
 import { MegaMenu } from "./mega-menu";
@@ -13,15 +14,16 @@ import { MobileMenuTrigger } from "./mobile-menu";
 import { SearchBar, SearchDrawer } from "./search-bar";
 
 export async function Header({ locale }: { locale: Locale }) {
-  const [t, categories] = await Promise.all([
+  const [t, categories, contact] = await Promise.all([
     getTranslations("header"),
     getCategoryTree(locale),
+    getSiteContact(locale),
   ]);
 
   return (
     <header className="sticky top-0 z-40 bg-sand-50">
       {/* The promo bar scrolls away; the bar with the logo and cart stays. */}
-      <TopBar />
+      <TopBar socials={contact.socials} />
 
       <div className="border-b border-hairline bg-sand-50">
         <div className="container-site flex h-16 items-center gap-3 md:h-20 md:gap-6">

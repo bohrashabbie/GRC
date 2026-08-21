@@ -16,6 +16,7 @@ import { currentCustomer, loadWishlist } from "@/app/actions";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { fontVariables } from "@/lib/fonts";
 import { getCategoryTree } from "@/lib/shop-api";
+import { getSiteContact } from "@/lib/site-contact";
 import { localeDirection, locales, routing, type Locale } from "@/i18n/routing";
 import "../globals.css";
 
@@ -57,10 +58,11 @@ export default async function LocaleLayout({
   const typedLocale = locale as Locale;
   // Fetched here so the first paint already knows who is signed in and which
   // hearts are filled, instead of every card flashing empty and correcting.
-  const [categories, customer, wishlist] = await Promise.all([
+  const [categories, customer, wishlist, contact] = await Promise.all([
     getCategoryTree(typedLocale),
     currentCustomer(typedLocale),
     loadWishlist(typedLocale),
+    getSiteContact(typedLocale),
   ]);
 
   return (
@@ -77,7 +79,7 @@ export default async function LocaleLayout({
               <main className="flex-1 pb-16 md:pb-0">{children}</main>
               <Footer locale={typedLocale} />
               <MobileBottomNav />
-              <WhatsappButton />
+              <WhatsappButton href={contact.whatsappHref} />
               <CartDrawer />
             </MobileMenuProvider>
               </CartProvider>

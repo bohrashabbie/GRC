@@ -1,9 +1,9 @@
 import { useTranslations } from "next-intl";
 
-import { SOCIALS } from "@/lib/site-contact";
+import type { SocialLink } from "@/lib/site-contact";
 import { LocaleSwitch } from "./locale-switch";
 
-export function TopBar() {
+export function TopBar({ socials }: { socials: SocialLink[] }) {
   const t = useTranslations("topbar");
 
   return (
@@ -12,7 +12,7 @@ export function TopBar() {
         {/* Socials are the lowest-priority item, so they are the thing that
             disappears first on small screens. */}
         <ul className="hidden items-center gap-1 md:flex">
-          {SOCIALS.map(({ href, label, Icon }) => (
+          {socials.map(({ href, label, Icon }) => (
             <li key={label}>
               <a
                 href={href}
