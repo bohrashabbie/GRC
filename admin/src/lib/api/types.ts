@@ -326,7 +326,8 @@ export type OptionOut = {
 export type OptionCreate = {
   /** Omitted by the admin — the API derives it from the label. */
   code?: string | null
-  input_type: string
+  /** Omitted too: colours are drawn as swatches, everything else as buttons. */
+  input_type?: string | null
   is_filterable?: boolean
   sort_order?: number
   translations: LabelTranslationIn[]

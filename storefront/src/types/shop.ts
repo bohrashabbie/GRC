@@ -100,7 +100,7 @@ export interface ProductOption {
   id: string;
   code: string;
   name: string;
-  input_type: "swatch" | "button" | "dropdown";
+  input_type: "swatch" | "button";
   values: ProductOptionValue[];
 }
 

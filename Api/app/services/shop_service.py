@@ -724,7 +724,7 @@ def product_detail(db: Session, slug: str, locale: str, base_url: str) -> dict:
             "id": str(option.id),
             "code": option.code,
             "name": _translated(option.translations, locale, "label", option.code),
-            "input_type": option.input_type if option.input_type in {"swatch", "button", "dropdown"} else "button",
+            "input_type": "swatch" if option.input_type == "swatch" else "button",
             "values": [
                 {
                     "id": str(value.id),

@@ -4,8 +4,8 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { DataTable } from "@/components/data-table"
 import { PageHeader } from "@/components/page-header"
@@ -16,7 +16,6 @@ import { OptionFormDialog } from "@/components/options/option-form-dialog"
 import { useCursorList } from "@/hooks/use-cursor-list"
 import { optionsApi } from "@/lib/api/endpoints"
 import { translatedLabel } from "@/lib/format"
-import { humanizeStatus } from "@/lib/status"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import { useRouter } from "@/i18n/navigation"
@@ -59,7 +58,11 @@ function OptionsContent() {
       accessorKey: "input_type",
       header: t("columns.inputType"),
       cell: ({ row }) => (
-        <Badge variant="outline">{humanizeStatus(row.original.input_type)}</Badge>
+        <Badge variant="outline">
+          {row.original.input_type === "swatch"
+            ? t("inputTypes.swatch")
+            : t("inputTypes.button")}
+        </Badge>
       ),
     },
     {

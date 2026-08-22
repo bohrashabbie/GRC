@@ -66,7 +66,9 @@ export const PRODUCT_TYPE_VALUES = [
   "accessory",
 ] as const
 export const LOCATION_TYPE_VALUES = ["warehouse", "store"] as const
-export const OPTION_INPUT_TYPES = ["dropdown", "swatch", "button"] as const
+/** Button first: it is the right answer for everything except colour, and it
+ *  is what a new option should default to. */
+export const OPTION_INPUT_TYPES = ["button", "swatch"] as const
 export const CATEGORY_DIMENSIONS = ["category", "collection", "occasion"] as const
 
 /* -------------------------------------------------------------------------- */

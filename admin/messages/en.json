@@ -326,6 +326,10 @@
     "listTitle": "All categories"
   },
   "options": {
+    "inputTypes": {
+      "button": "Buttons (S / M / L)",
+      "swatch": "Colour circles"
+    },
     "systemDescription": "Color and Size are the store's two options. Add and edit their values here.",
     "newColor": "Add color",
     "newSize": "Add size",
@@ -339,13 +343,14 @@
     "empty": "No options yet. Create one (e.g. Size) then add its values.",
     "detailTitle": "Option",
     "fields": {
-      "inputType": "Input type",
-      "isFilterable": "Filterable on the storefront"
+      "inputType": "Shown as",
+      "inputTypeHint": "Colour circles, or labelled buttons like S / M / L.",
+      "isFilterable": "Let shoppers filter by this in the shop"
     },
     "columns": {
       "label": "Option",
       "code": "Code",
-      "inputType": "Input type",
+      "inputType": "Shown as",
       "values": "Values"
     },
     "values": {

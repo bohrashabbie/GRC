@@ -153,7 +153,9 @@ class OptionCreate(BaseModel):
     # Optional: the admin no longer asks for one. The service derives it from
     # the English label when omitted.
     code: str | None = None
-    input_type: str
+    # Optional too: the shop draws colours as swatches and everything else as
+    # labelled buttons, so the service decides rather than asking staff.
+    input_type: str | None = None
     is_filterable: bool = False
     sort_order: int = 0
     translations: list[LabelTranslationIn] = Field(min_length=1)

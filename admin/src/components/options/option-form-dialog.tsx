@@ -19,13 +19,14 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { OPTION_INPUT_TYPES } from "@/lib/status"
 import {
   Select,
   SelectContent,
@@ -33,12 +34,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { TranslationNameFields } from "@/components/translations-fields"
 import { optionsApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
-import { OPTION_INPUT_TYPES, humanizeStatus } from "@/lib/status"
 import {
   fromLabelTranslationForm,
   toLabelTranslationForm,
@@ -141,35 +142,34 @@ export function OptionFormDialog({
           >
             <TranslationNameFields control={form.control} field="label" />
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="input_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("fields.inputType")}</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(v) => field.onChange(v ?? field.value)}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {OPTION_INPUT_TYPES.map((it) => (
-                          <SelectItem key={it} value={it}>
-                            {humanizeStatus(it)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="input_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("fields.inputType")}</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={(v) => field.onChange(v ?? field.value)}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {OPTION_INPUT_TYPES.map((it) => (
+                        <SelectItem key={it} value={it}>
+                          {t(`inputTypes.${it}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>{t("fields.inputTypeHint")}</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

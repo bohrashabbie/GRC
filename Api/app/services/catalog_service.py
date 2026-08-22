@@ -377,7 +377,10 @@ SIZE_OPTION_CODE = "size"
 # What the storefront's variant selector can render. It branches on "swatch"
 # and falls back to a button group for anything else, so these three are the
 # whole vocabulary — shop_service coerces anything unknown to "button".
-OPTION_INPUT_TYPES = ("swatch", "button", "dropdown")
+# Two, because two is what the storefront can draw: colour circles, or
+# labelled buttons. "dropdown" was offered for years and rendered as buttons
+# anyway, so it is gone rather than left as a choice that does nothing.
+OPTION_INPUT_TYPES = ("button", "swatch")
 
 
 def _require_system_option(option: Option) -> None:
@@ -423,12 +426,24 @@ def _auto_option_value_code(db: Session, option_id: int, translations) -> str:
     return candidate
 
 
+def _default_input_type(code: str) -> str:
+    """How the shop should draw this option's values.
+
+    There are only two answers it can honour: colour circles, or labelled
+    buttons. Asking staff to pick between "swatch", "button" and "dropdown"
+    produced options set to dropdown (which renders as buttons anyway) and a
+    size option set to swatch (which then asked for hex colours), so the
+    choice is made here instead.
+    """
+    return "swatch" if code.lower() in {SWATCH_OPTION_CODE, "color"} else "button"
+
+
 def create_option(db: Session, data) -> Option:
     """Options are staff-created. The selector iterates whatever options a
     product has rather than naming Colour and Size, so a third one renders
     without any storefront change; only the swatch and measurement fields stay
     tied to the two built-in codes."""
-    if data.input_type not in OPTION_INPUT_TYPES:
+    if data.input_type is not None and data.input_type not in OPTION_INPUT_TYPES:
         raise BusinessRuleError(
             f"Unsupported input type '{data.input_type}'. Expected one of: "
             + ", ".join(OPTION_INPUT_TYPES),
@@ -441,7 +456,7 @@ def create_option(db: Session, data) -> Option:
 
     option = Option(
         code=code,
-        input_type=data.input_type,
+        input_type=data.input_type or _default_input_type(code),
         is_filterable=data.is_filterable,
         sort_order=data.sort_order,
     )
@@ -464,10 +479,11 @@ def update_option(db: Session, option_id: int, data) -> Option:
     option = get_option(db, option_id)
     fields = data.model_dump(exclude_unset=True, exclude={"translations"})
 
-    input_type = fields.get("input_type", option.input_type)
-    if input_type not in OPTION_INPUT_TYPES:
+    # Only what this request actually sets is checked: an option still stored
+    # as the retired "dropdown" must stay editable, not fail every save.
+    if fields.get("input_type") is not None and fields["input_type"] not in OPTION_INPUT_TYPES:
         raise BusinessRuleError(
-            f"Unsupported input type '{input_type}'. Expected one of: "
+            f"Unsupported input type '{fields['input_type']}'. Expected one of: "
             + ", ".join(OPTION_INPUT_TYPES),
             code="invalid_option_input_type",
         )
