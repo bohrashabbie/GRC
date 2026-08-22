@@ -38,31 +38,36 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <>
       <HeroSlider banners={heroBanners} />
 
-      <section className="section-y">
-        <div className="container-site">
-          <SectionHeading
-            title={t("shopByCategory")}
-            intro={t("shopByCategoryIntro")}
-            className="mb-8"
-          />
-          {/* The row is what staff switched on, not simply every category —
-              the header menu still shows the whole tree. */}
-          <CategoryTiles categories={homeCategories} />
-        </div>
-      </section>
+      {/* The row is what staff switched on, not simply every category — the
+          header menu still shows the whole tree. With none switched on the
+          heading goes too, rather than introducing an empty strip. */}
+      {homeCategories.length > 0 && (
+        <section className="section-y">
+          <div className="container-site">
+            <SectionHeading
+              title={t("shopByCategory")}
+              intro={t("shopByCategoryIntro")}
+              className="mb-8"
+            />
+            <CategoryTiles categories={homeCategories} />
+          </div>
+        </section>
+      )}
 
-      <section className="pb-16">
-        <div className="container-site">
-          <SectionHeading
-            title={bestSellers.title}
-            intro={bestSellers.subtitle}
-            href={bestSellers.href}
-            hrefLabel={tHeader("viewAll")}
-            className="mb-8"
-          />
-          <ProductRail products={bestSellers.products} />
-        </div>
-      </section>
+      {bestSellers.products.length > 0 && (
+        <section className="pb-16">
+          <div className="container-site">
+            <SectionHeading
+              title={bestSellers.title}
+              intro={bestSellers.subtitle}
+              href={bestSellers.href}
+              hrefLabel={tHeader("viewAll")}
+              className="mb-8"
+            />
+            <ProductRail products={bestSellers.products} />
+          </div>
+        </section>
+      )}
 
       {offers.products.length > 0 && (
         <section className="section-y">
@@ -79,18 +84,20 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </section>
       )}
 
-      <section className="section-y">
-        <div className="container-site">
-          <SectionHeading
-            title={newArrivals.title}
-            intro={newArrivals.subtitle}
-            href={newArrivals.href}
-            hrefLabel={tHeader("viewAll")}
-            className="mb-8"
-          />
-          <ProductRail products={newArrivals.products} />
-        </div>
-      </section>
+      {newArrivals.products.length > 0 && (
+        <section className="section-y">
+          <div className="container-site">
+            <SectionHeading
+              title={newArrivals.title}
+              intro={newArrivals.subtitle}
+              href={newArrivals.href}
+              hrefLabel={tHeader("viewAll")}
+              className="mb-8"
+            />
+            <ProductRail products={newArrivals.products} />
+          </div>
+        </section>
+      )}
 
       {/* Hidden entirely when no product carries a brand, rather than rendering
           a heading over an empty row. */}

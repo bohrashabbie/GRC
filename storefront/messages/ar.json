@@ -32,7 +32,7 @@
   },
   "home": {
     "shopByCategory": "تسوق حسب القسم",
-    "shopByCategoryIntro": "سبعة أقسام، من ثياب كل يوم إلى بشوت المناسبات.",
+    "shopByCategoryIntro": "من ثياب كل يوم إلى بشوت المناسبات.",
     "previousSlide": "الشريحة السابقة",
     "nextSlide": "الشريحة التالية",
     "goToSlide": "الانتقال إلى الشريحة {number}",
