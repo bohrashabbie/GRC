@@ -44,6 +44,11 @@ export const queryKeys = {
     detail: (categoryId: number) => ["categories", "detail", categoryId] as const,
   },
 
+  locationTypes: {
+    all: ["location-types"] as const,
+    list: (isActive?: boolean | null) =>
+      ["location-types", "list", isActive ?? null] as const,
+  },
   categoryTypes: {
     all: ["category-types"] as const,
     list: (isActive?: boolean | null) =>
@@ -103,8 +108,11 @@ export const queryKeys = {
 
   customers: {
     all: ["customers"] as const,
-    list: (params: { is_active?: boolean | null }) =>
-      ["customers", "list", params] as const,
+    list: (params: {
+      is_active?: boolean | null
+      segment?: string | null
+      q?: string | null
+    }) => ["customers", "list", params] as const,
     detail: (customerId: number) => ["customers", "detail", customerId] as const,
     addresses: (customerId: number) =>
       ["customers", "addresses", customerId] as const,

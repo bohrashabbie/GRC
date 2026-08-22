@@ -1,8 +1,8 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useQueryClient } from "@tanstack/react-query"
-import { useTranslations } from "next-intl"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useLocale, useTranslations } from "next-intl"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -35,10 +35,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { locationsApi } from "@/lib/api/endpoints"
+import { locationsApi, locationTypesApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
-import { LOCATION_TYPE_VALUES, humanizeStatus } from "@/lib/status"
+
+import { translatedLabel } from "@/lib/format"
 import { queryKeys } from "@/lib/query/keys"
 import type { LocationOut } from "@/lib/api/types"
 
@@ -74,12 +75,21 @@ export function LocationFormDialog({
   const c = useTranslations("common")
   const schema = useLocationSchema()
   const queryClient = useQueryClient()
+  const locale = useLocale()
   const isEdit = !!location
+
+  // Staff-managed vocabulary, same source the Location types page edits.
+  const typesQuery = useQuery({
+    queryKey: queryKeys.locationTypes.list(true),
+    queryFn: ({ signal }) => locationTypesApi.list({ is_active: true }, signal),
+    enabled: open,
+  })
+  const locationTypes = typesQuery.data ?? []
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      type: location?.type ?? LOCATION_TYPE_VALUES[0],
+      type: location?.type ?? "warehouse",
       name_ar: location?.name_ar ?? "",
       name_en: location?.name_en ?? "",
       is_sellable_online: location?.is_sellable_online ?? true,
@@ -180,9 +190,9 @@ export function LocationFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {LOCATION_TYPE_VALUES.map((lt) => (
-                          <SelectItem key={lt} value={lt}>
-                            {humanizeStatus(lt)}
+                        {locationTypes.map((lt) => (
+                          <SelectItem key={lt.id} value={lt.code}>
+                            {translatedLabel(lt.translations, locale)}
                           </SelectItem>
                         ))}
                       </SelectContent>

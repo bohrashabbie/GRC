@@ -13,6 +13,7 @@ import {
   ShoppingCart,
   FolderTree,
   Shapes,
+  Warehouse,
   SlidersHorizontal,
   Store,
   Tags,
@@ -188,6 +189,12 @@ export const NAV_SECTIONS: NavSection[] = [
       // Stock is set on the product form, so locations are no longer a stock
       // screen — they survive as the thing role scoping and purchase orders
       // point at, which puts them here rather than under an inventory heading.
+      {
+        href: "/location-types",
+        labelKey: "locationTypes",
+        icon: Warehouse,
+        permission: PERMISSIONS.inventoryView,
+      },
       {
         href: "/locations",
         labelKey: "locations",

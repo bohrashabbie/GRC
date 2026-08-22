@@ -7,6 +7,39 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, CreatedAtMixin, TimestampMixin
 
 
+class LocationType(Base, TimestampMixin):
+    """What a place is — warehouse, shop floor, virtual holding location.
+
+    locations.type holds the code as text for the same reason products and
+    categories do: retiring a type must not rewrite the places filed under it.
+    """
+
+    __tablename__ = "location_types"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    code: Mapped[str] = mapped_column(nullable=False, unique=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    translations: Mapped[list["LocationTypeTranslation"]] = relationship(
+        back_populates="location_type", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (Index("ix_location_types_is_active", "is_active"),)
+
+
+class LocationTypeTranslation(Base):
+    __tablename__ = "location_type_translations"
+
+    location_type_id: Mapped[int] = mapped_column(
+        ForeignKey("location_types.id", ondelete="CASCADE"), primary_key=True
+    )
+    locale: Mapped[str] = mapped_column(primary_key=True)
+    label: Mapped[str] = mapped_column(nullable=False)
+
+    location_type: Mapped["LocationType"] = relationship(back_populates="translations")
+
+
 class Location(Base, TimestampMixin):
     __tablename__ = "locations"
 

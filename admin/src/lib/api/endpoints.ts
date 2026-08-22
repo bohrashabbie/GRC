@@ -19,6 +19,7 @@ import type {
   CustomerAddressOut,
   CustomerAddressUpdate,
   CustomerOut,
+  CustomerSegment,
   CustomerUpdate,
   GenerateVariantsRequest,
   GoodsReceiptCreate,
@@ -31,6 +32,9 @@ import type {
   CategoryTypeCreate,
   CategoryTypeOut,
   CategoryTypeUpdate,
+  LocationTypeCreate,
+  LocationTypeOut,
+  LocationTypeUpdate,
   OptionCreate,
   ProductTypeCreate,
   ProductTypeOut,
@@ -241,6 +245,22 @@ export const categoriesApi = {
 /* -------------------------------------------------------------------------- */
 /* Catalog — options & option values                                           */
 /* -------------------------------------------------------------------------- */
+
+export const locationTypesApi = {
+  /** Not paginated: a short vocabulary the location form needs all of. */
+  list: (params: { is_active?: boolean | null } = {}, signal?: AbortSignal) =>
+    api.get<LocationTypeOut[]>("/location-types", {
+      query: { is_active: params.is_active ?? undefined },
+      signal,
+    }),
+  create: (payload: LocationTypeCreate) =>
+    api.post<LocationTypeOut>("/location-types", payload),
+  update: (locationTypeId: number, payload: LocationTypeUpdate) =>
+    api.patch<LocationTypeOut>(`/location-types/${locationTypeId}`, payload),
+  /** Refused while places still carry the type. */
+  delete: (locationTypeId: number) =>
+    api.del<DeletionResult>(`/location-types/${locationTypeId}`),
+}
 
 export const categoryTypesApi = {
   /** Not paginated: a short vocabulary the categories page needs all of. */
@@ -523,7 +543,13 @@ export const ordersApi = {
 
 export const customersApi = {
   list: (
-    params: { cursor?: string | null; limit?: number; is_active?: boolean | null } = {},
+    params: {
+      cursor?: string | null
+      limit?: number
+      is_active?: boolean | null
+      q?: string | null
+      segment?: CustomerSegment | null
+    } = {},
     signal?: AbortSignal
   ) =>
     api.get<CursorPage<CustomerOut>>("/customers", {
@@ -531,6 +557,8 @@ export const customersApi = {
         cursor: params.cursor ?? undefined,
         limit: params.limit,
         is_active: params.is_active ?? undefined,
+        q: params.q ?? undefined,
+        segment: params.segment ?? undefined,
       },
       signal,
     }),

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel
 
@@ -14,6 +15,13 @@ class CustomerUpdate(BaseModel):
 
 
 class CustomerOut(BaseModel):
+    # Filled in by the router for list views. Zero for a customer who has
+    # never ordered, which is exactly what "registered, not yet a buyer" is.
+    order_count: int = 0
+    pending_order_count: int = 0
+    total_spent: Decimal = Decimal("0.000")
+    last_order_at: datetime | None = None
+
     id: int
     email: str | None
     phone_e164: str | None

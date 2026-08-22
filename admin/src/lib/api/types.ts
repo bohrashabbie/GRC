@@ -328,6 +328,31 @@ export type OptionOut = {
   translations: LabelTranslationOut[]
 }
 
+export type LocationTypeOut = {
+  id: number
+  code: string
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  translations: LabelTranslationOut[]
+  /** Places of this type — shown before anyone tries to delete it. */
+  location_count: number
+}
+
+export type LocationTypeCreate = {
+  /** Omitted by the admin — the API derives it from the label. */
+  code?: string | null
+  sort_order?: number
+  is_active?: boolean
+  translations: LabelTranslationIn[]
+}
+
+export type LocationTypeUpdate = {
+  sort_order?: number | null
+  is_active?: boolean | null
+  translations?: LabelTranslationIn[] | null
+}
+
 export type CategoryTypeOut = {
   id: number
   code: string
@@ -876,7 +901,16 @@ export type PaymentRefundOut = {
 /* Customers                                                                   */
 /* -------------------------------------------------------------------------- */
 
+/** The questions staff ask of the customer list. */
+export type CustomerSegment = "purchased" | "registered" | "pending" | "marketing"
+
 export type CustomerOut = {
+  /** Orders that were not cancelled. Zero means registered, never bought. */
+  order_count: number
+  /** Orders still open — pending, confirmed or being processed. */
+  pending_order_count: number
+  total_spent: string
+  last_order_at: string | null
   id: number
   email: string | null
   phone_e164: string | null

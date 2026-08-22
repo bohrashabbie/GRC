@@ -12,6 +12,7 @@ from app.routers import (
     contact_messages,
     customers,
     goods_receipts,
+    location_types,
     locations,
     media,
     menus,
@@ -45,6 +46,7 @@ api_router.include_router(products.router, prefix="/products", tags=["products"]
 api_router.include_router(variants.router, tags=["variants"])
 api_router.include_router(media.router, prefix="/media", tags=["media"])
 api_router.include_router(locations.router, prefix="/locations", tags=["locations"])
+api_router.include_router(location_types.router, prefix="/location-types", tags=["locations"])
 api_router.include_router(suppliers.router, prefix="/suppliers", tags=["suppliers"])
 api_router.include_router(purchase_orders.router, prefix="/purchase-orders", tags=["purchase-orders"])
 api_router.include_router(goods_receipts.router, prefix="/goods-receipts", tags=["goods-receipts"])

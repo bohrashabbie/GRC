@@ -49,6 +49,9 @@ def _auto_location_code(db: Session, name: str) -> str:
 
 
 def create_location(db: Session, data) -> Location:
+    from app.services import inventory_types
+
+    inventory_types._assert_known_location_type(db, data.type)
     fields = data.model_dump()
     fields["code"] = fields.get("code") or _auto_location_code(db, data.name_en)
     location = Location(**fields)
@@ -66,7 +69,11 @@ def get_location(db: Session, location_id: int) -> Location:
 
 
 def update_location(db: Session, location_id: int, data) -> Location:
+    from app.services import inventory_types
+
     location = get_location(db, location_id)
+    if data.type is not None:
+        inventory_types._assert_known_location_type(db, data.type)
     for field, value in data.model_dump(exclude_unset=True).items():
         if value is not None:
             setattr(location, field, value)

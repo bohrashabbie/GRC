@@ -1,9 +1,45 @@
 from __future__ import annotations
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import NotFoundError
 from app.models.customers import Customer, CustomerAddress
+from app.models.orders import Order
+
+
+# An order that has not reached the end of its life yet — what staff mean by
+# "pending orders": something is owed to this customer.
+OPEN_ORDER_STATUSES = ("pending", "confirmed", "processing")
+
+
+def attach_order_summary(db: Session, customers: list) -> None:
+    """Order count, open-order count, lifetime spend and last order date for a
+    page of customers, in one grouped query rather than one per row."""
+    ids = [customer.id for customer in customers]
+    if not ids:
+        return
+    rows = db.execute(
+        select(
+            Order.customer_id,
+            func.count(Order.id),
+            func.count(Order.id).filter(Order.status.in_(OPEN_ORDER_STATUSES)),
+            func.coalesce(func.sum(Order.grand_total), 0),
+            func.max(Order.placed_at),
+        )
+        .where(Order.customer_id.in_(ids), Order.status != "cancelled")
+        .group_by(Order.customer_id)
+    ).all()
+    summary = {
+        row[0]: {"count": row[1], "open": row[2], "spent": row[3], "last": row[4]}
+        for row in rows
+    }
+    for customer in customers:
+        found = summary.get(customer.id)
+        customer.order_count = found["count"] if found else 0
+        customer.pending_order_count = found["open"] if found else 0
+        customer.total_spent = found["spent"] if found else 0
+        customer.last_order_at = found["last"] if found else None
 
 
 def get_customer(db: Session, customer_id: int) -> Customer:

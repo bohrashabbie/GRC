@@ -84,6 +84,7 @@
     "options": "الخيارات",
     "productTypes": "أنواع المنتجات",
     "categoryTypes": "أنواع التصنيفات",
+    "locationTypes": "أنواع المواقع",
     "locations": "المواقع",
     "suppliers": "الموردون",
     "purchaseOrders": "أوامر الشراء",
@@ -329,6 +330,28 @@
     },
     "treeTitle": "شجرة التصنيفات",
     "listTitle": "كل التصنيفات"
+  },
+  "locationTypes": {
+    "title": "أنواع المواقع",
+    "description": "نوع المكان — مستودع، أو متجر، أو موقع افتراضي يحتفظ بالمخزون على الورق فقط.",
+    "newType": "نوع جديد",
+    "createTitle": "إضافة نوع موقع",
+    "editTitle": "تعديل نوع الموقع",
+    "formDescription": "الاسم الذي يختاره الموظفون عند إنشاء موقع. لا يظهر للمتسوقين.",
+    "created": "تمت إضافة النوع.",
+    "updated": "تم تحديث النوع.",
+    "deleted": "تم حذف النوع.",
+    "deleteBlocked": "{count, plural, one {يستخدم هذا النوع موقع واحد} other {تستخدم هذا النوع # مواقع}} — غيّرها أولاً، أو أوقف النوع بدل حذفه.",
+    "empty": "لا توجد أنواع مواقع بعد.",
+    "locationCount": "{count, plural, one {موقع واحد} other {# مواقع}}",
+    "columns": {
+      "type": "النوع",
+      "locations": "قيد الاستخدام",
+      "order": "الترتيب"
+    },
+    "fields": {
+      "isActive": "متاح عند إنشاء المواقع"
+    }
   },
   "categoryTypes": {
     "title": "أنواع التصنيفات",
@@ -778,6 +801,16 @@
     }
   },
   "customers": {
+    "segments": {
+      "purchased": "اشترى من قبل",
+      "registered": "مسجّل بلا طلبات",
+      "pending": "لديه طلبات مفتوحة",
+      "marketing": "يوافق على التسويق"
+    },
+    "openOrders": "{count, plural, one {# مفتوح} other {# مفتوحة}}",
+    "searchPlaceholder": "ابحث بالاسم أو البريد أو الهاتف",
+    "whatsapp": "مراسلة عبر واتساب",
+    "email": "إرسال بريد إلكتروني",
     "title": "العملاء",
     "description": "حسابات عملاء المتجر وعناوينهم.",
     "detailTitle": "العميل",
@@ -785,6 +818,8 @@
     "updated": "تم تحديث العميل.",
     "anonymous": "(بدون اسم)",
     "columns": {
+      "orders": "الطلبات",
+      "spent": "أنفق",
       "name": "العميل",
       "email": "البريد الإلكتروني",
       "phone": "الهاتف",
