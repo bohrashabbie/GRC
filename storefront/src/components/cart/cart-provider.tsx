@@ -26,13 +26,18 @@ import type { StoredLine } from "@/lib/shop-api";
  */
 
 const STORAGE_KEY = "grc.cart.v1";
+/** Shown when the API refused a code without saying why (a network blip, or
+ *  an older build). The message it does give is always preferred. */
+const GENERIC_COUPON_ERROR = "invalid"
+
 const COUPON_KEY = "grc.cart.coupon.v1";
 
 interface CartContextValue {
   cart: Cart | null;
   isLoading: boolean;
   isOpen: boolean;
-  couponError: boolean;
+  /** Why the last code was refused, in the shopper's language. */
+  couponError: string | null;
   open: () => void;
   close: () => void;
   addItem: (variantId: string, productSlug: string, quantity?: number) => Promise<void>;
@@ -69,10 +74,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const [couponError, setCouponError] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   const stored = useRef<StoredLine[]>([]);
   const coupon = useRef<string | null>(null);
+  // What the API said this code is worth. Kept beside the code so a rebuild
+  // (quantity change, page load) prices it the same way the till will.
+  const couponDiscount = useRef<string | null>(null);
   const shippingPrice = useRef<string | null>(null);
 
   /**
@@ -121,7 +129,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const sync = useCallback(async () => {
     if (await clampToStock()) persist();
-    const next = await rebuildCart(stored.current, locale, coupon.current, shippingPrice.current);
+    const next = await rebuildCart(
+      stored.current,
+      locale,
+      coupon.current,
+      shippingPrice.current,
+      couponDiscount.current,
+    );
     setCart(next);
     setIsLoading(false);
   }, [clampToStock, locale]);
@@ -193,11 +207,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // A code can carry a minimum spend, so whether it applies depends on the
       // cart it is being applied to, not the code alone.
       const subtotal = cart?.totals.subtotal ?? "0";
-      const isValid = await checkCoupon(code, locale, subtotal);
-      setCouponError(!isValid);
-      if (!isValid) return false;
+      const result = await checkCoupon(code, locale, subtotal);
+      if (!result.ok) {
+        // The API's own words when it gave any — "this code has expired",
+        // "spend KWD 10 to use this code" — and the generic line otherwise.
+        setCouponError(result.message ?? GENERIC_COUPON_ERROR);
+        return false;
+      }
 
-      coupon.current = code.trim().toUpperCase();
+      setCouponError(null);
+      coupon.current = result.code;
+      couponDiscount.current = result.discount;
       persist();
       await sync();
       return true;
@@ -207,7 +227,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const removeCoupon = useCallback(async () => {
     coupon.current = null;
-    setCouponError(false);
+    couponDiscount.current = null;
+    setCouponError(null);
     persist();
     await sync();
   }, [sync]);
@@ -223,6 +244,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clear = useCallback(async () => {
     stored.current = [];
     coupon.current = null;
+    couponDiscount.current = null;
     shippingPrice.current = null;
     persist();
     await sync();

@@ -65,6 +65,8 @@ export function fixtureBuildCart(
   couponCode: string | null,
   shippingMethodPrice: string | null,
   resolve: (slug: string, locale: LocaleCode) => ProductDetail | null = fixtureProductDetail,
+  /** The discount the API quoted for this code, in KWD, when it is a real one. */
+  quotedDiscount: string | null = null,
 ): Cart {
   const lines: CartLine[] = [];
 
@@ -120,7 +122,12 @@ export function fixtureBuildCart(
   let discount = 0;
   let coupon: AppliedCoupon | null = null;
   const normalised = couponCode?.trim().toUpperCase();
-  if (normalised && COUPONS[normalised]) {
+  if (normalised && quotedDiscount !== null) {
+    // A real coupon from the admin: the API priced it, and this arithmetic
+    // must not second-guess the figure the till will charge.
+    discount = Math.min(toFils(quotedDiscount), subtotal);
+    coupon = { code: normalised, label: normalised, discount_amount: toMoney(discount) };
+  } else if (normalised && COUPONS[normalised]) {
     const rule = COUPONS[normalised];
     discount =
       rule.type === "percent" ? Math.round((subtotal * rule.value) / 100) : Math.min(rule.value, subtotal);

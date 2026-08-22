@@ -21,6 +21,7 @@ import {
   sendContactMessage,
   updateProfile,
   validateCoupon,
+  type CouponCheck,
   type ContactInput,
   type ListQuery,
   type StoredLine,
@@ -84,15 +85,16 @@ export async function rebuildCart(
   locale: LocaleCode,
   couponCode: string | null,
   shippingPrice: string | null,
+  couponDiscount: string | null = null,
 ): Promise<Cart> {
-  return getCart(stored, locale, couponCode, shippingPrice);
+  return getCart(stored, locale, couponCode, shippingPrice, couponDiscount);
 }
 
 export async function checkCoupon(
   code: string,
   locale: LocaleCode,
   subtotal: string,
-): Promise<boolean> {
+): Promise<CouponCheck> {
   return validateCoupon(code, locale, subtotal);
 }
 

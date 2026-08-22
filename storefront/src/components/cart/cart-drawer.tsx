@@ -193,7 +193,7 @@ export function CartDrawer() {
                       onChange={(event) => setCouponInput(event.currentTarget.value)}
                       placeholder={t("couponPlaceholder")}
                       aria-label={t("couponPlaceholder")}
-                      aria-invalid={couponError}
+                      aria-invalid={couponError !== null}
                       className="h-11 min-w-0 flex-1 rounded-xs border border-hairline-strong bg-surface px-3 text-sm uppercase placeholder:normal-case placeholder:text-ink-400 focus:border-gold-500 focus:outline-none"
                     />
                     <button
@@ -204,7 +204,12 @@ export function CartDrawer() {
                     </button>
                   </div>
                   {couponError && (
-                    <p className="mt-1.5 text-2xs text-brick-600">{t("couponInvalid")}</p>
+                    // The API's own reason where it gave one — "this code has
+                    // expired", "spend KWD 10 to use it" — since "isn't valid"
+                    // leaves the shopper with nothing to act on.
+                    <p className="mt-1.5 text-2xs text-brick-600">
+                      {couponError === "invalid" ? t("couponInvalid") : couponError}
+                    </p>
                   )}
                 </form>
               )}

@@ -485,6 +485,8 @@ export async function getCart(
   locale: LocaleCode,
   couponCode: string | null = null,
   shippingPrice: string | null = null,
+  /** What the API quoted for this code, in KWD. */
+  couponDiscount: string | null = null,
 ): Promise<Cart> {
   if (!USE_FIXTURES) return shopFetch<Cart>("/cart", { locale, revalidate: false });
 
@@ -492,12 +494,15 @@ export async function getCart(
   const resolved = await Promise.all(slugs.map((slug) => getProduct(slug, locale)));
   const bySlug = new Map(slugs.map((slug, index) => [slug, resolved[index]]));
 
+  // The discount comes from the API's own quote, so the cart never prices a
+  // coupon differently from the checkout that redeems it.
   return fixtureBuildCart(
     stored,
     locale,
     couponCode,
     shippingPrice,
     (slug) => bySlug.get(slug) ?? null,
+    couponDiscount,
   );
 }
 
@@ -509,22 +514,34 @@ export async function getCart(
  * checkout re-validates and redeems inside the order's own transaction, so a
  * code exhausted between here and there still fails at the till.
  */
+export type CouponCheck =
+  | { ok: true; code: string; discount: string }
+  | { ok: false; message: string | null };
+
 export async function validateCoupon(
   code: string,
   locale: LocaleCode,
   subtotal: string,
-): Promise<boolean> {
-  if (USE_FIXTURES) return fixtureValidateCoupon(code);
+): Promise<CouponCheck> {
+  // Coupons are read live even while the cart's arithmetic is still local:
+  // the codes live in the admin, and a fixture list of two invented codes
+  // rejected every real one staff created.
+  if (!USE_LIVE_CATALOG) {
+    return fixtureValidateCoupon(code)
+      ? { ok: true, code: code.trim().toUpperCase(), discount: "0.000" }
+      : { ok: false, message: null };
+  }
   try {
-    await shopFetch("/cart/coupon", {
-      locale,
-      revalidate: false,
-      method: "POST",
-      body: { code, subtotal },
-    });
-    return true;
-  } catch {
-    return false;
+    const quote = await shopFetch<{ code: string; discount_total: string }>(
+      "/cart/coupon",
+      { locale, revalidate: false, method: "POST", body: { code, subtotal } },
+    );
+    return { ok: true, code: quote.code, discount: quote.discount_total };
+  } catch (error) {
+    // The API says why — expired, below the minimum, all used up. That is far
+    // more use to a shopper than "isn't valid".
+    const message = error instanceof ShopApiError ? error.message : null;
+    return { ok: false, message };
   }
 }
 
