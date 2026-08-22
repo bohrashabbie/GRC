@@ -114,6 +114,8 @@ function toCategoryNode(raw: RawCategory, locale: LocaleCode): CategoryNode {
     name: raw.name[locale],
     image: raw.image ? img(raw.image, raw.name[locale]) : null,
     product_count: raw.count,
+    // The fixtures stand in for a shop that shows all its departments.
+    show_on_home: true,
     children: (raw.children ?? []).map((child) => toCategoryNode(child, locale)),
   };
 }

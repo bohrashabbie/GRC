@@ -269,6 +269,7 @@ export type CategoryOut = {
   image_key: string | null
   sort_order: number
   show_in_menu: boolean
+  show_on_home: boolean
   is_active: boolean
   created_at: string
   translations: SeoTranslationOut[]
@@ -281,6 +282,7 @@ export type CategoryTreeNode = {
   depth: number
   sort_order: number
   show_in_menu: boolean
+  show_on_home: boolean
   is_active: boolean
   translations: SeoTranslationOut[]
   children: CategoryTreeNode[]
@@ -289,6 +291,8 @@ export type CategoryTreeNode = {
 export type CategoryCreate = {
   parent_id?: number | null
   dimension: string
+  /** One of the circles in the storefront home page's category row. */
+  show_on_home?: boolean
   /** Omitted by the admin — the API derives an ltree-safe label from the name. */
   code?: string | null
   image_media_id?: number | null
@@ -305,6 +309,7 @@ export type CategoryUpdate = {
   image_media_id?: number | null
   sort_order?: number | null
   show_in_menu?: boolean | null
+  show_on_home?: boolean | null
   is_active?: boolean | null
   translations?: SeoTranslationIn[] | null
 }

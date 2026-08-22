@@ -60,6 +60,7 @@ function useCategorySchema() {
       parent_id: z.string(),
       sort_order: z.coerce.number().int(),
       show_in_menu: z.boolean(),
+      show_on_home: z.boolean(),
       is_active: z.boolean(),
       translations: z.object({
         ar: z.object({ name: z.string(), slug: z.string() }),
@@ -101,6 +102,10 @@ export function CategoryFormDialog({
       parent_id: category?.parent_id ? String(category.parent_id) : NO_PARENT,
       sort_order: category?.sort_order ?? 0,
       show_in_menu: category?.show_in_menu ?? true,
+      // Off by default: the home row is a short shelf staff curate, and
+      // a new category joining it unannounced is how that row ends up
+      // with nine circles nobody chose.
+      show_on_home: category?.show_on_home ?? false,
       is_active: category?.is_active ?? true,
       translations: toNameTranslationForm(category?.translations),
     },
@@ -143,6 +148,7 @@ export function CategoryFormDialog({
           parent_id: parentId,
           sort_order: values.sort_order,
           show_in_menu: values.show_in_menu,
+          show_on_home: values.show_on_home,
           is_active: values.is_active,
           image_media_id: imageMediaId,
           translations,
@@ -153,6 +159,7 @@ export function CategoryFormDialog({
           parent_id: parentId,
           sort_order: values.sort_order,
           show_in_menu: values.show_in_menu,
+          show_on_home: values.show_on_home,
           is_active: values.is_active,
           image_media_id: imageMediaId,
           translations,
@@ -289,6 +296,30 @@ export function CategoryFormDialog({
                     <FormControl>
                       <Switch
                         id="cat-menu"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="show_on_home"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3">
+                    <div className="flex flex-col gap-0.5">
+                      <Label htmlFor="cat-home">{t("fields.showOnHome")}</Label>
+                      <span className="text-xs text-muted-foreground">
+                        {t("fields.showOnHomeHint")}
+                      </span>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        id="cat-home"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />

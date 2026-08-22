@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -172,6 +173,7 @@ function CategoriesContent() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.name")}</TableHead>
+                <TableHead>{t("columns.onHome")}</TableHead>
                 <TableHead className="w-px">{c("actions")}</TableHead>
               </TableRow>
             </TableHeader>
@@ -207,6 +209,13 @@ function CategoriesContent() {
                           {name}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {node.show_on_home ? (
+                        <Badge variant="secondary">{c("yes")}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="w-px whitespace-nowrap">
                       <RequirePermission permission={PERMISSIONS.catalogManage}>

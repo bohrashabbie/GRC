@@ -93,6 +93,7 @@ class CategoryCreate(BaseModel):
     image_media_id: int | None = None
     sort_order: int = 0
     show_in_menu: bool = True
+    show_on_home: bool = False
     is_active: bool = True
     translations: list[SeoTranslationIn] = Field(min_length=1)
 
@@ -104,6 +105,7 @@ class CategoryUpdate(BaseModel):
     image_media_id: int | None = None
     sort_order: int | None = None
     show_in_menu: bool | None = None
+    show_on_home: bool | None = None
     is_active: bool | None = None
     translations: list[SeoTranslationIn] | None = None
 
@@ -121,6 +123,7 @@ class CategoryOut(BaseModel):
     image_key: str | None = None
     sort_order: int
     show_in_menu: bool
+    show_on_home: bool
     is_active: bool
     created_at: datetime
     translations: list[SeoTranslationOut]
@@ -135,6 +138,7 @@ class CategoryTreeNode(BaseModel):
     depth: int
     sort_order: int
     show_in_menu: bool
+    show_on_home: bool
     is_active: bool
     translations: list[SeoTranslationOut]
     children: list["CategoryTreeNode"] = []

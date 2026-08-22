@@ -30,6 +30,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       getCollection("new_arrivals", typedLocale),
     ]);
 
+  // Only the categories staff switched on, and only top-level ones — the row
+  // is a short shelf of departments, not the whole tree.
+  const homeCategories = categories.filter((category) => category.show_on_home);
+
   return (
     <>
       <HeroSlider banners={heroBanners} />
@@ -41,7 +45,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             intro={t("shopByCategoryIntro")}
             className="mb-8"
           />
-          <CategoryTiles categories={categories} />
+          {/* The row is what staff switched on, not simply every category —
+              the header menu still shows the whole tree. */}
+          <CategoryTiles categories={homeCategories} />
         </div>
       </section>
 

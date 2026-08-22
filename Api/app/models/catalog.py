@@ -89,6 +89,9 @@ class Category(Base, TimestampMixin):
     image_media_id: Mapped[int | None] = mapped_column(ForeignKey("media.id"), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     show_in_menu: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # Whether this category is one of the circles in the home page's "Shop by
+    # category" row. Separate from the header menu, which is fixed.
+    show_on_home: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     children: Mapped[list["Category"]] = relationship(back_populates="parent")

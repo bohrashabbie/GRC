@@ -389,6 +389,9 @@ def _category_payloads(db: Session, locale: str, base_url: str) -> tuple[list[di
             "name": name,
             "image": _media_image(media.get(category.image_media_id), base_url, name),
             "product_count": len(product_sets[category.id]),
+            # The home row reads this; the header menu ignores it and shows
+            # the whole tree.
+            "show_on_home": category.show_on_home,
             "children": [],
         }
     roots: list[dict] = []

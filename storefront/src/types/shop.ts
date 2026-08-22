@@ -59,6 +59,8 @@ export interface CategoryNode {
   /** Circular homepage tile / mega-menu thumbnail. */
   image: MediaImage | null;
   product_count: number;
+  /** Staff choose which categories make up the home page's category row. */
+  show_on_home: boolean;
   children: CategoryNode[];
 }
 

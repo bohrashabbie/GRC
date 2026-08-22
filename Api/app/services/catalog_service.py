@@ -245,6 +245,7 @@ def create_category(db: Session, data) -> Category:
         image_media_id=data.image_media_id,
         sort_order=data.sort_order,
         show_in_menu=data.show_in_menu,
+        show_on_home=data.show_on_home,
         is_active=data.is_active,
     )
     db.add(category)
@@ -288,7 +289,7 @@ def update_category(db: Session, category_id: int, data) -> Category:
 
     if "image_media_id" in data.model_fields_set:
         category.image_media_id = data.image_media_id
-    for field in ("dimension", "sort_order", "show_in_menu", "is_active"):
+    for field in ("dimension", "sort_order", "show_in_menu", "show_on_home", "is_active"):
         if field in data.model_fields_set and (value := getattr(data, field)) is not None:
             setattr(category, field, value)
 

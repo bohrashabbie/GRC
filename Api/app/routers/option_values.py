@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.deps import require
-from app.models.catalog import Option, OptionValue
+from app.models.catalog import OptionValue
 from app.schemas.catalog import OptionValueCreate, OptionValueOut, OptionValueUpdate
 from app.schemas.common import DeletionResultOut
 from app.services import catalog_service
@@ -30,16 +30,12 @@ def list_option_values(
     db: Session = Depends(get_db),
     _user=Depends(require("catalog.view")),
 ) -> dict:
-    # Scoped to the two live options and to values that have not been retired,
-    # so a value added here shows up here — which a hardcoded code list could
-    # never do.
+    # Retired values are hidden; the option they belong to is not filtered —
+    # values of a staff-created option have to be listable too, or that option
+    # can never be given any.
     stmt = (
         select(OptionValue)
-        .join(Option, Option.id == OptionValue.option_id)
-        .where(
-            Option.code.in_(catalog_service.SYSTEM_OPTION_CODES),
-            OptionValue.is_active.is_(True),
-        )
+        .where(OptionValue.is_active.is_(True))
         .options(selectinload(OptionValue.translations))
     )
     if option_id is not None:

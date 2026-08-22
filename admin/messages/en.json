@@ -309,6 +309,8 @@
       "parent": "Parent category",
       "noParent": "Top level (no parent)",
       "dimension": "Dimension",
+      "showOnHome": "Show on the shop's home page",
+      "showOnHomeHint": "One of the circles in the \"Shop by category\" row. The header menu is separate.",
       "showInMenu": "Show in navigation menu",
       "image": "Category image",
       "imageHint": "Shown on category tiles in the storefront."
@@ -319,6 +321,7 @@
     },
     "columns": {
       "name": "Category",
+      "onHome": "On home page",
       "code": "Code",
       "depth": "Depth",
       "status": "Status"
