@@ -34,11 +34,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { TranslationNameFields } from "@/components/translations-fields"
-import { brandsApi, productsApi } from "@/lib/api/endpoints"
+import { brandsApi, productsApi, productTypesApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
-import { translatedName } from "@/lib/format"
-import { PRODUCT_TYPE_VALUES, humanizeStatus } from "@/lib/status"
+import { translatedLabel, translatedName } from "@/lib/format"
+
 import { queryKeys } from "@/lib/query/keys"
 import { useRouter } from "@/i18n/navigation"
 
@@ -89,11 +89,20 @@ export function ProductCreateDialog({
     enabled: open,
   })
 
+  // Types are staff-managed rather than a list in the code, so the form reads
+  // whatever the shop keeps today.
+  const productTypesQuery = useQuery({
+    queryKey: queryKeys.productTypes.list(true),
+    queryFn: ({ signal }) => productTypesApi.list({ is_active: true }, signal),
+    enabled: open,
+  })
+  const productTypes = productTypesQuery.data ?? []
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       brand_id: NO_BRAND,
-      product_type: PRODUCT_TYPE_VALUES[0],
+      product_type: "",
       base_price: "",
       translations: {
         ar: { name: "", slug: "" },
@@ -168,9 +177,9 @@ export function ProductCreateDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {PRODUCT_TYPE_VALUES.map((pt) => (
-                          <SelectItem key={pt} value={pt}>
-                            {humanizeStatus(pt)}
+                        {productTypes.map((pt) => (
+                          <SelectItem key={pt.id} value={pt.code}>
+                            {translatedLabel(pt.translations, locale)}
                           </SelectItem>
                         ))}
                       </SelectContent>

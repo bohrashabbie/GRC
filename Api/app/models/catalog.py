@@ -233,6 +233,42 @@ class ProductCategory(Base, TimestampMixin):
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
+class ProductType(Base, TimestampMixin):
+    """What kind of garment a product is — thobe, shemagh, and whatever the
+    shop adds next.
+
+    A table rather than an enum because the list is the shop's vocabulary, not
+    a rule of the system. products.product_type holds the code as text, not an
+    FK: retiring a type must not rewrite the products that carried it, and the
+    order history reads it as a label.
+    """
+
+    __tablename__ = "product_types"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    code: Mapped[str] = mapped_column(nullable=False, unique=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    translations: Mapped[list["ProductTypeTranslation"]] = relationship(
+        back_populates="product_type", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (Index("ix_product_types_is_active", "is_active"),)
+
+
+class ProductTypeTranslation(Base):
+    __tablename__ = "product_type_translations"
+
+    product_type_id: Mapped[int] = mapped_column(
+        ForeignKey("product_types.id", ondelete="CASCADE"), primary_key=True
+    )
+    locale: Mapped[str] = mapped_column(primary_key=True)
+    label: Mapped[str] = mapped_column(nullable=False)
+
+    product_type: Mapped["ProductType"] = relationship(back_populates="translations")
+
+
 class Option(Base, TimestampMixin):
     __tablename__ = "options"
 

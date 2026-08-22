@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, ConflictError, NotFoundError
@@ -25,6 +25,8 @@ from app.models.catalog import (
     Product,
     ProductCategory,
     ProductMedia,
+    ProductType,
+    ProductTypeTranslation,
     VariantOptionValue,
 )
 from app.utils import slugify, unique_code
@@ -363,6 +365,134 @@ def get_category_tree(db: Session, dimension: str) -> list[Category]:
 
 
 # --------------------------------------------------------------------------
+# Product types
+# --------------------------------------------------------------------------
+
+def list_product_types(db: Session, *, is_active: bool | None = None) -> list[ProductType]:
+    stmt = (
+        select(ProductType)
+        .options(selectinload(ProductType.translations))
+        .order_by(ProductType.sort_order, ProductType.id)
+    )
+    if is_active is not None:
+        stmt = stmt.where(ProductType.is_active.is_(is_active))
+    types = list(db.execute(stmt).scalars().all())
+    attach_product_type_counts(db, types)
+    return types
+
+
+def attach_product_type_counts(db: Session, types: list[ProductType]) -> None:
+    """One grouped count for the page, so "3 products" is on screen before
+    anyone tries to delete a type that is still in use."""
+    rows = db.execute(
+        select(Product.product_type, func.count())
+        .where(Product.status != "deleted")
+        .group_by(Product.product_type)
+    ).all()
+    counts = {code: count for code, count in rows}
+    for product_type in types:
+        product_type.product_count = counts.get(product_type.code, 0)
+
+
+def get_product_type(db: Session, product_type_id: int) -> ProductType:
+    product_type = db.get(
+        ProductType, product_type_id, options=[selectinload(ProductType.translations)]
+    )
+    if product_type is None:
+        raise NotFoundError("Product type not found")
+    attach_product_type_counts(db, [product_type])
+    return product_type
+
+
+def create_product_type(db: Session, data) -> ProductType:
+    code = data.code.strip() if data.code else _auto_label_code(db, ProductType, data.translations, "type")
+    existing = db.execute(select(ProductType).where(ProductType.code == code)).scalar_one_or_none()
+    if existing is not None:
+        raise ConflictError(
+            f"A product type with code '{code}' already exists.",
+            code="duplicate_product_type_code",
+        )
+    product_type = ProductType(code=code, sort_order=data.sort_order, is_active=data.is_active)
+    db.add(product_type)
+    db.flush()
+    _sync_label_translations(
+        db, [], data.translations, "product_type_id", product_type.id, ProductTypeTranslation
+    )
+    db.commit()
+    db.refresh(product_type)
+    attach_product_type_counts(db, [product_type])
+    return product_type
+
+
+def update_product_type(db: Session, product_type_id: int, data) -> ProductType:
+    product_type = get_product_type(db, product_type_id)
+    fields = data.model_dump(exclude_unset=True, exclude={"translations"})
+    for field, value in fields.items():
+        if value is not None:
+            setattr(product_type, field, value)
+    if data.translations is not None:
+        _sync_label_translations(
+            db,
+            list(product_type.translations),
+            data.translations,
+            "product_type_id",
+            product_type.id,
+            ProductTypeTranslation,
+        )
+    db.commit()
+    db.refresh(product_type)
+    attach_product_type_counts(db, [product_type])
+    return product_type
+
+
+def delete_product_type(db: Session, product_type_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
+    """Remove a type nothing uses; refuse while products still carry it.
+
+    products.product_type is text, so deleting one in use would not fail at the
+    database — it would leave those products pointing at a type the admin can
+    no longer show or filter by. Staff are told the count instead, the same way
+    a colour value in use behaves.
+    """
+    product_type = get_product_type(db, product_type_id)
+    before = {"code": product_type.code, "is_active": product_type.is_active}
+    blockers = deletion.find_blockers(
+        db,
+        [
+            (
+                "products",
+                select(Product.id).where(
+                    Product.product_type == product_type.code, Product.status != "deleted"
+                ),
+            )
+        ],
+    )
+    if blockers:
+        raise deletion.blocked("product type", blockers)
+
+    db.delete(product_type)
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action=f"product_type.{deletion.DELETED}",
+        entity_type="product_type",
+        entity_id=product_type_id,
+        before=before,
+        after=None,
+    )
+    db.commit()
+    return deletion.DeletionResult(deletion.DELETED, {})
+
+
+def active_product_type_codes(db: Session) -> set[str]:
+    return {
+        row[0]
+        for row in db.execute(
+            select(ProductType.code).where(ProductType.is_active.is_(True))
+        ).all()
+    }
+
+
+# --------------------------------------------------------------------------
 # Options & option values
 # --------------------------------------------------------------------------
 
@@ -388,6 +518,15 @@ def _require_system_option(option: Option) -> None:
     measurement fields respectively; every other option is a plain value list,
     which the selector renders as buttons."""
     return None
+
+
+def _auto_label_code(db: Session, model, translations, stem: str) -> str:
+    """A unique code derived from a label-bearing record's English label."""
+    by_locale = {t.locale: t.label for t in translations}
+    english = (by_locale.get("en") or "").strip()
+    arabic = (by_locale.get("ar") or "").strip()
+    base = slugify(english, "en") if english else slugify(arabic, "ar")
+    return unique_code(db, model, base, stem)
 
 
 def _auto_option_code(db: Session, translations) -> str:

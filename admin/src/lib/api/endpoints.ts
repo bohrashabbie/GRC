@@ -29,6 +29,9 @@ import type {
   LowStockItemOut,
   MediaOut,
   OptionCreate,
+  ProductTypeCreate,
+  ProductTypeOut,
+  ProductTypeUpdate,
   OptionOut,
   OptionUpdate,
   OptionValueCreate,
@@ -235,6 +238,22 @@ export const categoriesApi = {
 /* -------------------------------------------------------------------------- */
 /* Catalog — options & option values                                           */
 /* -------------------------------------------------------------------------- */
+
+export const productTypesApi = {
+  /** Not paginated: a short vocabulary the product form needs all of. */
+  list: (params: { is_active?: boolean | null } = {}, signal?: AbortSignal) =>
+    api.get<ProductTypeOut[]>("/product-types", {
+      query: { is_active: params.is_active ?? undefined },
+      signal,
+    }),
+  create: (payload: ProductTypeCreate) =>
+    api.post<ProductTypeOut>("/product-types", payload),
+  update: (productTypeId: number, payload: ProductTypeUpdate) =>
+    api.patch<ProductTypeOut>(`/product-types/${productTypeId}`, payload),
+  /** Refused while products still carry the type; the error says how many. */
+  delete: (productTypeId: number) =>
+    api.del<DeletionResult>(`/product-types/${productTypeId}`),
+}
 
 export const optionsApi = {
   list: (

@@ -82,6 +82,7 @@
     "brands": "Brands",
     "categories": "Categories",
     "options": "Options",
+    "productTypes": "Product types",
     "locations": "Locations",
     "suppliers": "Suppliers",
     "purchaseOrders": "Purchase orders",
@@ -324,6 +325,28 @@
     },
     "treeTitle": "Category tree",
     "listTitle": "All categories"
+  },
+  "productTypes": {
+    "title": "Product types",
+    "description": "What kind of garment a product is — thobe, shemagh, and anything else the shop sells.",
+    "newType": "New type",
+    "createTitle": "Create product type",
+    "editTitle": "Edit product type",
+    "formDescription": "The name staff pick from when creating a product. It is not shown to shoppers.",
+    "created": "Product type created.",
+    "updated": "Product type updated.",
+    "deleted": "Product type deleted.",
+    "deleteBlocked": "{count, plural, one {# product uses this type} other {# products use this type}} — change them first, or switch this type off instead of deleting it.",
+    "empty": "No product types yet.",
+    "productCount": "{count, plural, one {# product} other {# products}}",
+    "columns": {
+      "type": "Type",
+      "products": "In use",
+      "order": "Order"
+    },
+    "fields": {
+      "isActive": "Available when creating products"
+    }
   },
   "options": {
     "inputTypes": {

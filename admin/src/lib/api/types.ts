@@ -323,6 +323,31 @@ export type OptionOut = {
   translations: LabelTranslationOut[]
 }
 
+export type ProductTypeOut = {
+  id: number
+  code: string
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  translations: LabelTranslationOut[]
+  /** Products carrying this type — shown so "in use" is visible before delete. */
+  product_count: number
+}
+
+export type ProductTypeCreate = {
+  /** Omitted by the admin — the API derives it from the label. */
+  code?: string | null
+  sort_order?: number
+  is_active?: boolean
+  translations: LabelTranslationIn[]
+}
+
+export type ProductTypeUpdate = {
+  sort_order?: number | null
+  is_active?: boolean | null
+  translations?: LabelTranslationIn[] | null
+}
+
 export type OptionCreate = {
   /** Omitted by the admin — the API derives it from the label. */
   code?: string | null

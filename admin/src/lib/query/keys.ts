@@ -44,6 +44,11 @@ export const queryKeys = {
     detail: (categoryId: number) => ["categories", "detail", categoryId] as const,
   },
 
+  productTypes: {
+    all: ["product-types"] as const,
+    list: (isActive?: boolean | null) =>
+      ["product-types", "list", isActive ?? null] as const,
+  },
   options: {
     all: ["options"] as const,
     list: () => ["options", "list"] as const,

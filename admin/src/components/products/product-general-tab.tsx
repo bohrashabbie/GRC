@@ -34,11 +34,16 @@ import { Switch } from "@/components/ui/switch"
 import { TranslationNameFields } from "@/components/translations-fields"
 import { useRouter } from "@/i18n/navigation"
 import { usePermission } from "@/hooks/use-permission"
-import { brandsApi, categoriesApi, productsApi } from "@/lib/api/endpoints"
+import {
+  brandsApi,
+  categoriesApi,
+  productsApi,
+  productTypesApi,
+} from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
-import { translatedName } from "@/lib/format"
-import { PRODUCT_TYPE_VALUES, humanizeStatus } from "@/lib/status"
+import { translatedLabel, translatedName } from "@/lib/format"
+
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import type { ProductOut } from "@/lib/api/types"
@@ -96,6 +101,14 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
     queryKey: queryKeys.categories.list({ is_active: true }),
     queryFn: ({ signal }) => categoriesApi.list({ limit: 100, is_active: true }, signal),
   })
+  // Staff-managed vocabulary, so the dropdown reads the table rather than a
+  // list in the source. Inactive types are left out — a product already on one
+  // keeps it until someone changes it.
+  const productTypesQuery = useQuery({
+    queryKey: queryKeys.productTypes.list(true),
+    queryFn: ({ signal }) => productTypesApi.list({ is_active: true }, signal),
+  })
+  const productTypes = productTypesQuery.data ?? []
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -260,9 +273,9 @@ export function ProductGeneralTab({ product }: { product: ProductOut }) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {PRODUCT_TYPE_VALUES.map((pt) => (
-                          <SelectItem key={pt} value={pt}>
-                            {humanizeStatus(pt)}
+                        {productTypes.map((pt) => (
+                          <SelectItem key={pt.id} value={pt.code}>
+                            {translatedLabel(pt.translations, locale)}
                           </SelectItem>
                         ))}
                       </SelectContent>

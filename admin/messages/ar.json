@@ -82,6 +82,7 @@
     "brands": "العلامات التجارية",
     "categories": "التصنيفات",
     "options": "الخيارات",
+    "productTypes": "أنواع المنتجات",
     "locations": "المواقع",
     "suppliers": "الموردون",
     "purchaseOrders": "أوامر الشراء",
@@ -324,6 +325,28 @@
     },
     "treeTitle": "شجرة التصنيفات",
     "listTitle": "كل التصنيفات"
+  },
+  "productTypes": {
+    "title": "أنواع المنتجات",
+    "description": "نوع القطعة — ثوب، شماغ، وأي شيء آخر يبيعه المتجر.",
+    "newType": "نوع جديد",
+    "createTitle": "إضافة نوع منتج",
+    "editTitle": "تعديل نوع المنتج",
+    "formDescription": "الاسم الذي يختاره الموظفون عند إنشاء منتج. لا يظهر للمتسوقين.",
+    "created": "تمت إضافة النوع.",
+    "updated": "تم تحديث النوع.",
+    "deleted": "تم حذف النوع.",
+    "deleteBlocked": "{count, plural, one {يستخدم هذا النوع منتج واحد} other {يستخدم هذا النوع # منتجات}} — غيّرها أولاً، أو أوقف النوع بدل حذفه.",
+    "empty": "لا توجد أنواع منتجات بعد.",
+    "productCount": "{count, plural, one {منتج واحد} other {# منتجات}}",
+    "columns": {
+      "type": "النوع",
+      "products": "قيد الاستخدام",
+      "order": "الترتيب"
+    },
+    "fields": {
+      "isActive": "متاح عند إنشاء المنتجات"
+    }
   },
   "options": {
     "inputTypes": {

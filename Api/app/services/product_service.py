@@ -18,7 +18,7 @@ from app.models.catalog import (
     ProductTranslation,
     Variant,
 )
-from app.services import audit_service, inventory_service
+from app.services import audit_service, catalog_service, inventory_service
 from app.utils import slugify
 
 
@@ -152,7 +152,25 @@ def get_product_category_ids(db: Session, product_id: int) -> list[int]:
     return [r[0] for r in rows]
 
 
+def _assert_known_product_type(db: Session, product_type: str) -> None:
+    """A product's type has to be one the shop actually keeps.
+
+    The list used to be a tuple in the source; it is a table staff edit now, so
+    the check reads that table. Retired types are refused for new products
+    while the products already carrying one are left alone — the column is text
+    on purpose.
+    """
+    codes = catalog_service.active_product_type_codes(db)
+    if product_type not in codes:
+        raise BusinessRuleError(
+            f"Unknown product type '{product_type}'.",
+            code="unknown_product_type",
+            details={"allowed": sorted(codes)},
+        )
+
+
 def create_product(db: Session, data, actor_user_id: int | None) -> Product:
+    _assert_known_product_type(db, data.product_type)
     product = Product(
         brand_id=data.brand_id,
         product_type=data.product_type,
@@ -232,6 +250,8 @@ def update_product(db: Session, product_id: int, data, actor_user_id: int | None
     ):
         if field in data.model_fields_set and (value := getattr(data, field)) is not None:
             proposed[field] = value
+    if "product_type" in proposed:
+        _assert_known_product_type(db, proposed["product_type"])
     before, after = audit_service.diff_changed_fields(product, proposed)
     if "base_price" in proposed:
         new_base_price = Decimal(proposed["base_price"])

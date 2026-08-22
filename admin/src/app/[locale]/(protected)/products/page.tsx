@@ -27,14 +27,10 @@ import { RequireRoutePermission } from "@/components/permission/require-route-pe
 import { ProductCreateDialog } from "@/components/products/product-create-dialog"
 import { useCursorList } from "@/hooks/use-cursor-list"
 import { useQueryParam } from "@/hooks/use-query-param"
-import { brandsApi, productsApi } from "@/lib/api/endpoints"
+import { brandsApi, productsApi, productTypesApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
-import { formatMoney, mediaUrl, translatedName } from "@/lib/format"
-import {
-  PRODUCT_STATUS_VALUES,
-  PRODUCT_TYPE_VALUES,
-  humanizeStatus,
-} from "@/lib/status"
+import { formatMoney, mediaUrl, translatedLabel, translatedName } from "@/lib/format"
+import { PRODUCT_STATUS_VALUES, humanizeStatus } from "@/lib/status"
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import { useRouter } from "@/i18n/navigation"
@@ -77,6 +73,17 @@ function ProductsContent() {
     queryFn: ({ signal }) => brandsApi.list({ limit: 100, is_active: true }, signal),
   })
   const brands = brandsQuery.data?.items ?? []
+
+  // The type list is staff-managed, so it is read rather than hard-coded.
+  const productTypesQuery = useQuery({
+    queryKey: queryKeys.productTypes.list(),
+    queryFn: ({ signal }) => productTypesApi.list({}, signal),
+  })
+  const productTypes = productTypesQuery.data ?? []
+  const typeLabel = (code: string) => {
+    const match = productTypes.find((item) => item.code === code)
+    return match ? translatedLabel(match.translations, locale) : humanizeStatus(code)
+  }
 
   const list = useCursorList<ProductOut>({
     queryKey: queryKeys.products.list({
@@ -161,7 +168,7 @@ function ProductsContent() {
     {
       accessorKey: "product_type",
       header: t("columns.type"),
-      cell: ({ row }) => humanizeStatus(row.original.product_type),
+      cell: ({ row }) => typeLabel(row.original.product_type),
     },
     {
       accessorKey: "status",
@@ -302,9 +309,9 @@ function ProductsContent() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ANY}>{c("all")}</SelectItem>
-            {PRODUCT_TYPE_VALUES.map((pt) => (
-              <SelectItem key={pt} value={pt}>
-                {humanizeStatus(pt)}
+            {productTypes.map((pt) => (
+              <SelectItem key={pt.id} value={pt.code}>
+                {translatedLabel(pt.translations, locale)}
               </SelectItem>
             ))}
           </SelectContent>

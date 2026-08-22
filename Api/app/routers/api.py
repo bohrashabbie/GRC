@@ -18,6 +18,7 @@ from app.routers import (
     options,
     orders,
     pages,
+    product_types,
     products,
     purchase_orders,
     roles,
@@ -37,6 +38,7 @@ api_router.include_router(coupons.router, prefix="/coupons", tags=["coupons"])
 api_router.include_router(categories.router, prefix="/categories", tags=["categories"])
 api_router.include_router(options.router, prefix="/options", tags=["options"])
 api_router.include_router(option_values.router, prefix="/option-values", tags=["option-values"])
+api_router.include_router(product_types.router, prefix="/product-types", tags=["catalog"])
 api_router.include_router(products.router, prefix="/products", tags=["products"])
 api_router.include_router(variants.router, tags=["variants"])
 api_router.include_router(media.router, prefix="/media", tags=["media"])

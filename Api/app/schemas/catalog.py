@@ -149,6 +149,34 @@ CategoryTreeNode.model_rebuild()
 # Options & option values
 # --------------------------------------------------------------------------
 
+class ProductTypeCreate(BaseModel):
+    # Derived from the English label when omitted, like every other code.
+    code: str | None = None
+    sort_order: int = 0
+    is_active: bool = True
+    translations: list[LabelTranslationIn] = Field(min_length=1)
+
+
+class ProductTypeUpdate(BaseModel):
+    sort_order: int | None = None
+    is_active: bool | None = None
+    translations: list[LabelTranslationIn] | None = None
+
+
+class ProductTypeOut(BaseModel):
+    id: int
+    code: str
+    sort_order: int
+    is_active: bool
+    created_at: datetime
+    translations: list[LabelTranslationOut]
+    # How many products carry this type — what makes "in use" visible before
+    # someone tries to delete it.
+    product_count: int = 0
+
+    model_config = {"from_attributes": True}
+
+
 class OptionCreate(BaseModel):
     # Optional: the admin no longer asks for one. The service derives it from
     # the English label when omitted.
