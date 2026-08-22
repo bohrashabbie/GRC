@@ -23,6 +23,7 @@ from app.schemas.shop import (
     CouponCheckIn,
     CustomerOut,
     LoginIn,
+    NewsletterSubscribeIn,
     PasswordChangeIn,
     ProfileUpdateIn,
     RegisterIn,
@@ -302,6 +303,19 @@ def page_slugs(accept_language: str | None = Header(None), db: Session = Depends
 @router.get("/pages/{slug}")
 def page(slug: str, accept_language: str | None = Header(None), db: Session = Depends(get_db)):
     return shop_service.page(db, slug, shop_service.locale_from_header(accept_language))
+
+
+@router.post("/newsletter", status_code=status.HTTP_201_CREATED)
+def subscribe(
+    payload: NewsletterSubscribeIn,
+    accept_language: str | None = Header(None),
+    db: Session = Depends(get_db),
+):
+    """The footer's "Join the list" box. Signing up twice is not an error, and
+    an address that once unsubscribed is simply put back on."""
+    locale = shop_service.locale_from_header(accept_language)
+    contact_service.subscribe(db, payload.email, locale)
+    return {"ok": True}
 
 
 @router.post("/contact", status_code=status.HTTP_201_CREATED)

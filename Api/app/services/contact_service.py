@@ -5,11 +5,13 @@ CMS, but its submissions are an inbox with their own lifecycle (new -> read ->
 closed). Nothing here is hard-deleted; `closed` is the archive.
 """
 
+from datetime import datetime, timezone
+
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
 from app.middleware.error import BusinessRuleError, NotFoundError
-from app.models.cms import ContactMessage
+from app.models.cms import ContactMessage, NewsletterSubscriber
 from app.schemas.cms import CONTACT_MESSAGE_STATUSES
 from app.utils import paginate
 
@@ -27,6 +29,59 @@ def create_message(db: Session, data, locale: str) -> ContactMessage:
         status="new",
     )
     db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def subscribe(db: Session, email: str, locale: str, source: str = "footer"):
+    """Add an address, or bring a lapsed one back.
+
+    Signing up twice is not an error to a shopper — they typed their address
+    into a box and pressed a button — so an address already on the list simply
+    stays on it, and one that had unsubscribed is resubscribed rather than
+    rejected as a duplicate.
+    """
+    address = email.strip().lower()
+    existing = db.execute(
+        select(NewsletterSubscriber).where(NewsletterSubscriber.email == address)
+    ).scalar_one_or_none()
+    if existing is not None:
+        existing.unsubscribed_at = None
+        existing.locale = locale if locale in {"ar", "en"} else existing.locale
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    row = NewsletterSubscriber(
+        email=address,
+        locale=locale if locale in {"ar", "en"} else "ar",
+        source=source,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_subscribers(
+    db: Session, cursor: str | None, limit: int, subscribed: bool | None = None
+):
+    stmt = select(NewsletterSubscriber)
+    if subscribed is True:
+        stmt = stmt.where(NewsletterSubscriber.unsubscribed_at.is_(None))
+    elif subscribed is False:
+        stmt = stmt.where(NewsletterSubscriber.unsubscribed_at.is_not(None))
+    return paginate(db, stmt, NewsletterSubscriber, cursor, limit)
+
+
+def unsubscribe(db: Session, subscriber_id: int):
+    """Staff removing someone by hand — a timestamp, not a delete, so the
+    address cannot be re-added by an import that does not know it opted out."""
+    row = db.get(NewsletterSubscriber, subscriber_id)
+    if row is None:
+        raise NotFoundError("Subscriber not found")
+    row.unsubscribed_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(row)
     return row

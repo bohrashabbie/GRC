@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   FolderTree,
+  MailPlus,
   Shapes,
   Warehouse,
   SlidersHorizontal,
@@ -122,6 +123,12 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: "customers",
         icon: Users,
         permission: PERMISSIONS.customerView,
+      },
+      {
+        href: "/subscribers",
+        labelKey: "subscribers",
+        icon: MailPlus,
+        permission: PERMISSIONS.contactView,
       },
       {
         href: "/contact-messages",

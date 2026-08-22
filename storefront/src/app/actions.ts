@@ -20,6 +20,7 @@ import {
   saveToWishlist,
   sendContactMessage,
   updateProfile,
+  subscribeNewsletter,
   validateCoupon,
   type CouponCheck,
   type ContactInput,
@@ -88,6 +89,13 @@ export async function rebuildCart(
   couponDiscount: string | null = null,
 ): Promise<Cart> {
   return getCart(stored, locale, couponCode, shippingPrice, couponDiscount);
+}
+
+export async function subscribeToNewsletter(
+  email: string,
+  locale: LocaleCode,
+): Promise<boolean> {
+  return subscribeNewsletter(email, locale);
 }
 
 export async function checkCoupon(

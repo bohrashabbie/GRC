@@ -514,6 +514,24 @@ export async function getCart(
  * checkout re-validates and redeems inside the order's own transaction, so a
  * code exhausted between here and there still fails at the till.
  */
+/** The footer's "Join the list" box. Signing up twice is not an error. */
+export async function subscribeNewsletter(
+  email: string,
+  locale: LocaleCode,
+): Promise<boolean> {
+  try {
+    await shopFetch("/newsletter", {
+      locale,
+      revalidate: false,
+      method: "POST",
+      body: { email },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export type CouponCheck =
   | { ok: true; code: string; discount: string }
   | { ok: false; message: string | null };

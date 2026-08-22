@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { LogoMark } from "@/components/ui/logo";
+import { NewsletterForm } from "./newsletter-form";
 import {
   ApplePayLogo,
   KnetLogo,
@@ -58,23 +59,7 @@ export async function Footer({ locale }: { locale: Locale }) {
 
           <p className="mt-3 text-sm text-sand-300">{t("newsletterBody")}</p>
 
-          {/* No newsletter_subscribers table exists yet, so this posts nowhere.
-              Wired up when the backend lands. */}
-          <form className="mt-5 flex gap-2">
-            <input
-              type="email"
-              required
-              placeholder={t("emailPlaceholder")}
-              aria-label={t("emailPlaceholder")}
-              className="h-11 min-w-0 flex-1 rounded-xs border border-ink-600 bg-ink-800 px-3.5 text-sm text-sand-50 placeholder:text-ink-400 focus:border-gold-500 focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="h-11 shrink-0 rounded-xs bg-gold-400 px-5 text-sm font-medium text-ink-900 transition-colors hover:bg-gold-300"
-            >
-              {t("subscribe")}
-            </button>
-          </form>
+          <NewsletterForm />
 
           <div className="mt-8">
             <p className="eyebrow text-gold-400">{t("followUs")}</p>

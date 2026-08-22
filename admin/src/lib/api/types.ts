@@ -904,6 +904,17 @@ export type PaymentRefundOut = {
 /** The questions staff ask of the customer list. */
 export type CustomerSegment = "purchased" | "registered" | "pending" | "marketing"
 
+/** An address given to the storefront's "Join the list" box. */
+export type SubscriberOut = {
+  id: number
+  email: string
+  locale: string
+  source: string
+  /** Set once they opt out; the row stays either way. */
+  unsubscribed_at: string | null
+  created_at: string
+}
+
 export type CustomerOut = {
   /** Orders that were not cancelled. Zero means registered, never bought. */
   order_count: number

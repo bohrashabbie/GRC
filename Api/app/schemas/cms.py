@@ -3,7 +3,7 @@ contact-form inbox."""
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 BANNER_PLACEMENTS = {"home_hero"}
 BANNER_LINK_TYPES = {"category", "product", "collection", "url"}
@@ -222,6 +222,21 @@ class ContactMessageUpdate(BaseModel):
     never editable."""
 
     status: str
+
+
+class NewsletterSubscribeIn(BaseModel):
+    email: EmailStr
+
+
+class NewsletterSubscriberRead(BaseModel):
+    id: int
+    email: str
+    locale: str
+    source: str
+    unsubscribed_at: datetime | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class ContactMessageRead(BaseModel):

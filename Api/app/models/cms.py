@@ -17,6 +17,7 @@ from sqlalchemy import (
     TIMESTAMP,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -123,6 +124,29 @@ class MenuItemTranslation(Base, TimestampMixin):
 
     __table_args__ = (
         UniqueConstraint("menu_item_id", "locale", name="uq_menu_item_translations_item_locale"),
+    )
+
+
+class NewsletterSubscriber(Base, TimestampMixin):
+    """An address given to the footer's "Join the list" form.
+
+    Not a customer: most subscribers have no account, and an address here says
+    nothing about who they are. Unsubscribing is a timestamp rather than a
+    delete, so an address that comes back can still say it once left.
+    """
+
+    __tablename__ = "newsletter_subscribers"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    email: Mapped[str] = mapped_column(CITEXT, nullable=False, unique=True)
+    locale: Mapped[str] = mapped_column(nullable=False, default="ar")
+    source: Mapped[str] = mapped_column(nullable=False, default="footer")
+    unsubscribed_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
+
+    __table_args__ = (
+        Index("ix_newsletter_subscribers_unsubscribed_at", "unsubscribed_at"),
     )
 
 

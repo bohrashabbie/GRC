@@ -70,6 +70,10 @@ class CheckoutOut(BaseModel):
     totals: CheckoutTotalsOut
 
 
+class NewsletterSubscribeIn(BaseModel):
+    email: EmailStr
+
+
 class ContactIn(BaseModel):
     """The Contact Us form. Lengths are tight enough that the unauthenticated
     endpoint is a poor spam target without cutting off a genuine complaint

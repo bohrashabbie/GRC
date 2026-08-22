@@ -106,6 +106,10 @@ export const queryKeys = {
     detail: (orderId: number) => ["orders", "detail", orderId] as const,
   },
 
+  subscribers: {
+    all: ["subscribers"] as const,
+    list: () => ["subscribers", "list"] as const,
+  },
   customers: {
     all: ["customers"] as const,
     list: (params: {

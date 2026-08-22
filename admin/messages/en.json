@@ -89,6 +89,7 @@
     "suppliers": "Suppliers",
     "purchaseOrders": "Purchase orders",
     "orders": "Orders",
+    "subscribers": "Subscribers",
     "customers": "Customers",
     "users": "Staff users",
     "roles": "Roles & permissions",
@@ -798,6 +799,27 @@
       "amountRequired": "Enter an amount greater than zero.",
       "amountTooHigh": "That's more than the {max} still refundable on this payment.",
       "noCapturedPayment": "This order has no captured payment to refund."
+    }
+  },
+  "subscribers": {
+    "title": "Subscribers",
+    "description": "Addresses given to the storefront's \"Join the list\" box.",
+    "empty": "Nobody has subscribed yet.",
+    "subscribed": "Subscribed",
+    "optedOut": "Opted out",
+    "unsubscribe": "Opt out",
+    "unsubscribed": "Address opted out.",
+    "unsubscribeTitle": "Opt this address out?",
+    "unsubscribeDescription": "{email} stops receiving anything. The address stays on record so it cannot be added back by mistake.",
+    "columns": {
+      "email": "Email",
+      "language": "Language",
+      "source": "Signed up at",
+      "joined": "Joined"
+    },
+    "languages": {
+      "ar": "Arabic",
+      "en": "English"
     }
   },
   "customers": {

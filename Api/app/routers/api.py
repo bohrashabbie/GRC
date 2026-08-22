@@ -16,6 +16,7 @@ from app.routers import (
     locations,
     media,
     menus,
+    newsletter,
     option_values,
     options,
     orders,
@@ -53,6 +54,7 @@ api_router.include_router(goods_receipts.router, prefix="/goods-receipts", tags=
 api_router.include_router(orders.router, prefix="/orders", tags=["orders"])
 api_router.include_router(customers.router, prefix="/customers", tags=["customers"])
 api_router.include_router(contact_messages.router, prefix="/contact-messages", tags=["customers"])
+api_router.include_router(newsletter.router, prefix="/newsletter-subscribers", tags=["customers"])
 api_router.include_router(settings.router, prefix="/settings", tags=["settings"])
 api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
 api_router.include_router(banners.router, prefix="/banners", tags=["cms"])

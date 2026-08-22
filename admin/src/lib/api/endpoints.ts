@@ -20,6 +20,7 @@ import type {
   CustomerAddressUpdate,
   CustomerOut,
   CustomerSegment,
+  SubscriberOut,
   CustomerUpdate,
   GenerateVariantsRequest,
   GoodsReceiptCreate,
@@ -540,6 +541,24 @@ export const ordersApi = {
 /* -------------------------------------------------------------------------- */
 /* Customers                                                                   */
 /* -------------------------------------------------------------------------- */
+
+export const newsletterApi = {
+  list: (
+    params: { cursor?: string | null; limit?: number; subscribed?: boolean | null } = {},
+    signal?: AbortSignal
+  ) =>
+    api.get<CursorPage<SubscriberOut>>("/newsletter-subscribers", {
+      query: {
+        cursor: params.cursor ?? undefined,
+        limit: params.limit,
+        subscribed: params.subscribed ?? undefined,
+      },
+      signal,
+    }),
+  /** Opts the address out. The row stays, so an import cannot re-add it. */
+  unsubscribe: (subscriberId: number) =>
+    api.del<SubscriberOut>(`/newsletter-subscribers/${subscriberId}`),
+}
 
 export const customersApi = {
   list: (
