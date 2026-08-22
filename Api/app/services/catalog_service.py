@@ -18,6 +18,8 @@ from app.models.catalog import (
     BrandTranslation,
     Category,
     CategoryTranslation,
+    CategoryType,
+    CategoryTypeTranslation,
     Option,
     OptionTranslation,
     OptionValue,
@@ -234,6 +236,7 @@ def _auto_category_code(db: Session, translations) -> str:
 
 
 def create_category(db: Session, data) -> Category:
+    _assert_known_category_type(db, data.dimension)
     code = data.code or _auto_category_code(db, data.translations)
     path, depth = _compute_path(db, data.parent_id, code)
     category = Category(
@@ -363,6 +366,131 @@ def get_category_tree(db: Session, dimension: str) -> list[Category]:
     for root in roots:
         attach(root)
     return roots
+
+
+# --------------------------------------------------------------------------
+# Category types
+# --------------------------------------------------------------------------
+
+def list_category_types(db: Session, *, is_active: bool | None = None) -> list[CategoryType]:
+    stmt = (
+        select(CategoryType)
+        .options(selectinload(CategoryType.translations))
+        .order_by(CategoryType.sort_order, CategoryType.id)
+    )
+    if is_active is not None:
+        stmt = stmt.where(CategoryType.is_active.is_(is_active))
+    types = list(db.execute(stmt).scalars().all())
+    attach_category_type_counts(db, types)
+    return types
+
+
+def attach_category_type_counts(db: Session, types: list[CategoryType]) -> None:
+    rows = db.execute(
+        select(Category.dimension, func.count()).group_by(Category.dimension)
+    ).all()
+    counts = {code: count for code, count in rows}
+    for category_type in types:
+        category_type.category_count = counts.get(category_type.code, 0)
+
+
+def get_category_type(db: Session, category_type_id: int) -> CategoryType:
+    category_type = db.get(
+        CategoryType, category_type_id, options=[selectinload(CategoryType.translations)]
+    )
+    if category_type is None:
+        raise NotFoundError("Category type not found")
+    attach_category_type_counts(db, [category_type])
+    return category_type
+
+
+def create_category_type(db: Session, data) -> CategoryType:
+    code = data.code.strip() if data.code else _auto_label_code(db, CategoryType, data.translations, "type")
+    existing = db.execute(select(CategoryType).where(CategoryType.code == code)).scalar_one_or_none()
+    if existing is not None:
+        raise ConflictError(
+            f"A category type with code '{code}' already exists.",
+            code="duplicate_category_type_code",
+        )
+    category_type = CategoryType(code=code, sort_order=data.sort_order, is_active=data.is_active)
+    db.add(category_type)
+    db.flush()
+    _sync_label_translations(
+        db, [], data.translations, "category_type_id", category_type.id, CategoryTypeTranslation
+    )
+    db.commit()
+    db.refresh(category_type)
+    attach_category_type_counts(db, [category_type])
+    return category_type
+
+
+def update_category_type(db: Session, category_type_id: int, data) -> CategoryType:
+    category_type = get_category_type(db, category_type_id)
+    fields = data.model_dump(exclude_unset=True, exclude={"translations"})
+    for field, value in fields.items():
+        if value is not None:
+            setattr(category_type, field, value)
+    if data.translations is not None:
+        _sync_label_translations(
+            db,
+            list(category_type.translations),
+            data.translations,
+            "category_type_id",
+            category_type.id,
+            CategoryTypeTranslation,
+        )
+    db.commit()
+    db.refresh(category_type)
+    attach_category_type_counts(db, [category_type])
+    return category_type
+
+
+def delete_category_type(db: Session, category_type_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
+    """Remove a type nothing is filed under; refuse while categories use it.
+
+    categories.dimension is text, so deleting one in use would leave those
+    categories in a tree the admin can no longer open.
+    """
+    category_type = get_category_type(db, category_type_id)
+    before = {"code": category_type.code, "is_active": category_type.is_active}
+    blockers = deletion.find_blockers(
+        db,
+        [("categories", select(Category.id).where(Category.dimension == category_type.code))],
+    )
+    if blockers:
+        raise deletion.blocked("category type", blockers)
+
+    db.delete(category_type)
+    audit_service.record(
+        db,
+        actor_user_id=actor_user_id,
+        action=f"category_type.{deletion.DELETED}",
+        entity_type="category_type",
+        entity_id=category_type_id,
+        before=before,
+        after=None,
+    )
+    db.commit()
+    return deletion.DeletionResult(deletion.DELETED, {})
+
+
+def active_category_type_codes(db: Session) -> set[str]:
+    return {
+        row[0]
+        for row in db.execute(
+            select(CategoryType.code).where(CategoryType.is_active.is_(True))
+        ).all()
+    }
+
+
+def _assert_known_category_type(db: Session, dimension: str) -> None:
+    codes = active_category_type_codes(db)
+    if dimension not in codes:
+        raise BusinessRuleError(
+            f"Unknown category type '{dimension}'.",
+            code="unknown_category_type",
+            details={"allowed": sorted(codes)},
+        )
 
 
 # --------------------------------------------------------------------------

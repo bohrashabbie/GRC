@@ -328,6 +328,31 @@ export type OptionOut = {
   translations: LabelTranslationOut[]
 }
 
+export type CategoryTypeOut = {
+  id: number
+  code: string
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  translations: LabelTranslationOut[]
+  /** Categories filed under this type — shown before anyone tries to delete. */
+  category_count: number
+}
+
+export type CategoryTypeCreate = {
+  /** Omitted by the admin — the API derives it from the label. */
+  code?: string | null
+  sort_order?: number
+  is_active?: boolean
+  translations: LabelTranslationIn[]
+}
+
+export type CategoryTypeUpdate = {
+  sort_order?: number | null
+  is_active?: boolean | null
+  translations?: LabelTranslationIn[] | null
+}
+
 export type ProductTypeOut = {
   id: number
   code: string

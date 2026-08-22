@@ -38,11 +38,11 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { MediaPicker } from "@/components/media/media-picker"
 import { TranslationNameFields } from "@/components/translations-fields"
-import { categoriesApi } from "@/lib/api/endpoints"
+import { categoriesApi, categoryTypesApi } from "@/lib/api/endpoints"
 import { applyFieldErrors, isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
-import { translatedName } from "@/lib/format"
-import { CATEGORY_DIMENSIONS, humanizeStatus } from "@/lib/status"
+import { translatedLabel, translatedName } from "@/lib/format"
+
 import {
   fromNameTranslationForm,
   toNameTranslationForm,
@@ -98,7 +98,7 @@ export function CategoryFormDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      dimension: category?.dimension ?? defaultDimension ?? CATEGORY_DIMENSIONS[0],
+      dimension: category?.dimension ?? defaultDimension ?? "category",
       parent_id: category?.parent_id ? String(category.parent_id) : NO_PARENT,
       sort_order: category?.sort_order ?? 0,
       show_in_menu: category?.show_in_menu ?? true,
@@ -125,6 +125,14 @@ export function CategoryFormDialog({
   const dimension = form.watch("dimension")
 
   // Parent options come from the same dimension — the trees are separate.
+  // Staff-managed list of trees, same source the categories page reads.
+  const typesQuery = useQuery({
+    queryKey: queryKeys.categoryTypes.list(true),
+    queryFn: ({ signal }) => categoryTypesApi.list({ is_active: true }, signal),
+    enabled: open,
+  })
+  const categoryTypes = typesQuery.data ?? []
+
   const parentsQuery = useQuery({
     queryKey: queryKeys.categories.list({ dimension, is_active: null }),
     queryFn: ({ signal }) =>
@@ -224,9 +232,9 @@ export function CategoryFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {CATEGORY_DIMENSIONS.map((d) => (
-                          <SelectItem key={d} value={d}>
-                            {humanizeStatus(d)}
+                        {categoryTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.code}>
+                            {translatedLabel(type.translations, locale)}
                           </SelectItem>
                         ))}
                       </SelectContent>

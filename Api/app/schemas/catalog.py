@@ -153,6 +153,34 @@ CategoryTreeNode.model_rebuild()
 # Options & option values
 # --------------------------------------------------------------------------
 
+class CategoryTypeCreate(BaseModel):
+    # Derived from the English label when omitted, like every other code.
+    code: str | None = None
+    sort_order: int = 0
+    is_active: bool = True
+    translations: list[LabelTranslationIn] = Field(min_length=1)
+
+
+class CategoryTypeUpdate(BaseModel):
+    sort_order: int | None = None
+    is_active: bool | None = None
+    translations: list[LabelTranslationIn] | None = None
+
+
+class CategoryTypeOut(BaseModel):
+    id: int
+    code: str
+    sort_order: int
+    is_active: bool
+    created_at: datetime
+    translations: list[LabelTranslationOut]
+    # Categories filed under this type — what makes "in use" visible before
+    # anyone tries to delete it.
+    category_count: int = 0
+
+    model_config = {"from_attributes": True}
+
+
 class ProductTypeCreate(BaseModel):
     # Derived from the English label when omitted, like every other code.
     code: str | None = None

@@ -236,6 +236,41 @@ class ProductCategory(Base, TimestampMixin):
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
+class CategoryType(Base, TimestampMixin):
+    """Which tree a category belongs to — the department tree, collections,
+    occasions, or whatever else the shop wants to group by.
+
+    categories.dimension holds the code as text for the same reason
+    products.product_type does: retiring a type must not rewrite the categories
+    filed under it.
+    """
+
+    __tablename__ = "category_types"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    code: Mapped[str] = mapped_column(nullable=False, unique=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    translations: Mapped[list["CategoryTypeTranslation"]] = relationship(
+        back_populates="category_type", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (Index("ix_category_types_is_active", "is_active"),)
+
+
+class CategoryTypeTranslation(Base):
+    __tablename__ = "category_type_translations"
+
+    category_type_id: Mapped[int] = mapped_column(
+        ForeignKey("category_types.id", ondelete="CASCADE"), primary_key=True
+    )
+    locale: Mapped[str] = mapped_column(primary_key=True)
+    label: Mapped[str] = mapped_column(nullable=False)
+
+    category_type: Mapped["CategoryType"] = relationship(back_populates="translations")
+
+
 class ProductType(Base, TimestampMixin):
     """What kind of garment a product is — thobe, shemagh, and whatever the
     shop adds next.

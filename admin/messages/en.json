@@ -83,6 +83,7 @@
     "categories": "Categories",
     "options": "Options",
     "productTypes": "Product types",
+    "categoryTypes": "Category types",
     "locations": "Locations",
     "suppliers": "Suppliers",
     "purchaseOrders": "Purchase orders",
@@ -329,6 +330,28 @@
     "treeTitle": "Category tree",
     "listTitle": "All categories"
   },
+  "categoryTypes": {
+    "title": "Category types",
+    "description": "The trees categories are filed under — departments, collections, occasions, and any other grouping the shop wants.",
+    "newType": "New type",
+    "createTitle": "Create category type",
+    "editTitle": "Edit category type",
+    "formDescription": "The name of a tree staff file categories under. It is not shown to shoppers.",
+    "created": "Category type created.",
+    "updated": "Category type updated.",
+    "deleted": "Category type deleted.",
+    "deleteBlocked": "{count, plural, one {# category is filed under this type} other {# categories are filed under this type}} — move them first, or switch this type off instead of deleting it.",
+    "empty": "No category types yet.",
+    "categoryCount": "{count, plural, one {# category} other {# categories}}",
+    "columns": {
+      "type": "Type",
+      "categories": "In use",
+      "order": "Order"
+    },
+    "fields": {
+      "isActive": "Available when creating categories"
+    }
+  },
   "productTypes": {
     "title": "Product types",
     "description": "What kind of garment a product is — thobe, shemagh, and anything else the shop sells.",
@@ -359,6 +382,7 @@
     "systemDescription": "Color and Size are the store's two options. Add and edit their values here.",
     "newColor": "Add color",
     "newSize": "Add size",
+    "deleted": "Option deleted.",
     "title": "Options",
     "description": "Variant-defining options such as size, colour, sleeve, and collar.",
     "newOption": "New option",

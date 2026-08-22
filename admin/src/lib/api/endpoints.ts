@@ -28,6 +28,9 @@ import type {
   LocationUpdate,
   LowStockItemOut,
   MediaOut,
+  CategoryTypeCreate,
+  CategoryTypeOut,
+  CategoryTypeUpdate,
   OptionCreate,
   ProductTypeCreate,
   ProductTypeOut,
@@ -238,6 +241,22 @@ export const categoriesApi = {
 /* -------------------------------------------------------------------------- */
 /* Catalog — options & option values                                           */
 /* -------------------------------------------------------------------------- */
+
+export const categoryTypesApi = {
+  /** Not paginated: a short vocabulary the categories page needs all of. */
+  list: (params: { is_active?: boolean | null } = {}, signal?: AbortSignal) =>
+    api.get<CategoryTypeOut[]>("/category-types", {
+      query: { is_active: params.is_active ?? undefined },
+      signal,
+    }),
+  create: (payload: CategoryTypeCreate) =>
+    api.post<CategoryTypeOut>("/category-types", payload),
+  update: (categoryTypeId: number, payload: CategoryTypeUpdate) =>
+    api.patch<CategoryTypeOut>(`/category-types/${categoryTypeId}`, payload),
+  /** Refused while categories are still filed under it. */
+  delete: (categoryTypeId: number) =>
+    api.del<DeletionResult>(`/category-types/${categoryTypeId}`),
+}
 
 export const productTypesApi = {
   /** Not paginated: a short vocabulary the product form needs all of. */

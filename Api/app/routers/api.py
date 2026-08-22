@@ -8,6 +8,7 @@ from app.routers import (
     brands,
     coupons,
     categories,
+    category_types,
     contact_messages,
     customers,
     goods_receipts,
@@ -36,6 +37,7 @@ api_router.include_router(roles.router, prefix="/roles", tags=["roles"])
 api_router.include_router(brands.router, prefix="/brands", tags=["brands"])
 api_router.include_router(coupons.router, prefix="/coupons", tags=["coupons"])
 api_router.include_router(categories.router, prefix="/categories", tags=["categories"])
+api_router.include_router(category_types.router, prefix="/category-types", tags=["categories"])
 api_router.include_router(options.router, prefix="/options", tags=["options"])
 api_router.include_router(option_values.router, prefix="/option-values", tags=["option-values"])
 api_router.include_router(product_types.router, prefix="/product-types", tags=["catalog"])

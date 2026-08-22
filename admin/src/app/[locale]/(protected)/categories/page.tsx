@@ -36,11 +36,11 @@ import {
   ListLoadingSkeleton,
 } from "@/components/states/list-states"
 import { useQueryParam } from "@/hooks/use-query-param"
-import { categoriesApi } from "@/lib/api/endpoints"
+import { categoriesApi, categoryTypesApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { useDeletionMessage } from "@/lib/deletion"
-import { translatedName } from "@/lib/format"
-import { CATEGORY_DIMENSIONS, humanizeStatus } from "@/lib/status"
+import { translatedLabel, translatedName } from "@/lib/format"
+
 import { PERMISSIONS } from "@/lib/permissions"
 import { queryKeys } from "@/lib/query/keys"
 import type { CategoryOut, CategoryTreeNode } from "@/lib/api/types"
@@ -61,7 +61,15 @@ function CategoriesContent() {
   const queryClient = useQueryClient()
 
   const [dimensionParam, setDimensionParam] = useQueryParam("dimension")
-  const dimension = dimensionParam ?? CATEGORY_DIMENSIONS[0]
+  // The list of trees is staff-managed, so the switcher reads it rather than
+  // a constant. The first active type is the default view.
+  const typesQuery = useQuery({
+    queryKey: queryKeys.categoryTypes.list(true),
+    queryFn: ({ signal }) => categoryTypesApi.list({ is_active: true }, signal),
+  })
+  const categoryTypes = typesQuery.data ?? []
+  const defaultDimensionCode = categoryTypes[0]?.code ?? "category"
+  const dimension = dimensionParam ?? defaultDimensionCode
 
   // Which branches are folded shut. Kept here rather than in each row,
   // because the tree renders as one flat table.
@@ -141,7 +149,7 @@ function CategoriesContent() {
         value={dimension}
         onValueChange={(next) =>
           setDimensionParam(
-            !next || next === CATEGORY_DIMENSIONS[0] ? null : next
+            !next || next === defaultDimensionCode ? null : next
           )
         }
       >
@@ -149,9 +157,9 @@ function CategoriesContent() {
           <SelectValue placeholder={t("fields.dimension")} />
         </SelectTrigger>
         <SelectContent>
-          {CATEGORY_DIMENSIONS.map((d) => (
-            <SelectItem key={d} value={d}>
-              {humanizeStatus(d)}
+          {categoryTypes.map((type) => (
+            <SelectItem key={type.id} value={type.code}>
+              {translatedLabel(type.translations, locale)}
             </SelectItem>
           ))}
         </SelectContent>
