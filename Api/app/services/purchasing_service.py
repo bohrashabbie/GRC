@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.middleware.error import BusinessRuleError, NotFoundError
@@ -17,8 +17,9 @@ from app.models.purchasing import (
     PurchaseOrderItem,
     Supplier,
 )
+from app.models.inventory import Location
 from app.services import audit_service, deletion, inventory_service
-from app.utils import slugify, unique_code
+from app.utils import paginate, slugify, unique_code
 
 
 def _sequence_number(prefix: str) -> str:
@@ -135,6 +136,101 @@ def create_purchase_order(db: Session, data, actor_user_id: int) -> PurchaseOrde
     db.commit()
     db.refresh(po)
     return get_purchase_order(db, po.id)
+
+
+def attach_purchase_order_names(db: Session, orders: list[PurchaseOrder]) -> None:
+    """Resolve supplier and destination to names for a page of orders, in two
+    queries rather than two per row."""
+    if not orders:
+        return
+    supplier_ids = {order.supplier_id for order in orders}
+    location_ids = {order.destination_location_id for order in orders}
+    suppliers = {
+        row.id: row.name
+        for row in db.execute(select(Supplier).where(Supplier.id.in_(supplier_ids))).scalars()
+    }
+    locations = {
+        row.id: row.name_en or row.name_ar
+        for row in db.execute(select(Location).where(Location.id.in_(location_ids))).scalars()
+    }
+    received = {
+        row[0]: row[1]
+        for row in db.execute(
+            select(GoodsReceipt.purchase_order_id, func.count(GoodsReceipt.id))
+            .where(GoodsReceipt.purchase_order_id.in_({order.id for order in orders}))
+            .group_by(GoodsReceipt.purchase_order_id)
+        ).all()
+    }
+    for order in orders:
+        order.supplier_name = suppliers.get(order.supplier_id)
+        order.destination_name = locations.get(order.destination_location_id)
+        order.received_line_count = received.get(order.id, 0)
+
+
+def list_purchase_orders(
+    db: Session,
+    cursor: str | None,
+    limit: int,
+    *,
+    supplier_id: int | None = None,
+    status: str | None = None,
+    q: str | None = None,
+):
+    """Cursor-paginated on (created_at, id) descending — newest order first."""
+    stmt = select(PurchaseOrder).options(selectinload(PurchaseOrder.items))
+    if supplier_id is not None:
+        stmt = stmt.where(PurchaseOrder.supplier_id == supplier_id)
+    if status is not None:
+        stmt = stmt.where(PurchaseOrder.status == status)
+    if q and q.strip():
+        stmt = stmt.where(PurchaseOrder.po_number.ilike(f"%{q.strip()}%"))
+    items, next_cursor = paginate(db, stmt, PurchaseOrder, cursor, limit)
+    attach_purchase_order_names(db, items)
+    return items, next_cursor
+
+
+def attach_goods_receipt_names(db: Session, receipts: list[GoodsReceipt]) -> None:
+    if not receipts:
+        return
+    po_ids = {r.purchase_order_id for r in receipts if r.purchase_order_id}
+    location_ids = {r.location_id for r in receipts}
+    orders = {
+        row.id: row
+        for row in db.execute(select(PurchaseOrder).where(PurchaseOrder.id.in_(po_ids))).scalars()
+    } if po_ids else {}
+    supplier_ids = {order.supplier_id for order in orders.values()}
+    suppliers = {
+        row.id: row.name
+        for row in db.execute(select(Supplier).where(Supplier.id.in_(supplier_ids))).scalars()
+    } if supplier_ids else {}
+    locations = {
+        row.id: row.name_en or row.name_ar
+        for row in db.execute(select(Location).where(Location.id.in_(location_ids))).scalars()
+    }
+    for receipt in receipts:
+        order = orders.get(receipt.purchase_order_id) if receipt.purchase_order_id else None
+        receipt.po_number = order.po_number if order else None
+        receipt.supplier_name = suppliers.get(order.supplier_id) if order else None
+        receipt.location_name = locations.get(receipt.location_id)
+
+
+def list_goods_receipts(
+    db: Session,
+    cursor: str | None,
+    limit: int,
+    *,
+    purchase_order_id: int | None = None,
+    location_id: int | None = None,
+):
+    """Cursor-paginated on (created_at, id) descending — newest receipt first."""
+    stmt = select(GoodsReceipt).options(selectinload(GoodsReceipt.items))
+    if purchase_order_id is not None:
+        stmt = stmt.where(GoodsReceipt.purchase_order_id == purchase_order_id)
+    if location_id is not None:
+        stmt = stmt.where(GoodsReceipt.location_id == location_id)
+    items, next_cursor = paginate(db, stmt, GoodsReceipt, cursor, limit)
+    attach_goods_receipt_names(db, items)
+    return items, next_cursor
 
 
 def get_purchase_order(db: Session, po_id: int) -> PurchaseOrder:

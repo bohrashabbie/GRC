@@ -30,6 +30,7 @@
     "all": "All",
     "active": "Active",
     "inactive": "Inactive",
+    "total": "Total",
     "status": "Status",
     "optional": "optional",
     "required": "required",
@@ -88,6 +89,8 @@
     "locations": "Locations",
     "suppliers": "Suppliers",
     "purchaseOrders": "Purchase orders",
+    "goodsReceipts": "Goods receipts",
+    "reports": "Order report",
     "orders": "Orders",
     "subscribers": "Subscribers",
     "customers": "Customers",
@@ -651,16 +654,63 @@
       "status": "Status"
     }
   },
+  "goodsReceipts": {
+    "title": "Goods receipts",
+    "description": "What actually arrived, against which purchase order, at which location.",
+    "empty": "Nothing has been received yet.",
+    "noPurchaseOrder": "No PO",
+    "columns": {
+      "number": "Receipt",
+      "purchaseOrder": "Purchase order",
+      "supplier": "Supplier",
+      "location": "Location",
+      "lines": "Lines",
+      "received": "Received"
+    }
+  },
+  "reports": {
+    "title": "Order report",
+    "description": "Orders and revenue over a period, from the orders themselves.",
+    "empty": "No orders in this period.",
+    "byStatusTitle": "By status",
+    "byStatusHint": "Where the orders in this period currently stand.",
+    "byDayTitle": "By day",
+    "totals": {
+      "orders": "Orders",
+      "revenue": "Revenue",
+      "average": "Average order"
+    },
+    "columns": {
+      "day": "Day",
+      "orders": "Orders",
+      "revenue": "Revenue"
+    },
+    "ranges": {
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "365d": "Last 12 months"
+    }
+  },
   "purchaseOrders": {
+    "empty": "No purchase orders match these filters.",
+    "searchPlaceholder": "Search PO number",
+    "receiptCount": "{count, plural, one {# receipt} other {# receipts}}",
+    "columns": {
+      "number": "PO number",
+      "supplier": "Supplier",
+      "destination": "Destination",
+      "received": "Received",
+      "expected": "Expected",
+      "total": "Total",
+      "created": "Created"
+    },
     "title": "Purchase orders",
     "description": "Order stock from suppliers and receive it into a location.",
     "newPo": "New purchase order",
     "createTitle": "Create purchase order",
     "created": "Purchase order created.",
     "detailTitle": "Purchase order",
-    "noListHint": "The API has no purchase-order list endpoint yet, so open one by its ID or create a new one.",
-    "lookup": "Open PO by ID",
-    "lookupPlaceholder": "Purchase order ID",
     "open": "Open",
     "fields": {
       "supplier": "Supplier",

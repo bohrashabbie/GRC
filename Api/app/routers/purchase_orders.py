@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -20,6 +20,30 @@ def create_purchase_order(
     current_user: User = Depends(require("purchase_order.manage")),
 ) -> PurchaseOrder:
     return purchasing_service.create_purchase_order(db, payload, current_user.id)
+
+
+@router.get("")
+def list_purchase_orders(
+    cursor: str | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    supplier_id: int | None = None,
+    status_filter: str | None = Query(None, alias="status"),
+    q: str | None = Query(None, description="PO number"),
+    db: Session = Depends(get_db),
+    _user=Depends(require("inventory.view")),
+) -> dict:
+    """Every purchase order, newest first, filterable by supplier and status.
+
+    Until now the admin could only open one by typing its id, which meant staff
+    had to already know the number of the order they were looking for.
+    """
+    items, next_cursor = purchasing_service.list_purchase_orders(
+        db, cursor, limit, supplier_id=supplier_id, status=status_filter, q=q
+    )
+    return {
+        "items": [PurchaseOrderOut.model_validate(item) for item in items],
+        "next_cursor": next_cursor,
+    }
 
 
 @router.get("/{po_id}", response_model=PurchaseOrderOut)

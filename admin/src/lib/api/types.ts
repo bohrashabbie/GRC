@@ -713,6 +713,11 @@ export type PurchaseOrderOut = {
   id: number
   po_number: string
   supplier_id: number
+  /** Resolved by the API so a list reads as names, not ids. */
+  supplier_name: string | null
+  destination_name: string | null
+  /** How many receipts have been booked against this order. */
+  received_line_count: number
   destination_location_id: number
   status: string
   currency: string
@@ -753,6 +758,9 @@ export type GoodsReceiptOut = {
   id: number
   receipt_number: string
   purchase_order_id: number | null
+  po_number: string | null
+  location_name: string | null
+  supplier_name: string | null
   location_id: number
   supplier_invoice_number: string | null
   received_by_user_id: number
@@ -1208,7 +1216,7 @@ export type PageUpdate = {
 /* Analytics                                                                   */
 /* -------------------------------------------------------------------------- */
 
-export type AnalyticsRange = "7d" | "30d" | "90d"
+export type AnalyticsRange = "7d" | "30d" | "90d" | "365d"
 
 export type KpiValue = {
   value: string

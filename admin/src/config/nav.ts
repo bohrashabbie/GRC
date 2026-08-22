@@ -12,7 +12,9 @@ import {
   ShieldCheck,
   ShoppingCart,
   FolderTree,
+  ChartColumn,
   MailPlus,
+  PackageCheck,
   Shapes,
   Warehouse,
   SlidersHorizontal,
@@ -102,6 +104,12 @@ export const NAV_SECTIONS: NavSection[] = [
         permission: PERMISSIONS.supplierManage,
       },
       {
+        href: "/goods-receipts",
+        labelKey: "goodsReceipts",
+        icon: PackageCheck,
+        permission: PERMISSIONS.inventoryView,
+      },
+      {
         href: "/purchase-orders",
         labelKey: "purchaseOrders",
         icon: ClipboardList,
@@ -117,6 +125,12 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: "orders",
         icon: ShoppingCart,
         permission: PERMISSIONS.orderView,
+      },
+      {
+        href: "/reports",
+        labelKey: "reports",
+        icon: ChartColumn,
+        permission: PERMISSIONS.analyticsView,
       },
       {
         href: "/customers",

@@ -91,11 +91,18 @@ export const queryKeys = {
 
   purchaseOrders: {
     all: ["purchase-orders"] as const,
+    list: (params: {
+      supplier_id?: number | null
+      status?: string | null
+      q?: string | null
+    }) => ["purchase-orders", "list", params] as const,
     detail: (poId: number) => ["purchase-orders", "detail", poId] as const,
   },
 
   goodsReceipts: {
     all: ["goods-receipts"] as const,
+    list: (params: { purchase_order_id?: number | null }) =>
+      ["goods-receipts", "list", params] as const,
     detail: (receiptId: number) => ["goods-receipts", "detail", receiptId] as const,
   },
 

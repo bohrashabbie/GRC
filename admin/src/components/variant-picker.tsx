@@ -1,8 +1,8 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useQueries, useQuery } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { Label } from "@/components/ui/label"
 import {
@@ -12,10 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { productsApi } from "@/lib/api/endpoints"
-import { translatedName } from "@/lib/format"
+import { optionsApi, optionValuesApi, productsApi } from "@/lib/api/endpoints"
+import { translatedLabel, translatedName } from "@/lib/format"
 import { queryKeys } from "@/lib/query/keys"
-import type { VariantOut } from "@/lib/api/types"
+import type { OptionValueOut, VariantOut } from "@/lib/api/types"
 
 /**
  * Two-step product → variant picker.
@@ -32,7 +32,9 @@ export function VariantPicker({
   variantLabel,
 }: {
   value: number | null
-  onChange: (variant: VariantOut | null) => void
+  /** The label is passed along so callers can print the same words the
+   *  dropdown showed, without repeating the option lookup. */
+  onChange: (variant: VariantOut | null, label?: string) => void
   productLabel?: string
   variantLabel?: string
 }) {
@@ -50,6 +52,44 @@ export function VariantPicker({
     queryFn: ({ signal }) => productsApi.listVariants(productId!, signal),
     enabled: productId !== null,
   })
+
+  // Option values are looked up so a variant reads as "Navy · L" rather than
+  // as the SKU the system generated for it: staff ordering stock know the
+  // colour and the size, not P14-22-24.
+  const optionsQuery = useQuery({
+    queryKey: queryKeys.options.list(),
+    queryFn: ({ signal }) => optionsApi.list({ limit: 50 }, signal),
+  })
+  const valueQueries = useQueries({
+    queries: (optionsQuery.data?.items ?? []).map((option) => ({
+      queryKey: queryKeys.options.values(option.id),
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        optionValuesApi.list({ option_id: option.id, limit: 100 }, signal),
+    })),
+  })
+  const valueLabelById = useMemo(() => {
+    const map = new Map<number, string>()
+    for (const query of valueQueries) {
+      for (const value of query.data?.items ?? ([] as OptionValueOut[])) {
+        map.set(value.id, translatedLabel(value.translations, locale))
+      }
+    }
+    return map
+  }, [valueQueries, locale])
+
+  /** What this variant is, in words: its option values, or the product's own
+   *  name when it is a plain product with a single variant. */
+  function variantLabelFor(variant: VariantOut): string {
+    if (variant.option_value_ids.length > 0) {
+      return variant.option_value_ids
+        .map((id) => valueLabelById.get(id) ?? `#${id}`)
+        .join(" · ")
+    }
+    const product = (productsQuery.data?.items ?? []).find(
+      (item) => item.id === variant.product_id
+    )
+    return product ? translatedName(product.translations, locale) : variant.sku
+  }
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -83,7 +123,7 @@ export function VariantPicker({
             const variant =
               (variantsQuery.data ?? []).find((v) => String(v.id) === next) ??
               null
-            onChange(variant)
+            onChange(variant, variant ? variantLabelFor(variant) : undefined)
           }}
           disabled={productId === null}
         >
@@ -93,7 +133,7 @@ export function VariantPicker({
           <SelectContent>
             {(variantsQuery.data ?? []).map((variant) => (
               <SelectItem key={variant.id} value={String(variant.id)}>
-                {variant.sku}
+                {variantLabelFor(variant)}
               </SelectItem>
             ))}
           </SelectContent>

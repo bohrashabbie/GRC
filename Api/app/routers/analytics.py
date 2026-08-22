@@ -13,7 +13,7 @@ from app.services.analytics_service import RANGE_TO_DAYS
 
 router = APIRouter()
 
-RangeParam = Literal["7d", "30d", "90d"]
+RangeParam = Literal["7d", "30d", "90d", "365d"]
 
 
 @router.get("/summary", response_model=SummaryOut)

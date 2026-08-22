@@ -492,6 +492,26 @@ export const suppliersApi = {
 }
 
 export const purchaseOrdersApi = {
+  list: (
+    params: {
+      cursor?: string | null
+      limit?: number
+      supplier_id?: number | null
+      status?: string | null
+      q?: string | null
+    } = {},
+    signal?: AbortSignal
+  ) =>
+    api.get<CursorPage<PurchaseOrderOut>>("/purchase-orders", {
+      query: {
+        cursor: params.cursor ?? undefined,
+        limit: params.limit,
+        supplier_id: params.supplier_id ?? undefined,
+        status: params.status ?? undefined,
+        q: params.q ?? undefined,
+      },
+      signal,
+    }),
   get: (poId: number, signal?: AbortSignal) =>
     api.get<PurchaseOrderOut>(`/purchase-orders/${poId}`, { signal }),
   create: (payload: PurchaseOrderCreate) =>
@@ -505,6 +525,24 @@ export const purchaseOrdersApi = {
 }
 
 export const goodsReceiptsApi = {
+  list: (
+    params: {
+      cursor?: string | null
+      limit?: number
+      purchase_order_id?: number | null
+      location_id?: number | null
+    } = {},
+    signal?: AbortSignal
+  ) =>
+    api.get<CursorPage<GoodsReceiptOut>>("/goods-receipts", {
+      query: {
+        cursor: params.cursor ?? undefined,
+        limit: params.limit,
+        purchase_order_id: params.purchase_order_id ?? undefined,
+        location_id: params.location_id ?? undefined,
+      },
+      signal,
+    }),
   get: (receiptId: number, signal?: AbortSignal) =>
     api.get<GoodsReceiptOut>(`/goods-receipts/${receiptId}`, { signal }),
   create: (payload: GoodsReceiptCreate) =>

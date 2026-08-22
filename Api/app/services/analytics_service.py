@@ -20,7 +20,7 @@ from app.schemas.analytics import (
     TopProductOut,
 )
 
-RANGE_TO_DAYS = {"7d": 7, "30d": 30, "90d": 90}
+RANGE_TO_DAYS = {"7d": 7, "30d": 30, "90d": 90, "365d": 365}
 
 
 def _period_metrics(db: Session, start: datetime, end: datetime) -> dict:

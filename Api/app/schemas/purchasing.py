@@ -88,6 +88,11 @@ class PurchaseOrderOut(BaseModel):
     id: int
     po_number: str
     supplier_id: int
+    # Filled in by the list, so a page of orders reads as names rather than
+    # ids and does not need one lookup per row.
+    supplier_name: str | None = None
+    destination_name: str | None = None
+    received_line_count: int = 0
     destination_location_id: int
     status: str
     currency: str
@@ -137,6 +142,11 @@ class GoodsReceiptOut(BaseModel):
     id: int
     receipt_number: str
     purchase_order_id: int | None
+    # Same reason: a receipt list that says "PO-2026-00042" beats one that
+    # says "purchase_order_id: 7".
+    po_number: str | None = None
+    location_name: str | None = None
+    supplier_name: str | None = None
     location_id: int
     supplier_invoice_number: str | None
     received_by_user_id: int

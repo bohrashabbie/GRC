@@ -37,7 +37,10 @@ import type { VariantOut } from "@/lib/api/types"
 
 const MONEY_PATTERN = /^\d+(\.\d{1,3})?$/
 
-type DraftLine = { variant: VariantOut; qty: number; unitCost: string }
+type DraftLine = { variant: VariantOut; qty: number; unitCost: string
+  /** What the picker called it — shown on the line. */
+  label?: string | null
+}
 
 export function PoCreateDialog({
   open,
@@ -59,6 +62,7 @@ export function PoCreateDialog({
   const [shippingCost, setShippingCost] = useState("0")
   const [lines, setLines] = useState<DraftLine[]>([])
   const [pendingVariant, setPendingVariant] = useState<VariantOut | null>(null)
+  const [pendingLabel, setPendingLabel] = useState<string | null>(null)
   const [pendingQty, setPendingQty] = useState(1)
   const [pendingCost, setPendingCost] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -89,7 +93,12 @@ export function PoCreateDialog({
     if (!canAddLine || !pendingVariant) return
     setLines((prev) => [
       ...prev,
-      { variant: pendingVariant, qty: pendingQty, unitCost: pendingCost },
+      {
+        variant: pendingVariant,
+        label: pendingLabel,
+        qty: pendingQty,
+        unitCost: pendingCost,
+      },
     ])
     setPendingVariant(null)
     setPendingQty(1)
@@ -221,7 +230,9 @@ export function PoCreateDialog({
                     key={`${line.variant.id}-${index}`}
                     className="flex items-center gap-3 rounded-md bg-muted/40 px-3 py-2"
                   >
-                    <code className="flex-1 text-xs">{line.variant.sku}</code>
+                    <span className="flex-1 text-sm">
+                      {line.label ?? line.variant.sku}
+                    </span>
                     <span className="text-sm">×{line.qty}</span>
                     <span className="text-sm">
                       {formatMoney(line.unitCost, locale)}
@@ -243,7 +254,10 @@ export function PoCreateDialog({
 
             <VariantPicker
               value={pendingVariant?.id ?? null}
-              onChange={setPendingVariant}
+              onChange={(variant, label) => {
+                setPendingVariant(variant)
+                setPendingLabel(label ?? null)
+              }}
             />
             <div className="flex flex-wrap items-end gap-2">
               <div className="flex flex-col gap-1.5">

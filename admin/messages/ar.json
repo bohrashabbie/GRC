@@ -30,6 +30,7 @@
     "all": "الكل",
     "active": "نشط",
     "inactive": "غير نشط",
+    "total": "الإجمالي",
     "status": "الحالة",
     "optional": "اختياري",
     "required": "مطلوب",
@@ -88,6 +89,8 @@
     "locations": "المواقع",
     "suppliers": "الموردون",
     "purchaseOrders": "أوامر الشراء",
+    "goodsReceipts": "إشعارات الاستلام",
+    "reports": "تقرير الطلبات",
     "orders": "الطلبات",
     "subscribers": "المشتركون",
     "customers": "العملاء",
@@ -651,7 +654,57 @@
       "status": "الحالة"
     }
   },
+  "goodsReceipts": {
+    "title": "إشعارات الاستلام",
+    "description": "ما وصل فعلاً، مقابل أي أمر شراء، وفي أي موقع.",
+    "empty": "لم يتم استلام أي شيء بعد.",
+    "noPurchaseOrder": "بدون أمر شراء",
+    "columns": {
+      "number": "رقم الإشعار",
+      "purchaseOrder": "أمر الشراء",
+      "supplier": "المورد",
+      "location": "الموقع",
+      "lines": "البنود",
+      "received": "تاريخ الاستلام"
+    }
+  },
+  "reports": {
+    "title": "تقرير الطلبات",
+    "description": "الطلبات والإيرادات خلال فترة، مأخوذة من الطلبات نفسها.",
+    "empty": "لا توجد طلبات في هذه الفترة.",
+    "byStatusTitle": "حسب الحالة",
+    "byStatusHint": "وضع طلبات هذه الفترة حالياً.",
+    "byDayTitle": "حسب اليوم",
+    "totals": {
+      "orders": "الطلبات",
+      "revenue": "الإيرادات",
+      "average": "متوسط الطلب"
+    },
+    "columns": {
+      "day": "اليوم",
+      "orders": "الطلبات",
+      "revenue": "الإيرادات"
+    },
+    "ranges": {
+      "7d": "آخر ٧ أيام",
+      "30d": "آخر ٣٠ يوماً",
+      "90d": "آخر ٩٠ يوماً",
+      "365d": "آخر ١٢ شهراً"
+    }
+  },
   "purchaseOrders": {
+    "empty": "لا توجد أوامر شراء مطابقة.",
+    "searchPlaceholder": "ابحث برقم أمر الشراء",
+    "receiptCount": "{count, plural, one {إشعار استلام واحد} other {# إشعارات استلام}}",
+    "columns": {
+      "number": "رقم أمر الشراء",
+      "supplier": "المورد",
+      "destination": "الوجهة",
+      "received": "المستلم",
+      "expected": "المتوقع",
+      "total": "الإجمالي",
+      "created": "تاريخ الإنشاء"
+    },
     "title": "أوامر الشراء",
     "description": "اطلب المخزون من الموردين واستلمه في موقع.",
     "newPo": "أمر شراء جديد",

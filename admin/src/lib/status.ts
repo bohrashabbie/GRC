@@ -65,6 +65,17 @@ export const PRODUCT_TYPE_VALUES = [
   "innerwear",
   "accessory",
 ] as const
+/** A purchase order's life, in the order purchasing_service moves it. */
+export const PO_STATUS_VALUES = [
+  "draft",
+  "awaiting_approval",
+  "approved",
+  "sent",
+  "partially_received",
+  "received",
+  "cancelled",
+] as const
+
 export const LOCATION_TYPE_VALUES = ["warehouse", "store"] as const
 /** Button first: it is the right answer for everything except colour, and it
  *  is what a new option should default to. */
