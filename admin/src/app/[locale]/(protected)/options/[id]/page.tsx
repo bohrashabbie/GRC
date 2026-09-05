@@ -103,13 +103,16 @@ function OptionDetailContent() {
   const optionLabel = optionQuery.data
     ? translatedLabel(optionQuery.data.translations, locale)
     : t("detailTitle")
-  // Both live options take staff-added values. Anything else is a retired
-  // pre-GR8 option row kept only because variants still point at it, and the
-  // API rejects writes to it, so the buttons stay hidden there.
+  // Every option takes staff-added values. This used to be limited to the two
+  // built-in codes, which left an option staff had created with no way to give
+  // it any values at all.
   const optionCode = optionQuery.data?.code
-  const isSwatchOption = optionCode === "colour"
+  // What the value looks like to a shopper is the option's own setting, not a
+  // guess from its code: a swatch option asks for a colour, and the size
+  // option is the one that carries garment measurements.
+  const isSwatchOption = optionQuery.data?.input_type === "swatch"
   const isSizeOption = optionCode === "size"
-  const canManageValues = isSwatchOption || isSizeOption
+  const canManageValues = true
 
   const values = [...(valuesQuery.data?.items ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order
@@ -168,7 +171,11 @@ function OptionDetailContent() {
               {canManageValues && (
                 <RequirePermission permission={PERMISSIONS.catalogManage}>
                   <Button size="sm" onClick={openCreateValue}>
-                    {isSwatchOption ? t("newColor") : t("newSize")}
+                    {isSwatchOption
+                      ? t("newColor")
+                      : isSizeOption
+                        ? t("newSize")
+                        : t("newValue")}
                   </Button>
                 </RequirePermission>
               )}
@@ -190,9 +197,10 @@ function OptionDetailContent() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>{t("values.columns.label")}</TableHead>
-                        {isSwatchOption ? (
+                        {isSwatchOption && (
                           <TableHead>{t("values.columns.color")}</TableHead>
-                        ) : (
+                        )}
+                        {isSizeOption && (
                           <>
                             <TableHead>{t("values.lengthIn")}</TableHead>
                             <TableHead>{t("values.widthIn")}</TableHead>
@@ -208,7 +216,7 @@ function OptionDetailContent() {
                           <TableCell className="font-medium text-foreground">
                             {translatedLabel(value.translations, locale)}
                           </TableCell>
-                          {isSwatchOption ? (
+                          {isSwatchOption && (
                             <TableCell>
                               {value.hex_color ? (
                                 <span className="flex items-center gap-2">
@@ -225,7 +233,8 @@ function OptionDetailContent() {
                                 <span className="text-muted-foreground">—</span>
                               )}
                             </TableCell>
-                          ) : (
+                          )}
+                          {isSizeOption && (
                             <>
                               <TableCell className="tabular-nums">
                                 {measurement(value.length_cm)}

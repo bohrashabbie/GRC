@@ -406,8 +406,9 @@
       "button": "Buttons (S / M / L)",
       "swatch": "Colour circles"
     },
-    "systemDescription": "Color and Size are the store's two options. Add and edit their values here.",
+    "systemDescription": "The choices this option offers. Add and edit its values here.",
     "newColor": "Add color",
+    "newValue": "New value",
     "newSize": "Add size",
     "deleted": "Option deleted.",
     "title": "Options",
