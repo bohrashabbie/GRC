@@ -13,6 +13,7 @@ import { ListLoadingSkeleton } from "@/components/states/list-states"
 import { optionsApi, optionValuesApi, productsApi } from "@/lib/api/endpoints"
 import { isApiError } from "@/lib/api/errors"
 import { getErrorMessage } from "@/lib/api/error-message"
+import { Link } from "@/i18n/navigation"
 import { translatedLabel } from "@/lib/format"
 import { queryKeys } from "@/lib/query/keys"
 import type { OptionValueOut, VariantOut } from "@/lib/api/types"
@@ -175,7 +176,28 @@ export function VariantMatrixBuilder({
       <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
         {options.map((option) => {
           const values = valuesByOption.get(option.id) ?? []
-          if (values.length === 0) return null
+
+          // An option with no values still gets a row. Hiding it made an
+          // option staff had just created look like it had failed to save,
+          // when what it actually needs is values to choose between.
+          if (values.length === 0) {
+            return (
+              <div key={option.id} className="flex flex-col gap-2 p-4">
+                <h4 className="text-sm font-medium text-foreground">
+                  {translatedLabel(option.translations, locale)}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  {t("variants.optionHasNoValues")}{" "}
+                  <Link
+                    href={`/options/${option.id}`}
+                    className="font-medium text-foreground underline underline-offset-2"
+                  >
+                    {t("variants.addOptionValues")}
+                  </Link>
+                </p>
+              </div>
+            )
+          }
 
           return (
             <div key={option.id} className="flex flex-col gap-2 p-4">

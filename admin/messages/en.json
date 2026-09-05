@@ -548,6 +548,8 @@
       "title": "Variants",
       "description": "Every sellable combination, with its own price and stock.",
       "matrixTitle": "Add variant combinations",
+      "optionHasNoValues": "This option has no values yet, so there is nothing to combine.",
+      "addOptionValues": "Add its values",
       "matrixDescription": "Tick the combinations that actually exist — combinations are created explicitly, never as a full cartesian product.",
       "generate": "Create selected variants",
       "generating": "Creating…",
