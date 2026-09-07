@@ -873,8 +873,12 @@ def delete_option_value(
         [
             (
                 "variants",
-                select(VariantOptionValue.variant_id).where(
-                    VariantOptionValue.option_value_id == option_value_id
+                # Discontinued variants excluded, as in delete_option.
+                select(VariantOptionValue.variant_id)
+                .join(Variant, Variant.id == VariantOptionValue.variant_id)
+                .where(
+                    VariantOptionValue.option_value_id == option_value_id,
+                    Variant.discontinued_at.is_(None),
                 ),
             ),
             ("product_images", select(ProductMedia.id).where(ProductMedia.option_value_id == option_value_id)),
@@ -904,6 +908,25 @@ def delete_option_value(
     return deletion.DeletionResult(mode, blockers)
 
 
+def _blocking_variant_skus(db: Session, value_ids, limit: int = 5) -> list[str]:
+    """The live variants standing in the way, by SKU.
+
+    A count alone tells staff they are blocked without telling them where to
+    go; these are the rows they have to discontinue or re-combine first.
+    """
+    rows = db.execute(
+        select(Variant.sku)
+        .join(VariantOptionValue, VariantOptionValue.variant_id == Variant.id)
+        .where(
+            VariantOptionValue.option_value_id.in_(value_ids),
+            Variant.discontinued_at.is_(None),
+        )
+        .distinct()
+        .limit(limit)
+    ).scalars()
+    return list(rows)
+
+
 def delete_option(db: Session, option_id: int, *, actor_user_id: int | None) -> deletion.DeletionResult:
     """Remove a retired option and its values.
 
@@ -928,8 +951,16 @@ def delete_option(db: Session, option_id: int, *, actor_user_id: int | None) -> 
         [
             (
                 "variants",
-                select(VariantOptionValue.variant_id).where(
-                    VariantOptionValue.option_value_id.in_(value_ids)
+                # Discontinued variants are not counted. Retiring a variant is
+                # how staff take it out of use, and a variant that has been
+                # retired holding an option hostage for ever gives them no way
+                # to finish the job. Orders keep their own snapshot of what was
+                # bought, so nothing historical reads through this row.
+                select(VariantOptionValue.variant_id)
+                .join(Variant, Variant.id == VariantOptionValue.variant_id)
+                .where(
+                    VariantOptionValue.option_value_id.in_(value_ids),
+                    Variant.discontinued_at.is_(None),
                 ),
             ),
             (
@@ -939,7 +970,7 @@ def delete_option(db: Session, option_id: int, *, actor_user_id: int | None) -> 
         ],
     )
     if blockers:
-        raise deletion.blocked("option", blockers)
+        raise deletion.blocked("option", blockers, samples=_blocking_variant_skus(db, value_ids))
     # option_values and option_translations both cascade on the FK.
     db.delete(option)
     audit_service.record(

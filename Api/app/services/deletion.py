@@ -58,11 +58,20 @@ def find_blockers(db: Session, refs: Sequence[tuple[str, Any]]) -> dict[str, int
     return found
 
 
-def blocked(entity: str, blockers: dict[str, int]) -> BusinessRuleError:
-    """For entities that cannot be deactivated as a fallback."""
+def blocked(
+    entity: str, blockers: dict[str, int], samples: Sequence[str] | None = None
+) -> BusinessRuleError:
+    """For entities that cannot be deactivated as a fallback.
+
+    `samples` names a few of the rows in the way. A count says staff are stuck;
+    the names say where to go and undo it.
+    """
     detail = ", ".join(f"{count} {label}" for label, count in blockers.items())
+    message = f"This {entity} is still referenced by {detail}, so it cannot be removed."
+    if samples:
+        message += " In the way: " + ", ".join(samples) + "."
     return BusinessRuleError(
-        f"This {entity} is still referenced by {detail}, so it cannot be removed.",
+        message,
         code="delete_blocked",
-        details={"blockers": blockers},
+        details={"blockers": blockers, "samples": list(samples) if samples else []},
     )
