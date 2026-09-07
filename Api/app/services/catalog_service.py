@@ -29,6 +29,7 @@ from app.models.catalog import (
     ProductMedia,
     ProductType,
     ProductTypeTranslation,
+    Variant,
     VariantOptionValue,
 )
 from app.utils import slugify, unique_code
