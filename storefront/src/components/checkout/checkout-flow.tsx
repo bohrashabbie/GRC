@@ -398,7 +398,7 @@ export function CheckoutFlow({
             ))}
           </ul>
 
-          <CartTotalsBlock cart={cart} className="mt-5" />
+          <CartTotalsBlock cart={cart} className="mt-5" chargedInKwd />
         </div>
 
         <Link

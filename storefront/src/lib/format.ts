@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/routing";
+import { KWD, convertAmount, type SelectedCurrency } from "@/lib/currency";
 
 /**
  * Money arrives from the API as a decimal *string* ("349.000"), never a number.
@@ -20,15 +21,23 @@ const NUMERIC_LOCALE: Record<Locale, string> = {
   en: "en-SA",
 };
 
-export function formatPrice(amount: Money, locale: Locale): string {
-  const value = Number(amount);
-  if (!Number.isFinite(value)) return amount;
+/**
+ * A KWD amount, formatted. Pass `currency` to show it converted into the
+ * visitor's chosen currency instead — display only, see `currency.ts`. The
+ * conversion is exact; only the already-rounded result meets `Number`.
+ */
+export function formatPrice(amount: Money, locale: Locale, currency?: SelectedCurrency): string {
+  const target = currency && currency.code !== "KWD" ? currency : KWD;
+  const converted =
+    target === KWD ? amount : convertAmount(amount, target.rate, target.decimals);
+  const value = Number(converted);
+  if (converted === null || !Number.isFinite(value)) return amount;
 
   return new Intl.NumberFormat(NUMERIC_LOCALE[locale], {
     style: "currency",
-    currency: "KWD",
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
+    currency: target.code,
+    minimumFractionDigits: target.decimals,
+    maximumFractionDigits: target.decimals,
   }).format(value);
 }
 

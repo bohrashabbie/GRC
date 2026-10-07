@@ -37,6 +37,7 @@ from app.services import (
     checkout_service,
     contact_service,
     coupon_service,
+    fx_service,
     shop_service,
 )
 
@@ -192,6 +193,13 @@ def public_settings(db: Session = Depends(get_db)):
     anything not explicitly public must never reach it."""
     rows = db.execute(select(Setting).where(Setting.is_public.is_(True))).scalars()
     return {row.key: row.value for row in rows}
+
+
+@router.get("/currencies")
+def currencies(db: Session = Depends(get_db)):
+    """Currencies a price can be shown in, with today's rate per 1 KWD.
+    Display only: the shop charges in KWD."""
+    return fx_service.currencies(db)
 
 
 @router.get("/brands")

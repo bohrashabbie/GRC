@@ -1,14 +1,13 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 import { useCart } from "./cart-provider";
 import { CartTotalsBlock, FreeShippingBar } from "./cart-totals";
 import { Link, useRouter } from "@/i18n/navigation";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { useSession } from "@/components/account/session-provider";
-import type { Locale } from "@/i18n/routing";
-import { formatPrice } from "@/lib/format";
+import { useFormatPrice } from "@/components/currency/currency-provider";
 
 /**
  * Full-page cart. Shares the totals and free-shipping components with the
@@ -16,7 +15,7 @@ import { formatPrice } from "@/lib/format";
  */
 export function CartPageView() {
   const t = useTranslations("cart");
-  const locale = useLocale() as Locale;
+  const formatPrice = useFormatPrice();
   const router = useRouter();
   const { requireLogin } = useSession();
   const { cart, isLoading, setQuantity, removeItem } = useCart();
@@ -88,11 +87,11 @@ export function CartPageView() {
 
             <div className="shrink-0 text-end">
               <p className="tabular text-sm font-semibold text-ink-900">
-                {formatPrice(line.line_total, locale)}
+                {formatPrice(line.line_total)}
               </p>
               {line.quantity > 1 && (
                 <p className="tabular mt-1 text-2xs text-ink-400">
-                  {formatPrice(line.unit_price, locale)}
+                  {formatPrice(line.unit_price)}
                 </p>
               )}
             </div>

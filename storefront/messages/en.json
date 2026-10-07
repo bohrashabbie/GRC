@@ -8,6 +8,14 @@
     "switchTo": "العربية",
     "switchToAria": "Switch language to Arabic"
   },
+  "currency": {
+    "menu": "Currency",
+    "search": "Search currencies",
+    "none": "No currency found",
+    "note": "Prices are converted at today's rate for reference. You always pay in Kuwaiti dinar (KWD).",
+    "approx": "About {amount}",
+    "chargedInKwd": "You will be charged in KWD"
+  },
   "header": {
     "searchPlaceholder": "Search for a thobe, shemagh, size…",
     "search": "Search",

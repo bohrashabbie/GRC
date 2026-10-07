@@ -14,6 +14,8 @@ import { SessionProvider } from "@/components/account/session-provider";
 import { WishlistProvider } from "@/components/product/wishlist-provider";
 import { currentCustomer, loadWishlist } from "@/app/actions";
 import { CartDrawer } from "@/components/cart/cart-drawer";
+import { CurrencyProvider } from "@/components/currency/currency-provider";
+import { getCurrencyState } from "@/lib/currency-server";
 import { fontVariables } from "@/lib/fonts";
 import { getCategoryTree } from "@/lib/shop-api";
 import { getSiteContact } from "@/lib/site-contact";
@@ -58,17 +60,19 @@ export default async function LocaleLayout({
   const typedLocale = locale as Locale;
   // Fetched here so the first paint already knows who is signed in and which
   // hearts are filled, instead of every card flashing empty and correcting.
-  const [categories, customer, wishlist, contact] = await Promise.all([
+  const [categories, customer, wishlist, contact, currency] = await Promise.all([
     getCategoryTree(typedLocale),
     currentCustomer(typedLocale),
     loadWishlist(typedLocale),
     getSiteContact(typedLocale),
+    getCurrencyState(typedLocale),
   ]);
 
   return (
     <html lang={locale} dir={localeDirection[typedLocale]} className={fontVariables}>
       <body className="flex min-h-dvh flex-col">
         <NextIntlClientProvider>
+          <CurrencyProvider selected={currency.selected} options={currency.options}>
           <SessionProvider customer={customer}>
             <WishlistProvider initialProductIds={wishlist}>
               <CartProvider>
@@ -85,6 +89,7 @@ export default async function LocaleLayout({
               </CartProvider>
             </WishlistProvider>
           </SessionProvider>
+          </CurrencyProvider>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCart } from "./cart-provider";
@@ -9,14 +9,13 @@ import { CartTotalsBlock, FreeShippingBar } from "./cart-totals";
 import { CloseIcon } from "@/components/ui/icons";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { useSession } from "@/components/account/session-provider";
-import type { Locale } from "@/i18n/routing";
-import { formatPrice } from "@/lib/format";
+import { useFormatPrice } from "@/components/currency/currency-provider";
 import { cn } from "@/lib/utils";
 
 export function CartDrawer() {
   const t = useTranslations("cart");
   const tCommon = useTranslations("common");
-  const locale = useLocale() as Locale;
+  const formatPrice = useFormatPrice();
   const router = useRouter();
   const { requireLogin } = useSession();
   const { cart, isOpen, close, setQuantity, removeItem, applyCoupon, removeCoupon, couponError } =
@@ -151,7 +150,7 @@ export function CartDrawer() {
                         onChange={(next) => void setQuantity(line.variant_id, next)}
                       />
                       <span className="tabular text-sm font-semibold text-ink-900">
-                        {formatPrice(line.line_total, locale)}
+                        {formatPrice(line.line_total)}
                       </span>
                     </div>
 

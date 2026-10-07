@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 
 import type { SocialLink } from "@/lib/site-contact";
+import { CurrencyMenu } from "@/components/currency/currency-menu";
 import { LocaleSwitch } from "./locale-switch";
 
 export function TopBar({ socials }: { socials: SocialLink[] }) {
@@ -29,7 +30,10 @@ export function TopBar({ socials }: { socials: SocialLink[] }) {
 
         <p className="flex-1 text-center text-xs text-sand-200 md:flex-none">{t("promo")}</p>
 
-        <LocaleSwitch className="text-sand-200" />
+        <div className="flex items-center gap-4">
+          <CurrencyMenu className="text-sand-200" />
+          <LocaleSwitch className="text-sand-200" />
+        </div>
       </div>
     </div>
   );

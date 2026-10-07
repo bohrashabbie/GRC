@@ -25,6 +25,7 @@ import type {
   StoreLocation,
   VariantStock,
 } from "@/types/shop";
+import type { CurrencyRate } from "@/lib/currency";
 import type {
   AccountSummary,
   Customer,
@@ -308,6 +309,22 @@ export async function getPublicSettings(
     });
   } catch {
     return {};
+  }
+}
+
+/**
+ * Display currencies with today's rate per 1 KWD. Failure yields KWD alone:
+ * the site still works, it just cannot convert.
+ */
+export async function getCurrencies(locale: LocaleCode): Promise<CurrencyRate[]> {
+  try {
+    const data = await shopFetch<{ items: CurrencyRate[] }>("/currencies", {
+      locale,
+      revalidate: 3600,
+    });
+    return data.items.length ? data.items : [{ code: "KWD", rate: "1" }];
+  } catch {
+    return [{ code: "KWD", rate: "1" }];
   }
 }
 
