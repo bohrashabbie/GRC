@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 
 from app.middleware.error import BusinessRuleError, NotFoundError
 from app.models.catalog import Product, Variant, VariantOptionValue
-from app.models.inventory import StockMovement
 from app.models.orders import OrderItem, ReturnItem
 from app.models.purchasing import GoodsReceiptItem, PurchaseOrderItem
 from app.services import audit_service, deletion, inventory_service
@@ -144,7 +143,9 @@ def delete_variant(db: Session, variant_id: int, *, actor_user_id: int | None) -
     Order lines snapshot what was bought (Hard Rule 7), so an old order still
     reads correctly after the variant goes — but variant_id stays a live FK used
     for returns and reporting, so a sold variant is never removed. Stock
-    movements are the append-only ledger and pin it permanently.
+    movements alone do not pin it: staff asked that deleting a variant really
+    delete it, so its movements are erased with it (see
+    inventory_service.purge_variant_ledger) and the count goes in the audit.
 
     Hard Rule 5 outranks all of it: a product always has at least one variant,
     so removing the last live one is refused rather than quietly deactivated,
@@ -175,7 +176,6 @@ def delete_variant(db: Session, variant_id: int, *, actor_user_id: int | None) -
         [
             ("orders", select(OrderItem.id).where(OrderItem.variant_id == variant_id)),
             ("returns", select(ReturnItem.id).where(ReturnItem.variant_id == variant_id)),
-            ("stock_movements", select(StockMovement.id).where(StockMovement.variant_id == variant_id)),
             (
                 "purchase_orders",
                 select(PurchaseOrderItem.id).where(PurchaseOrderItem.variant_id == variant_id),
@@ -197,6 +197,7 @@ def delete_variant(db: Session, variant_id: int, *, actor_user_id: int | None) -
         if product is not None and product.default_variant_id == variant_id:
             product.default_variant_id = None
             db.flush()
+        before["stock_movements_erased"] = inventory_service.purge_variant_ledger(db, variant_id)
         # variant_option_values, variant_media and stock_levels all cascade.
         db.delete(variant)
         mode = deletion.DELETED

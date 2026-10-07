@@ -239,3 +239,24 @@ def test_variant_read_carries_the_stock_number(factory, session):
     assert inventory_service.stock_state(0, None, True) == "out_of_stock"
     assert inventory_service.stock_state(0, None, False) == "in_stock"
     assert variant.sku.startswith("TEST-")
+
+
+def test_deleting_a_variant_with_only_stock_history_removes_it(factory, session):
+    """Staff asked that delete mean delete: stock movements no longer pin a
+    variant, they go with it. A sold variant is still only discontinued."""
+    from app.models.inventory import StockMovement
+    from app.services import deletion, variant_service
+
+    product = factory.product(stock=5, variants=2)
+    variant_id = product.variants[1].id
+    inventory_service.set_stock(session, variant_id, 3, actor_user_id=None)
+    session.commit()
+
+    result = variant_service.delete_variant(session, variant_id, actor_user_id=None)
+
+    assert result.mode == deletion.DELETED
+    session.expire_all()
+    assert session.get(Variant, variant_id) is None
+    assert not session.execute(
+        select(StockMovement.id).where(StockMovement.variant_id == variant_id)
+    ).first()

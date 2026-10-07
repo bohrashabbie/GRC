@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app.middleware.error import BusinessRuleError, ConflictError, NotFoundError
@@ -267,6 +267,18 @@ def restock_from_return(
 # decrements, so read and write deliberately share the same target.
 
 DEFAULT_ONLINE_LOCATION_CODE = "ONLINE"
+
+
+def purge_variant_ledger(db: Session, variant_id: int) -> int:
+    """Erase a variant's stock movements so the variant itself can be deleted.
+
+    The one sanctioned exception to the append-only ledger: staff chose to
+    remove the variant outright. Its stock_levels rows cascade with the variant
+    in the same transaction, so the projection and the ledger vanish together
+    and nothing is left out of step. The caller commits.
+    """
+    result = db.execute(delete(StockMovement).where(StockMovement.variant_id == variant_id))
+    return result.rowcount or 0
 
 
 def default_online_location_id(db: Session) -> int | None:
