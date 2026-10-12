@@ -9,7 +9,7 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session, selectinload
 
-from app.middleware.error import BusinessRuleError, NotFoundError
+from app.middleware.error import BusinessRuleError, ConflictError, NotFoundError
 from app.models.catalog import (
     Media,
     Product,
@@ -100,12 +100,53 @@ def attach_stock_totals(db: Session, products: list[Product]) -> None:
         )
 
 
+def _slug_holder(db: Session, locale: str, slug: str, product_id: int) -> Product | None:
+    """The other product already using this slug in this locale, if any.
+    Deleted products count: they are soft-deleted, so their translation rows
+    — and the unique (locale, slug) they hold — are still there."""
+    return (
+        db.query(Product)
+        .join(ProductTranslation, ProductTranslation.product_id == Product.id)
+        .filter(
+            ProductTranslation.locale == locale,
+            ProductTranslation.slug == slug,
+            ProductTranslation.product_id != product_id,
+        )
+        .first()
+    )
+
+
+def _resolve_slug(db: Session, t_in, product_id: int) -> str:
+    """A typed slug is used as-is and refused clearly if another product has
+    it. A slug derived from the name takes the first free one of slug, slug-2,
+    slug-3 … — two products may share a name, and a deleted product must not
+    keep a name off-limits for good."""
+    if t_in.slug:
+        holder = _slug_holder(db, t_in.locale, t_in.slug, product_id)
+        if holder is not None:
+            where = "a deleted product" if holder.status == "deleted" else f"product #{holder.id}"
+            raise ConflictError(
+                f"The {t_in.locale} slug '{t_in.slug}' is already used by {where}.",
+                code="slug_taken",
+                details={"locale": t_in.locale, "slug": t_in.slug, "product_id": holder.id},
+            )
+        return t_in.slug
+
+    base = slugify(t_in.name, t_in.locale) or "product"
+    candidate = base
+    suffix = 2
+    while _slug_holder(db, t_in.locale, candidate, product_id) is not None:
+        candidate = f"{base}-{suffix}"
+        suffix += 1
+    return candidate
+
+
 def _sync_product_translations(db: Session, existing: list[ProductTranslation], translations_in, product_id: int) -> None:
     existing_by_locale = {t.locale: t for t in existing}
     seen = set()
     for t_in in translations_in:
         seen.add(t_in.locale)
-        slug = t_in.slug or slugify(t_in.name, t_in.locale)
+        slug = _resolve_slug(db, t_in, product_id)
         if t_in.locale in existing_by_locale:
             row = existing_by_locale[t_in.locale]
             row.name = t_in.name

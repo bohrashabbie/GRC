@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 from pydantic import ValidationError
 
-from app.middleware.error import BusinessRuleError
+from app.middleware.error import BusinessRuleError, ConflictError
 from app.schemas.catalog import ProductStatusUpdate, ProductUpdate, VariantPriceUpdate
 from app.services import audit_service, product_service, variant_service
 
@@ -174,6 +174,28 @@ def test_delete_product_marks_deleted_without_hard_deleting(monkeypatch):
             },
         }
     ]
+
+
+def test_derived_slug_skips_slugs_held_by_other_products(monkeypatch):
+    # "test" is still held by a soft-deleted product, "test-2" by a live one.
+    taken = {("en", "test"): SimpleNamespace(id=3, status="deleted"), ("en", "test-2"): SimpleNamespace(id=4, status="active")}
+    monkeypatch.setattr(product_service, "_slug_holder", lambda _db, locale, slug, _pid: taken.get((locale, slug)))
+
+    t_in = SimpleNamespace(locale="en", name="Test", slug=None)
+
+    assert product_service._resolve_slug(None, t_in, product_id=9) == "test-3"
+
+
+def test_typed_slug_held_by_deleted_product_is_a_clear_conflict(monkeypatch):
+    holder = SimpleNamespace(id=3, status="deleted")
+    monkeypatch.setattr(product_service, "_slug_holder", lambda *_args: holder)
+
+    t_in = SimpleNamespace(locale="en", name="Test", slug="test")
+
+    with pytest.raises(ConflictError) as exc:
+        product_service._resolve_slug(None, t_in, product_id=9)
+    assert exc.value.code == "slug_taken"
+    assert "deleted product" in exc.value.message
 
 
 def test_category_sync_reassigns_primary_and_sort_order():
