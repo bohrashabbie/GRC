@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist, Geist_Mono, IBM_Plex_Sans_Arabic } from "next/font/google"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages, setRequestLocale } from "next-intl/server"
 import { notFound } from "next/navigation"
@@ -12,6 +12,13 @@ import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
+// Geist has no Arabic glyphs, and Arabic is the default locale. Plex Sans
+// Arabic is drawn for Arabic with a matching Latin, so it leads on Arabic pages.
+const plexArabic = IBM_Plex_Sans_Arabic({
+  variable: "--font-plex-arabic",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
+})
 
 export const metadata: Metadata = {
   title: "GR8 Admin",
@@ -40,10 +47,13 @@ export default async function LocaleLayout({
   const dir = localeDirections[locale as Locale]
 
   return (
-    <html lang={locale} dir={dir} suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
-      >
+    <html
+      lang={locale}
+      dir={dir}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${plexArabic.variable}`}
+    >
+      <body className="font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
             <AuthProvider>

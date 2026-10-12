@@ -178,7 +178,7 @@ export default async function DesignPage({ params }: { params: Promise<{ locale:
       {/* ---------------------------------------------------------------- */}
       <Section
         title="Typography"
-        intro="IBM Plex Sans Arabic carries body copy in both scripts. Headlines switch face by locale — Reem Kufi for Arabic, Cormorant Garamond for Latin — because one family stretched across both scripts always shortchanges one of them."
+        intro="IBM Plex Sans Arabic carries body copy in both scripts. Headlines switch face by locale — Noto Naskh Arabic for Arabic, Cormorant Garamond for Latin — because one family stretched across both scripts always shortchanges one of them."
       >
         <dl className="divide-y divide-hairline border-y border-hairline">
           {TYPE_SPECIMENS.map((specimen) => (

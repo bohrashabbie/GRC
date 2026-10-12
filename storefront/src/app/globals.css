@@ -54,7 +54,7 @@
   --color-hairline-strong: var(--color-sand-300);
 
   /* -- Type families ------------------------------------------------------
-     --font-display is rebound per-locale further down: Reem Kufi carries
+     --font-display is rebound per-locale further down: Noto Naskh carries
      Arabic headlines, Cormorant Garamond carries Latin ones. Each script
      gets a display face that actually has presence in that script, rather
      than one family stretched unconvincingly across both.
@@ -124,7 +124,7 @@
   }
 
   html[lang="ar"] {
-    --font-display: var(--font-reem-kufi), var(--font-plex-arabic), sans-serif;
+    --font-display: var(--font-naskh), var(--font-plex-arabic), serif;
   }
 
   ::selection {
@@ -164,12 +164,12 @@
     letter-spacing: -0.01em;
   }
 
-  /* Arabic display faces are not designed for negative tracking — Reem Kufi's
-     joins tighten badly. Reset it. */
+  /* Arabic display faces are not designed for negative tracking — Naskh's
+     joins tighten badly. Reset it, and give its tall ascenders room. */
   html[lang="ar"] .font-display {
     letter-spacing: 0;
-    line-height: 1.4;
-    font-weight: 500;
+    line-height: 1.5;
+    font-weight: 600;
   }
 
   /* Eyebrow / section kicker. Uppercase + wide tracking is a Latin device:
