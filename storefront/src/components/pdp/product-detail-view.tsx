@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ProductGallery } from "./product-gallery";
 import { VariantSelector, findVariant, type Selection } from "./variant-selector";
 import { ProductAccordion } from "./product-accordion";
+import { SizeChartDialog } from "./size-chart-dialog";
 import { useCart } from "@/components/cart/cart-provider";
 import { Price } from "@/components/product/price";
 import { WishlistButton } from "@/components/product/wishlist-button";
@@ -133,14 +134,7 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
         </div>
 
         <div className="mt-6">
-          <Link
-            // CMS page slugs are per-locale, so the Arabic page lives at its
-            // Arabic slug — a fixed English slug would 404 on /ar.
-            href={locale === "ar" ? "/pages/دليل-المقاسات" : "/pages/size-guide"}
-            className="text-xs text-gold-700 underline underline-offset-4"
-          >
-            {t("sizeGuide")}
-          </Link>
+          <SizeChartDialog />
         </div>
 
         {variant?.stock_state === "low_stock" && variant.available_quantity !== null && (
