@@ -38,6 +38,7 @@ def optimise(data: bytes) -> tuple[bytes, int | None, int | None]:
             # Phones store the rotation as an EXIF flag; bake it in, since the
             # re-encode drops EXIF and the photo would otherwise lie sideways.
             image = ImageOps.exif_transpose(source)
+            resized = max(image.size) > MAX_EDGE_PX
             image.thumbnail((MAX_EDGE_PX, MAX_EDGE_PX), Image.Resampling.LANCZOS)
             if fmt == "JPEG" and image.mode not in ("RGB", "L"):
                 image = image.convert("RGB")
@@ -53,12 +54,9 @@ def optimise(data: bytes) -> tuple[bytes, int | None, int | None]:
         return data, None, None
 
     optimised = out.getvalue()
-    if len(optimised) >= len(data):
-        # Already small and within bounds: re-encoding would only cost quality.
-        try:
-            with Image.open(io.BytesIO(data)) as source:
-                if max(source.size) <= MAX_EDGE_PX:
-                    return data, width, height
-        except Exception:  # noqa: BLE001
-            return data, width, height
+    # Already within bounds and the re-encode saves little: keep the original.
+    # Re-encoding a lossy image always costs some quality, and without this a
+    # rerun would grind already-optimised files down a few bytes at a time.
+    if not resized and len(optimised) > len(data) * 0.9:
+        return data, width, height
     return optimised, width, height
