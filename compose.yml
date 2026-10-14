@@ -34,6 +34,9 @@ services:
       PUBLIC_MEDIA_BASE_URL: https://${STORE_DOMAIN:?Set STORE_DOMAIN in .env.vps}
       ADMIN_CORS_ORIGINS: '["https://${ADMIN_DOMAIN:?Set ADMIN_DOMAIN in .env.vps}"]'
       STOREFRONT_CORS_ORIGINS: '["https://${STORE_DOMAIN}"]'
+      # After an admin write or an order, clear the storefront's cached catalogue.
+      STOREFRONT_REVALIDATE_URL: http://storefront:3100/api/revalidate
+      STOREFRONT_REVALIDATE_SECRET: ${REVALIDATE_SECRET:?Set REVALIDATE_SECRET in .env.vps}
     volumes:
       - uploads:/app/uploads
     depends_on:
@@ -67,18 +70,20 @@ services:
       args:
         NEXT_PUBLIC_USE_LIVE_CATALOG: "true"
         NEXT_PUBLIC_USE_FIXTURES: "true"
-        # Must match the runtime values below. These decide whether Next
-        # prerenders the catalogue pages during the build, where no API exists.
+        # Build-time only: 0 keeps Next from prerendering catalogue pages during
+        # the build, where no API exists. The runtime value below may differ.
         CATALOG_REVALIDATE_SECONDS: "0"
         CATALOG_FALLBACK: "false"
     restart: unless-stopped
     environment:
       SHOP_API_URL: http://api:8000/shop/v1
       CATALOG_FALLBACK: "false"
-      # 0 = read the catalogue live on every request, so admin edits appear
-      # immediately. Raise it (300 is a sensible start) once the catalogue is
-      # settled and real traffic makes caching worth the staleness.
-      CATALOG_REVALIDATE_SECONDS: "0"
+      # Catalogue reads are cached for an hour; the API clears the cache the
+      # moment anything is saved in the admin or an order is placed, so edits
+      # still appear immediately. (The build arg above stays 0: there is no API
+      # during the build to prerender against.)
+      CATALOG_REVALIDATE_SECONDS: "3600"
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?Set REVALIDATE_SECRET in .env.vps}
       NEXT_PUBLIC_SITE_URL: https://${STORE_DOMAIN}
     depends_on:
       api:

@@ -18,6 +18,10 @@ class Settings(BaseSettings):
 
     admin_cors_origins: list[str] = ["http://localhost:3000"]
     storefront_cors_origins: list[str] = ["http://localhost:3100"]
+    # The storefront caches catalogue reads; after an admin write or an order
+    # the API calls this so the change shows at once. Empty disables it.
+    storefront_revalidate_url: str = ""
+    storefront_revalidate_secret: str = ""
 
     # Where a password-reset link points. Must be the public storefront origin,
     # not the API's — the link is opened by a person, not by this service.

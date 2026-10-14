@@ -80,6 +80,9 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_SHOP_API_URL ??
   "http://localhost:8000/shop/v1";
 
+/** Every cached catalogue read carries this tag. */
+export const SHOP_CACHE_TAG = "shop";
+
 export class ShopApiError extends Error {
   constructor(
     readonly code: string,
@@ -114,8 +117,13 @@ async function shopFetch<T>(path: string, options: FetchOptions): Promise<T> {
   // opts these routes out of static prerendering. Without it a product added in
   // the admin stays invisible until the ISR window expires or the image is
   // rebuilt — fine under traffic, wrong while the catalogue is being built.
+  // Anything personal or mutating is never cached, whatever the caller asked:
+  // a cached response to a signed-in request would be served to the next
+  // visitor.
   const live =
     options.revalidate === false ||
+    Boolean(options.token) ||
+    (options.method ?? "GET") !== "GET" ||
     (REVALIDATE_OVERRIDE !== null && REVALIDATE_OVERRIDE <= 0);
   const window =
     REVALIDATE_OVERRIDE !== null ? REVALIDATE_OVERRIDE : options.revalidate || 300;
@@ -128,7 +136,9 @@ async function shopFetch<T>(path: string, options: FetchOptions): Promise<T> {
       ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
-    next: live ? undefined : { revalidate: window },
+    // Tagged so the API can clear every cached read at once after an admin
+    // write or an order (see app/api/revalidate).
+    next: live ? undefined : { revalidate: window, tags: [SHOP_CACHE_TAG] },
     cache: live ? "no-store" : undefined,
   });
 

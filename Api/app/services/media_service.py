@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.middleware.error import BusinessRuleError, NotFoundError, ValidationAppError
 from app.models.catalog import Media, Product, ProductMedia
+from app.images import optimise
 from app.storage import storage
 
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/avif"}
@@ -42,6 +43,8 @@ def upload_media(db: Session, file: UploadFile, uploaded_by_user_id: int) -> Med
     if len(data) > MAX_UPLOAD_BYTES:
         raise BusinessRuleError("File exceeds the 15MB upload limit.")
 
+    # Camera originals are 5-8 MB; store a web-sized copy instead.
+    data, width, height = optimise(data)
     checksum = hashlib.sha256(data).hexdigest()
     now = datetime.now(timezone.utc)
     key = storage.build_key(f"{now:%Y}/{now:%m}", f"{uuid4().hex}{_EXTENSIONS[file.content_type]}")
@@ -53,11 +56,11 @@ def upload_media(db: Session, file: UploadFile, uploaded_by_user_id: int) -> Med
         mime_type=file.content_type,
         bytes=len(data),
         checksum_sha256=checksum,
+        width_px=width,
+        height_px=height,
         derivatives={},
-        # No worker/queue in this build (per environment constraints) to
-        # generate resized derivatives, so uploads are "ready" immediately —
-        # width_px/height_px are left null until image-dimension probing
-        # (e.g. Pillow) is added.
+        # Resized inline (app/images.py) rather than by a worker — there is no
+        # queue in this build — so an upload is "ready" as soon as it is saved.
         processing_status="ready",
         uploaded_by_user_id=uploaded_by_user_id,
     )

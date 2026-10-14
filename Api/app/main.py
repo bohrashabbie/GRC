@@ -11,6 +11,7 @@ from app.routers.api import api_router
 from app.routers.shop import router as shop_router
 from app.config import settings
 from app.database import SessionLocal, engine
+from app.middleware import storefront_cache
 from app.middleware.error import register_exception_handlers
 
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +60,21 @@ app = FastAPI(
 register_exception_handlers(app)
 
 os.makedirs(settings.upload_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+
+
+class _UploadFiles(StaticFiles):
+    """Uploads are stored under random, never-reused names, so a URL's content
+    never changes: browsers may keep it for a year without asking again."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code == 200:
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
+
+
+app.mount("/uploads", _UploadFiles(directory=settings.upload_dir), name="uploads")
+storefront_cache.register(app)
 
 app.add_middleware(
     CORSMiddleware,
