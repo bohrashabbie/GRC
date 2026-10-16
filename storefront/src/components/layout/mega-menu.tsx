@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { ChevronForwardIcon } from "@/components/ui/icons";
 import type { CategoryNode } from "@/types/shop";
 import { cn } from "@/lib/utils";
+import { imageProps } from "@/lib/images";
 
 /**
  * Desktop mega menu.
@@ -105,7 +106,7 @@ export function MegaMenu({ categories }: { categories: CategoryNode[] }) {
                       {category.image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={category.image.url}
+                          {...imageProps(category.image, "240px")}
                           alt=""
                           // A 4:5 crop here made the panel ~460px tall for six
                           // links. The panel height should follow the link

@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { ChevronForwardIcon } from "@/components/ui/icons";
 import type { Banner } from "@/types/shop";
 import { cn } from "@/lib/utils";
+import { imageProps } from "@/lib/images";
 
 /**
  * Hero carousel.
@@ -58,7 +59,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={banner.desktop_image.url}
+              {...imageProps(banner.desktop_image, "100vw")}
               alt={banner.desktop_image.alt ?? ""}
               // The first slide is the LCP element on the homepage, so it is
               // eager and high priority; the rest stay lazy.

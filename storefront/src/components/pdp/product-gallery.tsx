@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { ChevronForwardIcon } from "@/components/ui/icons";
 import type { MediaImage } from "@/types/shop";
 import { cn } from "@/lib/utils";
+import { imageProps } from "@/lib/images";
 
 type GalleryMedia = MediaImage & { option_value_id: string | null };
 
@@ -63,7 +64,7 @@ export function ProductGallery({
                 )}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.url} alt="" loading="lazy" className="aspect-[2/3] w-full object-cover" />
+                <img {...imageProps(item, "80px")} alt="" loading="lazy" className="aspect-[2/3] w-full object-cover" />
               </button>
             </li>
           ))}
@@ -73,7 +74,7 @@ export function ProductGallery({
       <div className="relative flex-1 overflow-hidden bg-sand-100">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={current.url}
+          {...imageProps(current, "(min-width: 1024px) 45vw, 100vw")}
           alt={current.alt ?? productName}
           // The PDP hero image is the LCP element — never lazy.
           loading="eager"

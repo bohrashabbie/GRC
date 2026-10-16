@@ -205,11 +205,18 @@ def _media_image(media: Media | None, base_url: str, alt: str | None = None) -> 
     widths = sorted(
         int(width) for width in (media.derivatives or {}).keys() if str(width).isdigit()
     )
+    renditions = media.derivatives or {}
+    # The WebP renditions are what the storefront actually loads; the stored
+    # original (often a 2 MB PNG) is only the fallback when there are none.
+    srcset = ", ".join(
+        f"{base_url}/uploads/{renditions[str(width)]} {width}w" for width in widths
+    ) or None
     if media.width_px and media.width_px not in widths:
         widths.append(media.width_px)
     return {
         "id": str(media.id),
         "url": f"{base_url}/uploads/{media.storage_key}",
+        "srcset": srcset,
         "alt": alt,
         "width": media.width_px or 800,
         "height": media.height_px or 1200,

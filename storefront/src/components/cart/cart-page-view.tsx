@@ -8,6 +8,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { useSession } from "@/components/account/session-provider";
 import { useFormatPrice } from "@/components/currency/currency-provider";
+import { imageProps } from "@/lib/images";
 
 /**
  * Full-page cart. Shares the totals and free-shipping components with the
@@ -51,7 +52,7 @@ export function CartPageView() {
             <Link href={`/p/${line.product_slug}`} className="block w-24 shrink-0 bg-sand-100 sm:w-32">
               {line.image && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={line.image.url} alt="" className="aspect-[2/3] w-full object-cover" />
+                <img {...imageProps(line.image, "96px")} alt="" className="aspect-[2/3] w-full object-cover" />
               )}
             </Link>
 

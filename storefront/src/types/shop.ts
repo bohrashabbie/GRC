@@ -44,6 +44,11 @@ export interface MediaImage {
   height: number;
   /** e.g. [320, 640, 960, 1440] — drives the `srcset` we build. */
   available_widths: number[];
+  /**
+   * Ready-made `srcset` of the backend's WebP renditions. Null (or absent, in
+   * fixtures) when there are none, and `url` is then all there is.
+   */
+  srcset?: string | null;
   /** Tiny blurred placeholder, base64. Optional but wanted for LCP images. */
   blur_data_url: string | null;
 }

@@ -9,6 +9,7 @@ import { accountOrder } from "@/app/actions";
 import { addressLines, formatDate, formatPrice } from "@/lib/format";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
+import { imageProps } from "@/lib/images";
 
 type PageProps = { params: Promise<{ locale: string; orderNumber: string }> };
 
@@ -112,7 +113,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
               <span className="w-20 shrink-0 bg-sand-100">
                 {line.image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={line.image.url} alt="" className="aspect-[2/3] w-full object-cover" />
+                  <img {...imageProps(line.image, "96px")} alt="" className="aspect-[2/3] w-full object-cover" />
                 )}
               </span>
               <div className="min-w-0 flex-1">

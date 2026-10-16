@@ -11,6 +11,7 @@ import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { useSession } from "@/components/account/session-provider";
 import { useFormatPrice } from "@/components/currency/currency-provider";
 import { cn } from "@/lib/utils";
+import { imageProps } from "@/lib/images";
 
 export function CartDrawer() {
   const t = useTranslations("cart");
@@ -115,7 +116,7 @@ export function CartDrawer() {
                     {line.image && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={line.image.url}
+                        {...imageProps(line.image, "80px")}
                         alt=""
                         className="aspect-[2/3] w-full object-cover"
                       />

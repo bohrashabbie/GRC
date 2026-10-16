@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { getBrands } from "@/lib/shop-api";
 import { localeAlternates, type Locale } from "@/i18n/routing";
+import { imageProps } from "@/lib/images";
 
 /**
  * The brand index.
@@ -70,7 +71,7 @@ export default async function BrandsPage({ params }: PageProps) {
                 {brand.logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={brand.logo.url}
+                    {...imageProps(brand.logo, "96px")}
                     alt=""
                     loading="lazy"
                     className="h-12 w-24 object-contain"

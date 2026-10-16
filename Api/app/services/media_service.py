@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.middleware.error import BusinessRuleError, NotFoundError, ValidationAppError
 from app.models.catalog import Media, Product, ProductMedia
-from app.images import optimise
+from app.images import derivative_key, make_derivatives, optimise
 from app.storage import storage
 
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/avif"}
@@ -34,6 +34,18 @@ def storage_keys(db: Session, media_ids) -> dict[int, str]:
     return {media_id: key for media_id, key in rows}
 
 
+def store_derivatives(key: str, data: bytes) -> dict[str, str]:
+    """Write the WebP renditions of the image stored at `key` and return them
+    as media.derivatives: {"800": "2026/10/abc.w800.webp", ...}. The shop API
+    turns this into the srcset the storefront loads instead of the original."""
+    derivatives = {}
+    for width, rendition in make_derivatives(data):
+        rendition_key = derivative_key(key, width)
+        storage.save_bytes(rendition_key, rendition)
+        derivatives[str(width)] = rendition_key
+    return derivatives
+
+
 def upload_media(db: Session, file: UploadFile, uploaded_by_user_id: int) -> Media:
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise BusinessRuleError(
@@ -49,6 +61,7 @@ def upload_media(db: Session, file: UploadFile, uploaded_by_user_id: int) -> Med
     now = datetime.now(timezone.utc)
     key = storage.build_key(f"{now:%Y}/{now:%m}", f"{uuid4().hex}{_EXTENSIONS[file.content_type]}")
     storage.save_bytes(key, data)
+    derivatives = store_derivatives(key, data)
 
     media = Media(
         storage_key=key,
@@ -58,7 +71,7 @@ def upload_media(db: Session, file: UploadFile, uploaded_by_user_id: int) -> Med
         checksum_sha256=checksum,
         width_px=width,
         height_px=height,
-        derivatives={},
+        derivatives=derivatives,
         # Resized inline (app/images.py) rather than by a worker — there is no
         # queue in this build — so an upload is "ready" as soon as it is saved.
         processing_status="ready",

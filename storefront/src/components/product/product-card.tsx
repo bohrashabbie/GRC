@@ -6,6 +6,11 @@ import { WishlistButton } from "./wishlist-button";
 import { discountPercent } from "@/lib/format";
 import type { ProductCard as ProductCardData } from "@/types/shop";
 import { cn } from "@/lib/utils";
+import { imageProps } from "@/lib/images";
+
+// Cards sit two to a row on phones and three or four on wide screens (with a
+// filter sidebar on listings) — this slightly overstates them, never under.
+const CARD_SIZES = "(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, 50vw";
 
 /**
  * The most-repeated unit in the store, so it earns the detail.
@@ -30,7 +35,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             {product.primary_image && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={product.primary_image.url}
+                {...imageProps(product.primary_image, CARD_SIZES)}
                 alt=""
                 loading="lazy"
                 className={cn(
@@ -46,7 +51,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             {product.hover_image && !isSoldOut && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={product.hover_image.url}
+                {...imageProps(product.hover_image, CARD_SIZES)}
                 alt=""
                 loading="lazy"
                 aria-hidden="true"

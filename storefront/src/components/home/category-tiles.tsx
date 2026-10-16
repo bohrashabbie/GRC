@@ -1,5 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import type { CategoryNode } from "@/types/shop";
+import { imageProps } from "@/lib/images";
 
 /**
  * Circular department tiles — the pattern Saudi shoppers already expect at the
@@ -28,7 +29,7 @@ export function CategoryTiles({ categories }: { categories: CategoryNode[] }) {
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={category.image.url}
+                    {...imageProps(category.image, "(min-width: 1024px) 14vw, (min-width: 768px) 25vw, 128px")}
                     alt=""
                     loading="lazy"
                     decoding="async"

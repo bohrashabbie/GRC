@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { getCategoryTree } from "@/lib/shop-api";
 import { localeAlternates, type Locale } from "@/i18n/routing";
+import { imageProps } from "@/lib/images";
 
 export const revalidate = 3600;
 
@@ -45,7 +46,7 @@ export default async function CategoryIndexPage({ params }: PageProps) {
                 {category.image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={category.image.url}
+                    {...imageProps(category.image, "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw")}
                     alt=""
                     loading="lazy"
                     decoding="async"

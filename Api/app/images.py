@@ -60,3 +60,51 @@ def optimise(data: bytes) -> tuple[bytes, int | None, int | None]:
     if not resized and len(optimised) > len(data) * 0.9:
         return data, width, height
     return optimised, width, height
+
+
+# Renditions the storefront picks between with srcset. A 2-column phone grid
+# needs ~400-800 px, a desktop product page ~1200-1600 px; nothing needs the
+# full stored original, which for PNG product shots is 1-2.5 MB.
+DERIVATIVE_WIDTHS = (400, 800, 1200, 1600)
+_DERIVATIVE_OPTIONS = {"quality": 80, "method": 4}
+
+
+def derivative_key(key: str, width: int) -> str:
+    """`2026/10/abc.png` -> `2026/10/abc.w800.webp`, beside the original."""
+    stem = key.rsplit(".", 1)[0]
+    return f"{stem}.w{width}.webp"
+
+
+def make_derivatives(data: bytes) -> list[tuple[int, bytes]]:
+    """WebP copies of an image at each of DERIVATIVE_WIDTHS narrower than it,
+    plus one at its own width when that is not above the largest — never upscaled.
+
+    Returns [] when the image cannot be read; the original is then all there is,
+    and the storefront falls back to it. Like optimise(), never fatal.
+    """
+    try:
+        with Image.open(io.BytesIO(data)) as source:
+            image = ImageOps.exif_transpose(source)
+            image.load()
+            icc = source.info.get("icc_profile")
+    except Exception as exc:  # noqa: BLE001
+        log.warning("no derivatives made: %s", exc)
+        return []
+
+    if image.mode not in ("RGB", "RGBA"):
+        image = image.convert("RGBA" if "A" in image.getbands() or "transparency" in image.info else "RGB")
+    widths = [w for w in DERIVATIVE_WIDTHS if w < image.width]
+    if image.width <= DERIVATIVE_WIDTHS[-1]:
+        widths.append(image.width)
+
+    out: list[tuple[int, bytes]] = []
+    for width in widths:
+        height = max(1, round(image.height * width / image.width))
+        resized = image if width == image.width else image.resize((width, height), Image.Resampling.LANCZOS)
+        buffer = io.BytesIO()
+        options = dict(_DERIVATIVE_OPTIONS)
+        if icc:
+            options["icc_profile"] = icc
+        resized.save(buffer, format="WEBP", **options)
+        out.append((width, buffer.getvalue()))
+    return out

@@ -20,6 +20,7 @@ import type {
   ShippingMethod,
 } from "@/types/shop";
 import { cn } from "@/lib/utils";
+import { imageProps } from "@/lib/images";
 
 type Step = "address" | "shipping" | "payment";
 
@@ -376,7 +377,7 @@ export function CheckoutFlow({
                 <span className="relative w-14 shrink-0 bg-sand-100">
                   {line.image && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={line.image.url} alt="" className="aspect-[2/3] w-full object-cover" />
+                    <img {...imageProps(line.image, "96px")} alt="" className="aspect-[2/3] w-full object-cover" />
                   )}
                   <span
                     dir="ltr"

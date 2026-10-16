@@ -1,5 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import type { CategoryNode } from "@/types/shop";
+import { imageProps } from "@/lib/images";
 
 /**
  * Child-category rail under a parent category's title — the drill-down step
@@ -21,7 +22,7 @@ export function SubcategoryNav({ categories }: { categories: CategoryNode[] }) {
               // note in category-tiles.tsx.
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={category.image.url}
+                {...imageProps(category.image, "32px")}
                 alt=""
                 loading="lazy"
                 decoding="async"
