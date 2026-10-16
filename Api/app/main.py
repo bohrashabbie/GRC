@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 import os
 from contextlib import asynccontextmanager
 
@@ -60,6 +61,12 @@ app = FastAPI(
 register_exception_handlers(app)
 
 os.makedirs(settings.upload_dir, exist_ok=True)
+
+
+# Python before 3.13 has no built-in type for these, and the slim image ships
+# no /etc/mime.types, so StaticFiles served the WebP renditions as text/plain.
+mimetypes.add_type("image/webp", ".webp")
+mimetypes.add_type("image/avif", ".avif")
 
 
 class _UploadFiles(StaticFiles):
