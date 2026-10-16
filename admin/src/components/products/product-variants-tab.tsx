@@ -367,6 +367,9 @@ export function ProductVariantsTab({
           key={pricing.id}
           variant={pricing}
           label={variantLabel(pricing)}
+          others={variants
+            .filter((v) => v.id !== pricing.id && v.is_active)
+            .map((v) => ({ variant: v, label: variantLabel(v) }))}
           productId={productId}
           open={!!pricing}
           onOpenChange={(open) => !open && setPricing(null)}

@@ -3,11 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -26,10 +28,12 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { variantsApi } from "@/lib/api/endpoints"
 import { getErrorMessage } from "@/lib/api/error-message"
 import { queryKeys } from "@/lib/query/keys"
 import type { VariantOut } from "@/lib/api/types"
+import { cn } from "@/lib/utils"
 
 // Blank means "inherit / not set" and is sent as null, so an empty box never
 // becomes "0.00" by accident.
@@ -73,9 +77,14 @@ function useSchema() {
 
 type FormValues = z.infer<ReturnType<typeof useSchema>>
 
+/** Which variants the save lands on besides the one being edited. */
+type Scope = "this" | "all" | "pick"
+const SCOPES: Scope[] = ["this", "all", "pick"]
+
 export function VariantPriceDialog({
   variant,
   label,
+  others,
   productId,
   open,
   onOpenChange,
@@ -83,6 +92,12 @@ export function VariantPriceDialog({
   variant: VariantOut
   /** What the variant is called on screen — its option values, not its SKU. */
   label: string
+  /**
+   * The product's other active variants, which can take the same real and
+   * offer price in the same save. Empty for a single-variant product, and the
+   * choice is then not shown at all.
+   */
+  others: { variant: VariantOut; label: string }[]
   productId: number
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -91,6 +106,24 @@ export function VariantPriceDialog({
   const c = useTranslations("common")
   const queryClient = useQueryClient()
   const schema = useSchema()
+  const [scope, setScope] = useState<Scope>("this")
+  const [picked, setPicked] = useState<Set<number>>(new Set())
+
+  function togglePicked(id: number, checked: boolean) {
+    setPicked((current) => {
+      const next = new Set(current)
+      if (checked) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }
+
+  const applyTo =
+    scope === "all"
+      ? others.map((o) => o.variant.id)
+      : scope === "pick"
+        ? [...picked]
+        : []
 
   // A variant carrying a compare-at price is one that is on offer: the higher
   // number is the real price and what it charges today is the offer.
@@ -122,11 +155,16 @@ export function VariantPriceDialog({
         // Only an offer produces a struck-through number.
         compare_at_price: hasOffer ? values.real_price : null,
         cost_price: values.cost_price || null,
+        apply_to_variant_ids: applyTo,
       })
       await queryClient.invalidateQueries({
         queryKey: queryKeys.products.variants(productId),
       })
-      toast.success(t("variants.priceUpdated"))
+      toast.success(
+        applyTo.length > 0
+          ? t("variants.priceUpdatedMany", { count: applyTo.length + 1 })
+          : t("variants.priceUpdated")
+      )
       onOpenChange(false)
     } catch (error) {
       toast.error(getErrorMessage(error, c("unknownError")))
@@ -197,6 +235,65 @@ export function VariantPriceDialog({
                 </FormItem>
               )}
             />
+
+            {others.length > 0 && (
+              <fieldset className="flex flex-col gap-2">
+                <legend className="mb-2 text-sm font-medium">
+                  {t("variants.applyTo.title")}
+                </legend>
+                <div
+                  role="radiogroup"
+                  aria-label={t("variants.applyTo.title")}
+                  className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1"
+                >
+                  {SCOPES.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={scope === value}
+                      onClick={() => setScope(value)}
+                      className={cn(
+                        "rounded-md px-2 py-1.5 text-sm transition-colors",
+                        scope === value
+                          ? "bg-background font-medium shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {t(`variants.applyTo.${value}`)}
+                    </button>
+                  ))}
+                </div>
+
+                {scope === "pick" && (
+                  <ul className="flex max-h-48 flex-col gap-2 overflow-y-auto rounded-md border p-3">
+                    {others.map((other) => (
+                      <li key={other.variant.id} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`apply-${other.variant.id}`}
+                          checked={picked.has(other.variant.id)}
+                          onCheckedChange={(checked) =>
+                            togglePicked(other.variant.id, checked === true)
+                          }
+                        />
+                        <Label
+                          htmlFor={`apply-${other.variant.id}`}
+                          className="font-normal"
+                        >
+                          {other.label}
+                        </Label>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <p className="text-sm text-muted-foreground">
+                  {scope === "this"
+                    ? t("variants.applyTo.thisHint")
+                    : t("variants.applyTo.copyHint", { count: applyTo.length })}
+                </p>
+              </fieldset>
+            )}
 
             <DialogFooter>
               <Button

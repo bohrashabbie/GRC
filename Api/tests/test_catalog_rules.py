@@ -112,6 +112,76 @@ def test_variant_price_update_validates_against_effective_existing_price(monkeyp
     assert exc.value.code == "invalid_compare_at_price"
 
 
+class SiblingSession(FakeSession):
+    """FakeSession that also answers the sibling-variant lookup."""
+
+    def __init__(self, *, siblings, **kwargs):
+        super().__init__(**kwargs)
+        self.siblings = siblings
+
+    def execute(self, *_args, **_kwargs):
+        return SimpleNamespace(scalars=lambda: iter(self.siblings))
+
+
+def _variant(id_, price, compare_at=None, cost=None):
+    return SimpleNamespace(
+        id=id_, product_id=20, price=price, compare_at_price=compare_at, cost_price=cost
+    )
+
+
+def test_offer_is_copied_to_chosen_variants_without_their_cost(monkeypatch):
+    main = _variant(10, Decimal("12.000"), cost=Decimal("5.000"))
+    small = _variant(11, Decimal("12.000"), cost=Decimal("4.000"))
+    large = _variant(12, None, cost=Decimal("6.000"))
+    db = SiblingSession(
+        siblings=[small, large],
+        variant=main,
+        product=SimpleNamespace(id=20, base_price=Decimal("12.000")),
+    )
+    audits = []
+    monkeypatch.setattr(variant_service, "get_variant_option_value_ids", lambda *_args: [])
+    monkeypatch.setattr(variant_service, "attach_stock", lambda *_args: None)
+    monkeypatch.setattr(audit_service, "record", lambda *_args, **kwargs: audits.append(kwargs["entity_id"]))
+
+    variant_service.update_variant_price(
+        db,
+        main.id,
+        VariantPriceUpdate(
+            price="9.000",
+            compare_at_price="12.000",
+            cost_price="5.500",
+            apply_to_variant_ids=[11, 12, 10],
+        ),
+        actor_user_id=1,
+    )
+
+    for variant in (main, small, large):
+        assert (variant.price, variant.compare_at_price) == (Decimal("9.000"), Decimal("12.000"))
+    assert main.cost_price == Decimal("5.500")
+    assert (small.cost_price, large.cost_price) == (Decimal("4.000"), Decimal("6.000"))
+    assert sorted(audits) == [10, 11, 12]
+
+
+def test_offer_cannot_be_copied_to_another_products_variant(monkeypatch):
+    main = _variant(10, Decimal("12.000"))
+    db = SiblingSession(
+        siblings=[],  # 99 is not on product 20, so the lookup finds nothing
+        variant=main,
+        product=SimpleNamespace(id=20, base_price=Decimal("12.000")),
+    )
+    monkeypatch.setattr(audit_service, "record", lambda *_args, **_kwargs: None)
+
+    with pytest.raises(BusinessRuleError) as exc:
+        variant_service.update_variant_price(
+            db,
+            main.id,
+            VariantPriceUpdate(price="9.000", compare_at_price="12.000", apply_to_variant_ids=[99]),
+            actor_user_id=1,
+        )
+    assert exc.value.code == "variant_not_on_product"
+    assert exc.value.details == {"variant_ids": [99]}
+
+
 def test_product_brand_can_be_cleared(monkeypatch):
     product = SimpleNamespace(
         id=1,

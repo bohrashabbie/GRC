@@ -423,6 +423,10 @@ class VariantPriceUpdate(BaseModel):
     price: Decimal | None = Field(default=None, ge=0)
     compare_at_price: Decimal | None = Field(default=None, ge=0)
     cost_price: Decimal | None = Field(default=None, ge=0)
+    # Other variants of the same product that take the same selling price and
+    # offer in the same save — "apply this offer to all sizes". Cost price is
+    # not copied: it is what that variant was bought at, not a pricing choice.
+    apply_to_variant_ids: list[int] = Field(default_factory=list, max_length=300)
 
     @model_validator(mode="after")
     def compare_price_must_exceed_price(self):

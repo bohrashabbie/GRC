@@ -73,17 +73,7 @@ def update_variant(db: Session, variant_id: int, data, actor_user_id: int | None
     return variant
 
 
-def update_variant_price(db: Session, variant_id: int, data, actor_user_id: int | None) -> Variant:
-    variant = db.get(Variant, variant_id)
-    if variant is None:
-        raise NotFoundError("Variant not found")
-
-    proposed = {
-        field: getattr(data, field)
-        for field in ("price", "compare_at_price", "cost_price")
-        if field in data.model_fields_set
-    }
-    product = db.get(Product, variant.product_id)
+def _apply_price(db: Session, variant: Variant, product: Product, proposed: dict, actor_user_id: int | None) -> None:
     effective_price = proposed.get("price", variant.price)
     if effective_price is None:
         effective_price = product.base_price
@@ -92,6 +82,7 @@ def update_variant_price(db: Session, variant_id: int, data, actor_user_id: int 
         raise BusinessRuleError(
             "Compare-at price must be greater than the selling price.",
             code="invalid_compare_at_price",
+            details={"variant_id": variant.id},
         )
     before, after = audit_service.diff_changed_fields(variant, proposed)
     for field, value in proposed.items():
@@ -106,6 +97,43 @@ def update_variant_price(db: Session, variant_id: int, data, actor_user_id: int 
             before=before,
             after=after,
         )
+
+
+def update_variant_price(db: Session, variant_id: int, data, actor_user_id: int | None) -> Variant:
+    """Price one variant and, optionally, copy its selling price and offer to
+    other variants of the same product — all in one transaction, so an offer
+    never lands on some sizes and not others. Each variant gets its own audit
+    row, the same as if it had been edited by itself."""
+    variant = db.get(Variant, variant_id)
+    if variant is None:
+        raise NotFoundError("Variant not found")
+
+    proposed = {
+        field: getattr(data, field)
+        for field in ("price", "compare_at_price", "cost_price")
+        if field in data.model_fields_set
+    }
+    product = db.get(Product, variant.product_id)
+    _apply_price(db, variant, product, proposed, actor_user_id)
+
+    others = sorted(set(data.apply_to_variant_ids) - {variant.id})
+    if others:
+        siblings = list(
+            db.execute(
+                select(Variant).where(Variant.id.in_(others), Variant.product_id == product.id)
+            ).scalars()
+        )
+        foreign = sorted(set(others) - {sibling.id for sibling in siblings})
+        if foreign:
+            raise BusinessRuleError(
+                "Those variants do not belong to this product.",
+                code="variant_not_on_product",
+                details={"variant_ids": foreign},
+            )
+        shared = {field: value for field, value in proposed.items() if field != "cost_price"}
+        for sibling in siblings:
+            _apply_price(db, sibling, product, shared, actor_user_id)
+
     db.commit()
     db.refresh(variant)
     variant.option_value_ids = get_variant_option_value_ids(db, variant_id)

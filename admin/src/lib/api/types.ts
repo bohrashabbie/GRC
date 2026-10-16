@@ -605,6 +605,9 @@ export type VariantPriceUpdate = {
   price?: string | null
   compare_at_price?: string | null
   cost_price?: string | null
+  /** Other variants of the product that take the same price and offer
+   *  (not the cost price) in the same save. */
+  apply_to_variant_ids?: number[]
 }
 
 export type VariantCombinationIn = {
