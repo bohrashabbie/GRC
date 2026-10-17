@@ -53,6 +53,7 @@ export function MegaMenu({ categories }: { categories: CategoryNode[] }) {
           return (
             <li
               key={category.slug}
+              className="relative"
               onMouseEnter={() => open(category.slug)}
               onMouseLeave={scheduleClose}
             >
@@ -72,57 +73,73 @@ export function MegaMenu({ categories }: { categories: CategoryNode[] }) {
 
               {hasChildren && isOpen && (
                 <div
-                  className="absolute inset-x-0 top-full z-40 border-t border-hairline bg-surface shadow-overlay"
+                  // Anchored under its own tab rather than spanning the bar:
+                  // the links read top to bottom, and the artwork sits right
+                  // beside them instead of at the far end of the screen.
+                  className="absolute start-0 top-full z-40 border-t border-hairline bg-surface shadow-overlay"
                   onMouseEnter={() => open(category.slug)}
                   onMouseLeave={scheduleClose}
                 >
-                  {/* A fixed promo column rather than a 1/4 fraction: at
-                      1440 a quarter-width image made the panel ~390px tall and
-                      stretched the link rows apart to match it. */}
-                  <div className="container-site grid grid-cols-[1fr_240px] gap-10 py-8">
-                    {/* `content-start` packs the rows to the top instead of
-                        distributing them over the promo column's height. */}
-                    <div className="grid grid-cols-3 content-start gap-x-8">
-                      {category.children.map((child) => (
-                        <Link
-                          key={child.slug}
-                          href={`/c/${child.slug}`}
-                          className="group flex items-baseline gap-2 py-2 text-sm text-ink-600 transition-colors hover:text-ink-900"
-                        >
-                          <span className="border-b border-transparent transition-colors group-hover:border-gold-500">
-                            {child.name}
-                          </span>
-                          <span className="tabular text-2xs text-ink-400">
-                            {child.product_count}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-
-                    <Link
-                      href={`/c/${category.slug}`}
-                      className="group flex flex-col gap-3 border-s border-hairline ps-8"
-                    >
-                      {category.image && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          {...imageProps(category.image, "240px")}
-                          alt=""
-                          // A 4:5 crop here made the panel ~460px tall for six
-                          // links. The panel height should follow the link
-                          // list, not the artwork.
-                          className="aspect-[4/3] w-full bg-sand-100 object-cover"
-                        />
+                  <div className="flex gap-8 p-7">
+                    <div
+                      className={cn(
+                        "flex flex-col",
+                        category.children.length > 8 ? "w-[28rem]" : "w-56",
                       )}
-                      <span className="inline-flex items-center gap-1.5 text-sm text-ink-900">
+                    >
+                      <p className="eyebrow pb-3">{category.name}</p>
+                      {/* A long list flows into a second column rather than
+                          growing taller than the artwork beside it. */}
+                      <ul
+                        className={cn(
+                          "flex-1",
+                          category.children.length > 8 && "columns-2 gap-x-8",
+                        )}
+                      >
+                        {category.children.map((child) => (
+                          <li key={child.slug} className="break-inside-avoid">
+                            <Link
+                              href={`/c/${child.slug}`}
+                              className="group flex items-baseline justify-between gap-3 border-b border-hairline py-2.5 text-sm text-ink-600 transition-colors hover:text-ink-900"
+                            >
+                              <span className="transition-[translate] group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+                                {child.name}
+                              </span>
+                              <span className="tabular text-2xs text-ink-400">
+                                {child.product_count}
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                      <Link
+                        href={`/c/${category.slug}`}
+                        className="group mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-ink-900"
+                      >
                         {t("viewAll")}
                         {/* scaleX comes from `flip-rtl` (the `transform`
                             property) and the nudge from `translate` — different
                             properties in Tailwind v4, so they compose instead
                             of overwriting each other. */}
                         <ChevronForwardIcon className="size-4 flip-rtl text-gold-500 transition-[translate] group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5" />
-                      </span>
-                    </Link>
+                      </Link>
+                    </div>
+
+                    {category.image && (
+                      <Link
+                        href={`/c/${category.slug}`}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        className="group block w-60 shrink-0 overflow-hidden bg-sand-100"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          {...imageProps(category.image, "240px")}
+                          alt=""
+                          className="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}
