@@ -39,9 +39,8 @@ def _checkout(lines: list[tuple[int, int]]):
             extra_directions="Second floor, flat 5",
         ),
         shipping_method_id="standard",
-        # Cash on delivery is the only method checkout_service accepts while
-        # there is no gateway; see ENABLED_PAYMENT_METHODS.
         payment_method_code="cod",
+        coupon_code=None,
     )
 
 
@@ -147,20 +146,23 @@ def test_cancelling_twice_restores_stock_only_once(factory, session):
     # And the underlying restock is itself idempotent, independently of the
     # transition table — this is what protects the refund path.
     reloaded = order_service.get_order(session, order.id)
-    assert order_service._restore_stock_once(session, reloaded) is False
+    assert order_service.restore_stock_once(session, reloaded) is False
     session.commit()
     assert _on_hand(session, variant_id) == 10
 
 
-def test_only_cash_on_delivery_can_complete_a_checkout(factory, session):
-    """No gateway exists, so a card method must be refused outright rather than
-    recording an order against a payment nobody ever attempted."""
+def test_without_gateway_keys_only_cash_on_delivery_can_complete_a_checkout(factory, session, monkeypatch):
+    """No keys means no gateway, so online must be refused outright rather than
+    recording an order against a payment nobody can ever attempt."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "hesabe_secret_key", "")
     from app.middleware.error import BusinessRuleError
 
     product = factory.product(stock=5)
     variant_id = product.variants[0].id
 
-    for method in ("mada", "card", "apple_pay", "tamara"):
+    for method in ("online", "card"):
         payload = _checkout([(variant_id, 1)])
         payload.payment_method_code = method
         with pytest.raises(BusinessRuleError) as exc:

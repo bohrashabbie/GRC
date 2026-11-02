@@ -8,12 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
+from app import hesabe
 from app.routers.api import api_router
 from app.routers.shop import router as shop_router
 from app.config import settings
 from app.database import SessionLocal, engine
 from app.middleware import storefront_cache
 from app.middleware.error import register_exception_handlers
+from app.services import payment_service
 
 logging.basicConfig(level=logging.INFO)
 
@@ -48,7 +50,11 @@ def _warm_connection_pool() -> None:
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     _warm_connection_pool()
+    hesabe.log_status()
+    stop_sweeper = payment_service.start_sweeper() if hesabe.is_enabled() else None
     yield
+    if stop_sweeper is not None:
+        stop_sweeper.set()
 
 
 app = FastAPI(

@@ -4,6 +4,8 @@ from decimal import Decimal
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, Query, Request, status
+from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -38,6 +40,7 @@ from app.services import (
     contact_service,
     coupon_service,
     fx_service,
+    payment_service,
     shop_service,
 )
 
@@ -249,7 +252,11 @@ def checkout(
         customer_id=customer.id,
         customer_email=customer.email,
     )
+    payment_url = None
+    if payload.payment_method_code == payment_service.ONLINE_METHOD:
+        payment_url = payment_service.begin(db, order, customer_name=payload.shipping_address.full_name)
     return {
+        "payment_url": payment_url,
         "order_number": order.order_number,
         "status": order.status,
         "payment_status": order.payment_status,
@@ -262,6 +269,26 @@ def checkout(
             "grand_total": order.grand_total,
         },
     }
+
+
+@router.get("/payment-methods")
+def payment_methods(accept_language: str | None = Header(None)):
+    return shop_service.payment_methods(shop_service.locale_from_header(accept_language))
+
+
+@router.api_route("/payments/hesabe/return", methods=["GET", "POST"], include_in_schema=False)
+def hesabe_return(order: str, data: str | None = None, db: Session = Depends(get_db)):
+    """Where Hesabe sends the customer back to, paid or not. Trusts nothing in
+    the URL: payment_service asks Hesabe what actually happened."""
+    return RedirectResponse(payment_service.handle_return(db, order, data), status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/payments/hesabe/webhook", include_in_schema=False)
+async def hesabe_webhook(request: Request, db: Session = Depends(get_db)):
+    """Always 200: the body is only a prompt to go and ask Hesabe, so there is
+    nothing a retry could add."""
+    await run_in_threadpool(payment_service.handle_webhook, db, await request.body())
+    return {"received": True}
 
 
 @router.get("/stores")

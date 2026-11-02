@@ -41,12 +41,15 @@ export function CheckoutFlow({
   cities,
   shippingMethods,
   paymentMethods,
+  paymentFailed = false,
 }: {
   email: string;
   regions: Region[];
   cities: City[];
   shippingMethods: ShippingMethod[];
   paymentMethods: PaymentMethod[];
+  /** Back from Hesabe without paying. The cart was kept, so they can retry. */
+  paymentFailed?: boolean;
 }) {
   const t = useTranslations("checkout");
   const tCart = useTranslations("cart");
@@ -108,9 +111,10 @@ export function CheckoutFlow({
   }
 
   /**
-   * Creates the real order. There is still no payment gateway, so nothing is
-   * charged — but the order and its stock decrement are real, and they happen
-   * together in one server transaction.
+   * Creates the real order, and its stock decrement, in one server transaction.
+   * For online payment the shopper then leaves for Hesabe's hosted page, so the
+   * cart is kept until the confirmation page: a declined card must come back to
+   * a full cart.
    *
    * Stock is re-checked server-side at this point on purpose: the quantity the
    * product page showed could be many minutes old by now, and the quantity
@@ -152,6 +156,12 @@ export function CheckoutFlow({
       locale,
     );
 
+    if (result.ok && result.order.payment_url) {
+      // Stays in the processing state: the page is about to go away.
+      window.location.assign(result.order.payment_url);
+      return;
+    }
+
     setIsPaying(false);
 
     if (!result.ok) {
@@ -177,6 +187,14 @@ export function CheckoutFlow({
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_22rem] lg:gap-16">
       <div className="space-y-4">
+        {/* Above the steps: a shopper back from Hesabe starts at the address
+            step, so anywhere inside the payment step they would never see it. */}
+        {paymentFailed && (
+          <div role="alert" className="border-s-2 border-brick-600 bg-sand-100 px-4 py-3">
+            <p className="text-sm text-brick-600">{t("paymentFailed")}</p>
+          </div>
+        )}
+
         {STEPS.map((current, index) => {
           const isActive = step === current;
           const isDone = index < stepIndex;
@@ -352,7 +370,11 @@ export function CheckoutFlow({
                       )}
 
                       <Button size="lg" onClick={placeOrder} disabled={isPaying} className="w-full">
-                        {isPaying ? t("processing") : t("placeOrder")}
+                        {isPaying
+                          ? t("processing")
+                          : paymentCode === "online"
+                            ? t("payNow")
+                            : t("placeOrder")}
                       </Button>
 
                       {isPaying && (

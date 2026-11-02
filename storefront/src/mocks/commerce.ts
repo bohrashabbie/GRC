@@ -438,11 +438,8 @@ export function fixtureShippingMethods(locale: LocaleCode): ShippingMethod[] {
 
 export function fixturePaymentMethods(locale: LocaleCode): PaymentMethod[] {
   const isAr = locale === "ar";
-  // Cash on delivery only. There is no payment gateway wired up, so offering
-  // mada, card, Apple Pay or Tamara would take a card number the backend has
-  // nowhere to send — a checkout that cannot succeed is worse than one option
-  // that can. The others come back when a gateway does; the backend keeps its
-  // own allowlist so the two cannot drift.
+  // Only what is left when the API cannot be asked. Cash on delivery needs no
+  // gateway, so it is the one method that is always safe to offer.
   return [
     {
       code: "cod",
@@ -452,44 +449,6 @@ export function fixturePaymentMethods(locale: LocaleCode): PaymentMethod[] {
         : "Pay in cash when your order arrives",
       surcharge: null,
       is_available: true,
-    },
-    {
-      code: "mada",
-      name: isAr ? "\u0645\u062f\u0649" : "Mada",
-      description: isAr
-        ? "\u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u062d\u0627\u0644\u064a\u0627\u064b"
-        : "Currently unavailable",
-      surcharge: null,
-      is_available: false,
-    },
-    {
-      code: "card",
-      name: isAr
-        ? "\u0628\u0637\u0627\u0642\u0629 \u0627\u0626\u062a\u0645\u0627\u0646\u064a\u0629"
-        : "Credit or debit card",
-      description: isAr
-        ? "\u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u062d\u0627\u0644\u064a\u0627\u064b"
-        : "Currently unavailable",
-      surcharge: null,
-      is_available: false,
-    },
-    {
-      code: "apple_pay",
-      name: "Apple Pay",
-      description: isAr
-        ? "\u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u062d\u0627\u0644\u064a\u0627\u064b"
-        : "Currently unavailable",
-      surcharge: null,
-      is_available: false,
-    },
-    {
-      code: "tamara",
-      name: "Tamara",
-      description: isAr
-        ? "\u063a\u064a\u0631 \u0645\u062a\u0627\u062d \u062d\u0627\u0644\u064a\u0627\u064b"
-        : "Currently unavailable",
-      surcharge: null,
-      is_available: false,
     },
   ];
 }
@@ -624,7 +583,7 @@ export function fixtureOrder(orderNumber: string, locale: LocaleCode): OrderDeta
     },
     shipping_address: fixtureAddresses(locale)[0],
     shipping_method_name: isAr ? "الشحن القياسي" : "Standard delivery",
-    payment_method_name: "mada",
+    payment_method_name: "cod",
     timeline: STATUS_FLOW.slice(0, reachedIndex + 1).map((status, index) => ({
       status,
       occurred_at: new Date(placedAt + index * 86_400_000).toISOString(),

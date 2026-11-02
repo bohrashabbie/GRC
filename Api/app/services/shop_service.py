@@ -36,9 +36,33 @@ from app.models.catalog import (
     ProductTranslation,
     Region,
     StoreLocation,
+    Variant,
     VariantOptionValue,
 )
-from app.services import cms_service, inventory_service
+from app.services import checkout_service, cms_service, inventory_service
+
+
+_PAYMENT_METHOD_TEXT = {
+    "online": {
+        "ar": ("الدفع أونلاين", "كي نت، فيزا، ماستركارد، Apple Pay"),
+        "en": ("Pay online", "KNET, Visa, Mastercard, Apple Pay"),
+    },
+    "cod": {
+        "ar": ("الدفع عند الاستلام", "ادفع نقدًا عند وصول طلبك"),
+        "en": ("Cash on delivery", "Pay in cash when your order arrives"),
+    },
+}
+
+
+def payment_methods(locale: str) -> list[dict]:
+    """What the checkout offers: only methods that can actually complete."""
+    methods = []
+    for code in checkout_service.enabled_payment_methods():
+        name, description = _PAYMENT_METHOD_TEXT[code][locale]
+        methods.append(
+            {"code": code, "name": name, "description": description, "surcharge": None, "is_available": True}
+        )
+    return methods
 
 
 def locale_from_header(value: str | None) -> str:

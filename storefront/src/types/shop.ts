@@ -418,7 +418,7 @@ export interface ShippingMethod {
   carrier_name: string | null;
 }
 
-export type PaymentMethodCode = "mada" | "card" | "apple_pay" | "tamara" | "cod";
+export type PaymentMethodCode = "online" | "cod";
 
 export interface PaymentMethod {
   code: PaymentMethodCode;
@@ -476,6 +476,8 @@ export interface PlacedOrder {
   status: string;
   payment_status: string;
   email: string | null;
+  /** Hesabe's hosted page to send the shopper to. Null for cash on delivery. */
+  payment_url: string | null;
   totals: {
     subtotal: Money;
     discount_total: Money;

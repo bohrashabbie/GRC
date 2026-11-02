@@ -488,8 +488,13 @@ export async function getShippingMethods(locale: LocaleCode): Promise<ShippingMe
 }
 
 export async function getPaymentMethods(locale: LocaleCode): Promise<PaymentMethod[]> {
-  if (USE_FIXTURES) return fixturePaymentMethods(locale);
-  return shopFetch<PaymentMethod[]>("/payment-methods", { locale, revalidate: 600 });
+  // Always the API's list: it knows whether the gateway is configured, so a
+  // method can never be offered here that the checkout would then refuse.
+  try {
+    return await shopFetch<PaymentMethod[]>("/payment-methods", { locale, revalidate: 600 });
+  } catch {
+    return fixturePaymentMethods(locale);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

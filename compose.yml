@@ -37,6 +37,16 @@ services:
       # After an admin write or an order, clear the storefront's cached catalogue.
       STOREFRONT_REVALIDATE_URL: http://storefront:3100/api/revalidate
       STOREFRONT_REVALIDATE_SECRET: ${REVALIDATE_SECRET:?Set REVALIDATE_SECRET in .env.vps}
+      # Where customers land after paying, and the links in password emails.
+      STOREFRONT_BASE_URL: https://${STORE_DOMAIN}
+      # Hesabe reaches the API through the same domain: Caddy sends /shop/v1 to it.
+      SHOP_API_PUBLIC_URL: https://${STORE_DOMAIN}
+      # All optional: leave any empty and only cash on delivery is offered.
+      HESABE_BASE_URL: ${HESABE_BASE_URL:-}
+      HESABE_MERCHANT_CODE: ${HESABE_MERCHANT_CODE:-}
+      HESABE_ACCESS_CODE: ${HESABE_ACCESS_CODE:-}
+      HESABE_SECRET_KEY: ${HESABE_SECRET_KEY:-}
+      HESABE_IV_KEY: ${HESABE_IV_KEY:-}
     volumes:
       - uploads:/app/uploads
     depends_on:

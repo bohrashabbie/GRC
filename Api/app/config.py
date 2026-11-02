@@ -27,6 +27,18 @@ class Settings(BaseSettings):
     # not the API's — the link is opened by a person, not by this service.
     storefront_base_url: str = "http://localhost:3100"
 
+    # Hesabe. Leave any of these empty and online payment simply is not offered.
+    # hesabe_base_url is https://api.hesabe.com, or https://sandbox.hesabe.com
+    # with Hesabe's sandbox keys: never mix the two.
+    hesabe_base_url: str = ""
+    hesabe_merchant_code: str = ""
+    hesabe_access_code: str = ""
+    hesabe_secret_key: str = ""
+    hesabe_iv_key: str = ""
+    # This API as the public internet reaches it. Hesabe sends customers and
+    # webhooks here, so unlike storefront_base_url it must be the API's origin.
+    shop_api_public_url: str = "http://localhost:8000"
+
     # Mail. With no host configured the mailer logs the message instead of
     # sending it, so the flow is exercisable in development without a relay and
     # nothing silently pretends to have delivered an email.

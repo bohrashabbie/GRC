@@ -860,7 +860,8 @@
       "done": "Refund issued.",
       "amountRequired": "Enter an amount greater than zero.",
       "amountTooHigh": "That's more than the {max} still refundable on this payment.",
-      "noCapturedPayment": "This order has no captured payment to refund."
+      "noCapturedPayment": "This order has no captured payment to refund.",
+      "hesabeHint": "This only records the refund here. Send the money back to the customer in the Hesabe merchant panel first (merchant.hesabe.com)."
     }
   },
   "subscribers": {

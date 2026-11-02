@@ -106,6 +106,12 @@ export function OrderRefundDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
+          {payment.provider === "hesabe" && (
+            <Alert>
+              <AlertDescription>{t("refund.hesabeHint")}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="refund-amount">{t("refund.amount")}</Label>
             <Input

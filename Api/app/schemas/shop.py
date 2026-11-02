@@ -46,9 +46,8 @@ class CheckoutIn(BaseModel):
     email: EmailStr
     shipping_address: CheckoutAddressIn
     shipping_method_id: str
-    # Widened again when a gateway lands; checkout_service holds the
-    # authoritative allowlist of what can actually complete today.
-    payment_method_code: Literal["mada", "card", "apple_pay", "tamara", "cod"] = "cod"
+    # checkout_service holds the authoritative list of what can complete today.
+    payment_method_code: Literal["online", "cod"] = "cod"
     # The code only — never the discount it is worth. That is recomputed
     # server-side against the same subtotal the order is built from.
     coupon_code: str | None = Field(default=None, max_length=64)
@@ -68,6 +67,8 @@ class CheckoutOut(BaseModel):
     payment_status: str
     email: str | None
     totals: CheckoutTotalsOut
+    # Where to send the customer to pay. Null for cash on delivery.
+    payment_url: str | None = None
 
 
 class NewsletterSubscribeIn(BaseModel):

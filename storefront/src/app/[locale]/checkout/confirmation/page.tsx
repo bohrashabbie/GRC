@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
+import { ClearCart } from "@/components/checkout/clear-cart";
 import { Link } from "@/i18n/navigation";
 import { ShieldIcon } from "@/components/ui/icons";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ order?: string; email?: string }>;
+  /** `payment` is set by the return from Hesabe. It only picks the wording:
+   *  the order's real state is whatever the API settled it to. */
+  searchParams: Promise<{ order?: string; email?: string; payment?: string }>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -23,17 +26,28 @@ export default async function ConfirmationPage({ params, searchParams }: PagePro
 
   const orderNumber = query.order ?? "—";
   const email = query.email ?? "";
+  const isPending = query.payment === "pending";
+  const isReview = query.payment === "review";
 
   return (
     <div className="container-site flex min-h-[60vh] items-center justify-center py-16">
+      {query.payment && <ClearCart />}
       <div className="max-w-lg text-center">
         <span className="inline-flex size-16 items-center justify-center rounded-full bg-palm-600/10">
           <ShieldIcon className="size-8 text-palm-600" />
         </span>
 
-        <h1 className="mt-6 font-display text-h1 text-ink-900">{t("title")}</h1>
+        <h1 className="mt-6 font-display text-h1 text-ink-900">
+          {isPending ? t("pendingTitle") : isReview ? t("reviewTitle") : t("title")}
+        </h1>
         <p className="mt-4 text-sm leading-relaxed text-ink-500">
-          {t("body", { email, orderNumber })}
+          {isPending
+            ? t("pendingBody")
+            : isReview
+              ? t("reviewBody")
+              : email
+                ? t("body", { email, orderNumber })
+                : t("bodyPaid", { orderNumber })}
         </p>
 
         <div className="mt-8 border-y border-hairline py-5">

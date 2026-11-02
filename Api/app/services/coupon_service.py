@@ -247,6 +247,20 @@ def redeem(db: Session, code: str, subtotal: Decimal, *, order_id: int, customer
     return amount
 
 
+def release(db: Session, order_id: int) -> None:
+    """Give back the use an order took, in the caller's transaction.
+
+    For an order whose online payment never happened: a declined card must not
+    burn a single-use code. The redemption row goes rather than being marked,
+    because times_redeemed is a counter kept in step with those rows.
+    """
+    rows = db.execute(select(CouponRedemption).where(CouponRedemption.order_id == order_id)).scalars().all()
+    for row in rows:
+        coupon = db.execute(select(Coupon).where(Coupon.id == row.coupon_id).with_for_update()).scalar_one()
+        coupon.times_redeemed = max(coupon.times_redeemed - 1, 0)
+        db.delete(row)
+
+
 def redemption_counts(db: Session, coupon_ids: list[int]) -> dict[int, int]:
     """Actual ledger counts, for the admin list to show alongside the cached
     times_redeemed."""

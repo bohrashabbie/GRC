@@ -206,7 +206,8 @@
     "block": "Block",
     "building": "Building / House",
     "extraDirections": "Floor, flat or directions",
-    "extraDirectionsHint": "Anything that helps the driver find you"
+    "extraDirectionsHint": "Anything that helps the driver find you",
+    "payNow": "Pay now"
   },
   "confirmation": {
     "title": "Thank you — your order is confirmed",
@@ -214,7 +215,12 @@
     "orderNumber": "Order number",
     "trackOrder": "Track your order",
     "continueShopping": "Continue shopping",
-    "deliveryTo": "Delivering to"
+    "deliveryTo": "Delivering to",
+    "bodyPaid": "Your payment was successful. Your order number is {orderNumber}.",
+    "pendingTitle": "We're confirming your payment",
+    "pendingBody": "This usually takes a moment. Your order will update in your account as soon as your bank confirms it. Please don't pay again.",
+    "reviewTitle": "We received your payment",
+    "reviewBody": "Your payment arrived after this order had expired. Our team will contact you shortly to complete it or refund you."
   },
   "account": {
     "title": "My account",

@@ -20,7 +20,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app import kuwait
+from app import hesabe, kuwait
 from app.middleware.error import BusinessRuleError, NotFoundError
 from app.models.catalog import (
     Option,
@@ -72,11 +72,12 @@ def _shipping_rate(db: Session, method_id: str) -> Decimal:
 
 MAX_LINES_PER_ORDER = 50
 
-# Cash on delivery is the only method that can actually complete. There is no
-# gateway, so accepting a card method would record an order as placed against a
-# payment that was never attempted. Add to this set when a gateway lands — the
-# storefront reads the same shortlist, so the two cannot drift.
-ENABLED_PAYMENT_METHODS = {"cod"}
+
+def enabled_payment_methods() -> list[str]:
+    """Methods that can actually complete. Online payment needs Hesabe keys, so
+    without them it is not offered — the storefront reads this same list, so
+    the two cannot drift."""
+    return ["online", "cod"] if hesabe.is_enabled() else ["cod"]
 
 
 def _money(value: Decimal) -> Decimal:
@@ -165,12 +166,13 @@ def create_order(
     """
     if not data.lines:
         raise BusinessRuleError("Cannot place an order with an empty cart.", code="empty_cart")
-    if data.payment_method_code not in ENABLED_PAYMENT_METHODS:
+    enabled = enabled_payment_methods()
+    if data.payment_method_code not in enabled:
         raise BusinessRuleError(
             f"'{data.payment_method_code}' is not available yet. "
-            f"Please choose {', '.join(sorted(ENABLED_PAYMENT_METHODS))}.",
+            f"Please choose {', '.join(enabled)}.",
             code="payment_method_unavailable",
-            details={"enabled": sorted(ENABLED_PAYMENT_METHODS)},
+            details={"enabled": enabled},
         )
     if len(data.lines) > MAX_LINES_PER_ORDER:
         raise BusinessRuleError(
@@ -267,6 +269,9 @@ def create_order(
     # exhausted between the cart quoting it and this moment fails now.
     discount_total = Decimal("0.00")
     if data.coupon_code:
+        # The redemption's only tie to the order is a bare foreign key, so the
+        # order row must be written first or the insert order is left to chance.
+        db.flush()
         discount_total = coupon_service.redeem(
             db,
             data.coupon_code,
@@ -342,15 +347,22 @@ def create_order(
     # Cash on delivery: nothing is charged online, so the payment row records
     # an amount that is *pending collection on delivery* rather than a capture
     # that was attempted and succeeded. The admin marks it captured when the
-    # driver hands the cash over.
+    # driver hands the cash over. Online starts as `initiated` and only
+    # payment_service moves it on, once Hesabe itself confirms the money.
+    is_online = data.payment_method_code == "online"
+    if is_online and not hesabe.MIN_AMOUNT <= grand_total <= hesabe.MAX_AMOUNT:
+        raise BusinessRuleError(
+            f"Online payment takes {hesabe.MIN_AMOUNT} to {hesabe.MAX_AMOUNT} KWD; this order is {grand_total}.",
+            code="amount_out_of_range",
+        )
     db.add(
         Payment(
             order_id=order_id,
-            provider="cash_on_delivery",
+            provider="hesabe" if is_online else "cash_on_delivery",
             method=data.payment_method_code,
             amount=grand_total,
             currency="KWD",
-            status="pending",
+            status="initiated" if is_online else "pending",
             idempotency_key=f"order-{order_id}-initial",
         )
     )

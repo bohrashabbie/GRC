@@ -86,7 +86,7 @@ def get_order(db: Session, order_id: int) -> Order:
     return order
 
 
-def _restore_stock_once(db: Session, order: Order) -> bool:
+def restore_stock_once(db: Session, order: Order) -> bool:
     """Put an order's stock back exactly once, ever.
 
     Two independent guards, because there are two ways in (cancellation and
@@ -141,7 +141,7 @@ def update_order_status(db: Session, order_id: int, field: str, to_value: str, r
         # cancelled with its stock still held, or restocked without being
         # cancelled. Cancelling twice is already blocked by the transition
         # table above; this is the guard that survives the refund path too.
-        restocked = _restore_stock_once(db, order)
+        restocked = restore_stock_once(db, order)
 
     db.add(
         OrderStatusHistory(
@@ -215,7 +215,7 @@ def refund_payment(db: Session, order_id: int, payment_id: int, amount: Decimal,
     # invent inventory that does not physically exist. The guard makes this
     # safe alongside cancellation: refunding an already-cancelled order finds
     # stock_restored_at set and adds nothing.
-    restocked = _restore_stock_once(db, order) if is_full_refund else False
+    restocked = restore_stock_once(db, order) if is_full_refund else False
 
     audit_service.record(
         db,
