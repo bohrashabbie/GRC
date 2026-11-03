@@ -72,7 +72,8 @@
     "paymentMethods": "وسائل الدفع المقبولة",
     "linksTitle": "معلومات",
     "crNumber": "السجل التجاري",
-    "vatNumber": "الرقم الضريبي"
+    "vatNumber": "الرقم الضريبي",
+    "brandBlurb": "ثياب وأزياء رجالية تقليدية، مصممة للكويت والخليج."
   },
   "product": {
     "discount": "−{percent}%",
@@ -207,7 +208,14 @@
     "building": "منزل / مبنى",
     "extraDirections": "الدور أو الشقة أو وصف الموقع",
     "extraDirectionsHint": "أي تفاصيل تساعد المندوب على الوصول",
-    "payNow": "ادفع الآن"
+    "payNow": "ادفع الآن",
+    "country": "الدولة",
+    "city": "المدينة",
+    "district": "الحي / المنطقة",
+    "blockOptional": "القطعة",
+    "phoneHintIntl": "أدخل رمز الدولة، مثل ‎+966 50 123 4567",
+    "noPaymentMethod": "الدفع الإلكتروني غير متاح حاليًا، لذا لا يمكن إتمام الطلب. يرجى المحاولة بعد قليل.",
+    "guestEmailHint": "سنرسل تأكيد الطلب إلى هذا البريد."
   },
   "confirmation": {
     "title": "شكرًا لك — تم تأكيد طلبك",
@@ -265,14 +273,15 @@
     "notSignedIn": "سجّل الدخول لعرض هذه الصفحة.",
     "loginRequired": "سجل الدخول للمتابعة",
     "loginForWishlist": "احفظ القطع في المفضلة واعثر عليها من أي جهاز.",
-    "loginForCheckout": "سجل الدخول لإتمام طلبك.",
-    "notNow": "ليس الآن",
+    "loginForCheckout": "سجّل الدخول لتتبع طلبك وإتمام الشراء أسرع، أو تابع كضيف.",
     "addToWishlist": "أضف إلى المفضلة",
     "removeFromWishlist": "إزالة من المفضلة",
     "passwordTooShort": "استخدم 8 أحرف على الأقل",
     "emailTaken": "يوجد حساب بهذا البريد بالفعل",
     "badCredentials": "البريد أو كلمة المرور غير صحيحة",
-    "submitting": "انتظر قليلاً…"
+    "submitting": "انتظر قليلاً…",
+    "continueAsGuest": "المتابعة كضيف",
+    "or": "أو"
   },
   "orders": {
     "orderNumber": "الطلب {number}",

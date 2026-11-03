@@ -493,7 +493,7 @@ export async function getPaymentMethods(locale: LocaleCode): Promise<PaymentMeth
   try {
     return await shopFetch<PaymentMethod[]>("/payment-methods", { locale, revalidate: 600 });
   } catch {
-    return fixturePaymentMethods(locale);
+    return fixturePaymentMethods();
   }
 }
 

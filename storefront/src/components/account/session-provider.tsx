@@ -10,7 +10,6 @@ import {
 } from "react";
 import { useTranslations } from "next-intl";
 
-import { Button } from "@/components/ui/button";
 import { Link, usePathname } from "@/i18n/navigation";
 import type { Customer } from "@/types/shop";
 
@@ -98,6 +97,7 @@ function LoginPrompt({
   onClose: () => void;
 }) {
   const t = useTranslations("account");
+  const tCommon = useTranslations("common");
 
   // Escape closes it, as any modal should.
   useEffect(() => {
@@ -126,7 +126,7 @@ function LoginPrompt({
           with a single exit is a trap on a touch screen. */}
       <button
         type="button"
-        aria-label={t("notNow")}
+        aria-label={tCommon("close")}
         onClick={onClose}
         className="absolute inset-0 bg-ink-900/45 backdrop-blur-[2px]"
       />
@@ -148,9 +148,24 @@ function LoginPrompt({
           >
             {t("register")}
           </Link>
-          <Button variant="ghost" onClick={onClose} className="h-10 text-xs text-ink-500">
-            {t("notNow")}
-          </Button>
+          {/* Checkout does not need an account: an order belongs to the
+              email given at checkout. A wishlist does, so it gets no guest
+              route — Escape or the backdrop still close the prompt. */}
+          {reason === "checkout" && (
+            <>
+              <div className="my-1.5 flex items-center gap-3 text-2xs text-ink-400">
+                <span className="h-px flex-1 bg-hairline" />
+                {t("or")}
+                <span className="h-px flex-1 bg-hairline" />
+              </div>
+              <Link
+                href="/checkout"
+                className="inline-flex h-11 items-center justify-center rounded-xs bg-sand-100 px-6 text-sm text-ink-900 transition-colors hover:bg-sand-200"
+              >
+                {t("continueAsGuest")}
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

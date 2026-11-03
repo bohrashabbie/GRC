@@ -122,15 +122,15 @@ def test_decrypting_junk_is_an_error_not_a_result(junk):
 
 
 def test_online_is_offered_only_with_keys(monkeypatch):
-    assert checkout_service.enabled_payment_methods() == ["online", "cod"]
+    assert checkout_service.enabled_payment_methods() == ["online"]
     monkeypatch.setattr(settings, "hesabe_secret_key", "")
-    assert checkout_service.enabled_payment_methods() == ["cod"]
+    assert checkout_service.enabled_payment_methods() == []
 
 
 @pytest.mark.parametrize("field,value", [("hesabe_secret_key", KEY[:-1]), ("hesabe_iv_key", IV + "x")])
 def test_a_mistyped_key_turns_online_off_rather_than_crashing_checkout(monkeypatch, field, value):
     monkeypatch.setattr(settings, field, value)
-    assert checkout_service.enabled_payment_methods() == ["cod"]
+    assert checkout_service.enabled_payment_methods() == []
 
 
 def test_a_new_online_order_waits_unpaid_with_its_stock_held(factory, session, gateway):
@@ -457,6 +457,77 @@ def test_enquiry_reads_both_shapes_and_ignores_other_orders(monkeypatch):
         monkeypatch.setattr(hesabe.httpx, "get", lambda *_a, **_k: response)
         found = hesabe.find_transactions("GRC-1")
         assert sorted(a["token"] for a in found) == ["1", "2"]
+
+
+def test_a_guest_can_place_an_order(factory, session, gateway):
+    """No account: the order belongs to the email given at checkout."""
+    order = _order(session, factory.product(stock=5).variants[0].id)
+    assert order.customer_id is None
+    assert order.email == "shopper@example.com"
+
+
+def _gulf_payload(variant_id: int, country: str, shipping: str = "standard"):
+    payload = _payload(variant_id)
+    payload.shipping_method_id = shipping
+    payload.shipping_address = SimpleNamespace(
+        country_code=country,
+        full_name="Fahad Al Otaibi",
+        phone="+966501234567",
+        governorate_id=None,
+        area_id=None,
+        city="Riyadh",
+        district="Al Olaya",
+        block=None,
+        street="King Fahd Road",
+        building="14",
+        extra_directions=None,
+    )
+    return payload
+
+
+def test_an_order_can_be_delivered_elsewhere_in_the_gulf(factory, session, gateway):
+    from app.models.orders import OrderAddress
+
+    order = checkout_service.create_order(session, _gulf_payload(factory.product(stock=5).variants[0].id, "SA"), locale="en")
+
+    address = session.execute(select(OrderAddress).where(OrderAddress.order_id == order.id)).scalar_one()
+    assert (address.country_code, address.city, address.district, address.region_name) == (
+        "SA", "Riyadh", "Al Olaya", "Saudi Arabia"
+    )
+
+
+def test_store_pickup_is_refused_outside_kuwait(factory, session, gateway):
+    variant_id = factory.product(stock=5).variants[0].id
+
+    with pytest.raises(BusinessRuleError) as exc:
+        checkout_service.create_order(session, _gulf_payload(variant_id, "AE", shipping="pickup"))
+
+    assert exc.value.code == "pickup_kuwait_only"
+    session.rollback()
+    assert _on_hand(session, variant_id) == 5
+
+
+def test_the_checkout_schema_refuses_cash_and_incomplete_addresses():
+    from pydantic import ValidationError
+
+    from app.schemas.shop import CheckoutIn
+
+    base = {
+        "lines": [{"variant_id": 1, "quantity": 1}],
+        "email": "a@b.co",
+        "shipping_method_id": "standard",
+        "shipping_address": {
+            "full_name": "Abdullah", "phone": "+96551234567", "governorate_id": "hawalli",
+            "area_id": "salmiya", "block": "10", "street": "1", "building": "2",
+        },
+    }
+    assert CheckoutIn(**base).payment_method_code == "online"
+    with pytest.raises(ValidationError):
+        CheckoutIn(**{**base, "payment_method_code": "cod"})
+    with pytest.raises(ValidationError):  # Kuwait without a block
+        CheckoutIn(**{**base, "shipping_address": {**base["shipping_address"], "block": ""}})
+    with pytest.raises(ValidationError):  # abroad without a city
+        CheckoutIn(**{**base, "shipping_address": {**base["shipping_address"], "country_code": "QA"}})
 
 
 def test_mobile_is_sent_only_as_eight_kuwaiti_digits():

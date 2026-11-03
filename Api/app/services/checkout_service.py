@@ -74,10 +74,23 @@ MAX_LINES_PER_ORDER = 50
 
 
 def enabled_payment_methods() -> list[str]:
-    """Methods that can actually complete. Online payment needs Hesabe keys, so
-    without them it is not offered — the storefront reads this same list, so
-    the two cannot drift."""
-    return ["online", "cod"] if hesabe.is_enabled() else ["cod"]
+    """Methods that can actually complete. Payment is online only; without
+    Hesabe keys nothing can be paid, so nothing is offered rather than a
+    checkout that cannot finish. The storefront reads this same list, so the
+    two cannot drift."""
+    return ["online"] if hesabe.is_enabled() else []
+
+
+#: Countries we deliver to, with their names for the order snapshot. Store
+#: pickup is in Kuwait, so it is never offered for an address elsewhere.
+DELIVERY_COUNTRIES = {
+    "KW": ("Kuwait", "الكويت"),
+    "SA": ("Saudi Arabia", "السعودية"),
+    "AE": ("United Arab Emirates", "الإمارات"),
+    "QA": ("Qatar", "قطر"),
+    "BH": ("Bahrain", "البحرين"),
+    "OM": ("Oman", "عُمان"),
+}
 
 
 def _money(value: Decimal) -> Decimal:
@@ -169,10 +182,15 @@ def create_order(
     enabled = enabled_payment_methods()
     if data.payment_method_code not in enabled:
         raise BusinessRuleError(
-            f"'{data.payment_method_code}' is not available yet. "
-            f"Please choose {', '.join(enabled)}.",
+            "Online payment is not available right now, so the order cannot be placed.",
             code="payment_method_unavailable",
             details={"enabled": enabled},
+        )
+    country = getattr(data.shipping_address, "country_code", "KW")
+    if country != "KW" and data.shipping_method_id == "pickup":
+        raise BusinessRuleError(
+            "Store pickup is only available for addresses in Kuwait.",
+            code="pickup_kuwait_only",
         )
     if len(data.lines) > MAX_LINES_PER_ORDER:
         raise BusinessRuleError(
@@ -297,17 +315,25 @@ def create_order(
     order.grand_total = grand_total
 
     address = data.shipping_address
-    # Governorate and area names are resolved from their slugs rather than
-    # taken from the request, so the snapshot can never carry a label that
-    # disagrees with the code the shopper actually picked.
-    governorate_name = kuwait.governorate_name(address.governorate_id, locale)
-    area_name = kuwait.area_name(address.area_id, locale)
-    if governorate_name is None or area_name is None:
-        raise BusinessRuleError(
-            "Unknown governorate or area for this delivery address.",
-            code="unknown_delivery_area",
-            details={"governorate_id": address.governorate_id, "area_id": address.area_id},
-        )
+    if country == "KW":
+        # Governorate and area names are resolved from their slugs rather than
+        # taken from the request, so the snapshot can never carry a label that
+        # disagrees with the code the shopper actually picked.
+        governorate_name = kuwait.governorate_name(address.governorate_id, locale)
+        area_name = kuwait.area_name(address.area_id, locale)
+        if governorate_name is None or area_name is None:
+            raise BusinessRuleError(
+                "Unknown governorate or area for this delivery address.",
+                code="unknown_delivery_area",
+                details={"governorate_id": address.governorate_id, "area_id": address.area_id},
+            )
+        city, region_name, district = area_name, governorate_name, f"Block {address.block}"
+    else:
+        name_en, name_ar = DELIVERY_COUNTRIES[country]
+        block = f"Block {address.block.strip()}, " if (address.block or "").strip() else ""
+        city = address.city.strip()
+        region_name = name_ar if locale == "ar" else name_en
+        district = f"{block}{address.district.strip()}"
 
     db.add(
         OrderAddress(
@@ -315,23 +341,24 @@ def create_order(
             type="shipping",
             recipient_name=address.full_name,
             phone_e164=address.phone,
-            # Kuwait addresses have no street numbering to speak of, so the
+            # Gulf addresses have no street numbering to speak of, so the
             # building and the street are the two lines that matter, and the
             # block is the district-level division above them.
             line1=f"Street {address.street}, Building {address.building}",
             line2=address.extra_directions,
-            district=f"Block {address.block}",
-            city=area_name,
-            region_name=governorate_name,
+            district=district,
+            city=city,
+            region_name=region_name,
             postal_code=None,
-            country_code="KW",
+            country_code=country,
             national_short_address=None,
         )
     )
     # Keep the shopper's address book in step with what they actually ordered
     # to, so /account/addresses fills itself instead of staying empty forever.
-    if customer_id is not None:
-        _remember_address(db, customer_id, address, governorate_name, area_name)
+    # It is built around Kuwait's governorates, so other countries are skipped.
+    if customer_id is not None and country == "KW":
+        _remember_address(db, customer_id, address, region_name, city)
 
     db.add(
         OrderStatusHistory(

@@ -47,10 +47,6 @@ _PAYMENT_METHOD_TEXT = {
         "ar": ("الدفع أونلاين", "كي نت، فيزا، ماستركارد، Apple Pay"),
         "en": ("Pay online", "KNET, Visa, Mastercard, Apple Pay"),
     },
-    "cod": {
-        "ar": ("الدفع عند الاستلام", "ادفع نقدًا عند وصول طلبك"),
-        "en": ("Cash on delivery", "Pay in cash when your order arrives"),
-    },
 }
 
 

@@ -8,7 +8,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 
 class CheckoutLineIn(BaseModel):
@@ -17,24 +17,36 @@ class CheckoutLineIn(BaseModel):
 
 
 class CheckoutAddressIn(BaseModel):
-    """A Kuwaiti delivery address: Governorate → Area → Block → Street →
-    Building. No postal code and no national short code — Kuwait uses neither
-    for delivery, and asking for them was friction with no payoff.
+    """A delivery address in Kuwait or another GCC country.
 
-    The client sends governorate/area *slugs*; the names are resolved
-    server-side so the order snapshot cannot be given a label that does not
-    match the code it was picked from.
+    In Kuwait it is Governorate → Area → Block → Street → Building, and the
+    client sends governorate/area *slugs*; the names are resolved server-side
+    so the order snapshot cannot be given a label that does not match the code
+    it was picked from. Elsewhere there is no shared vocabulary to pick from,
+    so the city and district are typed, and a block is optional.
     """
 
+    country_code: Literal["KW", "SA", "AE", "QA", "BH", "OM"] = "KW"
     full_name: str = Field(min_length=2, max_length=120)
     phone: str = Field(min_length=8, max_length=20)
-    governorate_id: str = Field(min_length=2, max_length=40)
-    area_id: str = Field(min_length=2, max_length=60)
-    block: str = Field(min_length=1, max_length=20)
+    governorate_id: str | None = Field(default=None, max_length=40)
+    area_id: str | None = Field(default=None, max_length=60)
+    city: str | None = Field(default=None, max_length=80)
+    district: str | None = Field(default=None, max_length=80)
+    block: str | None = Field(default=None, max_length=20)
     street: str = Field(min_length=1, max_length=120)
     building: str = Field(min_length=1, max_length=60)
     # Floor / flat / extra directions, one free-text line.
     extra_directions: str | None = Field(default=None, max_length=200)
+
+    @model_validator(mode="after")
+    def _country_fields(self):
+        if self.country_code == "KW":
+            if not (self.governorate_id and self.area_id and (self.block or "").strip()):
+                raise ValueError("A Kuwaiti address needs a governorate, an area and a block.")
+        elif not ((self.city or "").strip() and (self.district or "").strip()):
+            raise ValueError("Enter the city and district for this address.")
+        return self
 
 
 class CheckoutIn(BaseModel):
@@ -46,8 +58,9 @@ class CheckoutIn(BaseModel):
     email: EmailStr
     shipping_address: CheckoutAddressIn
     shipping_method_id: str
-    # checkout_service holds the authoritative list of what can complete today.
-    payment_method_code: Literal["online", "cod"] = "cod"
+    # Online only: cash on delivery is no longer offered. checkout_service
+    # still checks the gateway is configured before taking the order.
+    payment_method_code: Literal["online"] = "online"
     # The code only — never the discount it is worth. That is recomputed
     # server-side against the same subtotal the order is built from.
     coupon_code: str | None = Field(default=None, max_length=64)

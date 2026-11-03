@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import { SelectField, TextField } from "@/components/ui/field";
-import type { AddressInput, City, Region } from "@/types/shop";
+import { DELIVERY_COUNTRIES, type AddressInput, type City, type Region } from "@/types/shop";
 
 /**
  * Kuwaiti delivery address: Governorate → Area → Block → Street → Building.
@@ -25,6 +25,8 @@ import type { AddressInput, City, Region } from "@/types/shop";
 // the +965 country code, and with any spacing, because that is how people type
 // a number they are reading off a phone.
 const KUWAIT_MOBILE_PATTERN = /^(?:\+?965)?[569]\d{7}$/;
+// Elsewhere in the Gulf, any international number: a plus or not, 8–15 digits.
+const INTERNATIONAL_PHONE_PATTERN = /^\+?\d{8,15}$/;
 
 export interface AddressFormErrors {
   [key: string]: string | undefined;
@@ -36,15 +38,22 @@ export function validateAddress(
 ): AddressFormErrors {
   const errors: AddressFormErrors = {};
 
+  const isKuwait = (value.country_code ?? "KW") === "KW";
   if (!value.full_name?.trim()) errors.full_name = messages.required;
 
+  const phonePattern = isKuwait ? KUWAIT_MOBILE_PATTERN : INTERNATIONAL_PHONE_PATTERN;
   if (!value.phone?.trim()) errors.phone = messages.required;
-  else if (!KUWAIT_MOBILE_PATTERN.test(value.phone.replace(/[\s-]+/g, "")))
+  else if (!phonePattern.test(value.phone.replace(/[\s()-]+/g, "")))
     errors.phone = messages.invalidPhone;
 
-  if (!value.governorate_id) errors.governorate_id = messages.required;
-  if (!value.area_id) errors.area_id = messages.required;
-  if (!value.block?.trim()) errors.block = messages.required;
+  if (isKuwait) {
+    if (!value.governorate_id) errors.governorate_id = messages.required;
+    if (!value.area_id) errors.area_id = messages.required;
+    if (!value.block?.trim()) errors.block = messages.required;
+  } else {
+    if (!value.city?.trim()) errors.city = messages.required;
+    if (!value.district?.trim()) errors.district = messages.required;
+  }
   if (!value.street?.trim()) errors.street = messages.required;
   if (!value.building?.trim()) errors.building = messages.required;
 
@@ -66,6 +75,12 @@ export function AddressForm({
 }) {
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const country = value.country_code ?? "KW";
+  const isKuwait = country === "KW";
+
+  // Country names in the shopper's own language, from the browser's data.
+  const countryNames = useMemo(() => new Intl.DisplayNames([locale], { type: "region" }), [locale]);
 
   const areasInGovernorate = useMemo(
     () =>
@@ -81,6 +96,29 @@ export function AddressForm({
 
   return (
     <div className="space-y-5">
+      <SelectField
+        label={t("country")}
+        value={country}
+        onChange={(event) => {
+          // A different country means a different set of address fields, so
+          // the parts that belong to the old one are cleared, not carried over.
+          onChange({
+            ...value,
+            country_code: event.currentTarget.value as AddressInput["country_code"],
+            governorate_id: "",
+            area_id: "",
+            city: "",
+            district: "",
+          });
+        }}
+      >
+        {DELIVERY_COUNTRIES.map((code) => (
+          <option key={code} value={code}>
+            {countryNames.of(code) ?? code}
+          </option>
+        ))}
+      </SelectField>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <TextField
           label={t("fullName")}
@@ -91,7 +129,7 @@ export function AddressForm({
         />
         <TextField
           label={t("phone")}
-          hint={t("phoneHint")}
+          hint={isKuwait ? t("phoneHint") : t("phoneHintIntl")}
           value={value.phone ?? ""}
           onChange={(event) => set("phone", event.currentTarget.value)}
           error={errors.phone}
@@ -101,6 +139,7 @@ export function AddressForm({
         />
       </div>
 
+      {isKuwait ? (
       <div className="grid gap-5 sm:grid-cols-2">
         <SelectField
           label={t("governorate")}
@@ -138,14 +177,33 @@ export function AddressForm({
           ))}
         </SelectField>
       </div>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2">
+          <TextField
+            label={t("city")}
+            value={value.city ?? ""}
+            onChange={(event) => set("city", event.currentTarget.value)}
+            error={errors.city}
+            autoComplete="address-level2"
+          />
+          <TextField
+            label={t("district")}
+            value={value.district ?? ""}
+            onChange={(event) => set("district", event.currentTarget.value)}
+            error={errors.district}
+            autoComplete="address-level3"
+          />
+        </div>
+      )}
 
       <div className="grid gap-5 sm:grid-cols-3">
         <TextField
-          label={t("block")}
+          label={isKuwait ? t("block") : t("blockOptional")}
+          optional={isKuwait ? undefined : tCommon("optional")}
           value={value.block ?? ""}
           onChange={(event) => set("block", event.currentTarget.value)}
           error={errors.block}
-          inputMode="numeric"
+          inputMode={isKuwait ? "numeric" : undefined}
           dir="ltr"
         />
         <TextField

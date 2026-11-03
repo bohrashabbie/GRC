@@ -436,21 +436,11 @@ export function fixtureShippingMethods(locale: LocaleCode): ShippingMethod[] {
   ];
 }
 
-export function fixturePaymentMethods(locale: LocaleCode): PaymentMethod[] {
-  const isAr = locale === "ar";
-  // Only what is left when the API cannot be asked. Cash on delivery needs no
-  // gateway, so it is the one method that is always safe to offer.
-  return [
-    {
-      code: "cod",
-      name: isAr ? "الدفع عند الاستلام" : "Cash on delivery",
-      description: isAr
-        ? "ادفع نقدًا عند وصول طلبك"
-        : "Pay in cash when your order arrives",
-      surcharge: null,
-      is_available: true,
-    },
-  ];
+export function fixturePaymentMethods(): PaymentMethod[] {
+  // Payment is online only, and only the API knows whether the gateway is up.
+  // When it cannot be asked, offering nothing is the honest answer: the
+  // checkout then says payment is unavailable instead of failing at the end.
+  return [];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -583,7 +573,7 @@ export function fixtureOrder(orderNumber: string, locale: LocaleCode): OrderDeta
     },
     shipping_address: fixtureAddresses(locale)[0],
     shipping_method_name: isAr ? "الشحن القياسي" : "Standard delivery",
-    payment_method_name: "cod",
+    payment_method_name: "online",
     timeline: STATUS_FLOW.slice(0, reachedIndex + 1).map((status, index) => ({
       status,
       occurred_at: new Date(placedAt + index * 86_400_000).toISOString(),

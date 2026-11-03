@@ -8,8 +8,10 @@ import { submitOrder } from "@/app/actions";
 import { useCart } from "@/components/cart/cart-provider";
 import { CartTotalsBlock } from "@/components/cart/cart-totals";
 import { Button } from "@/components/ui/button";
+import { TextField } from "@/components/ui/field";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
+import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "@/lib/checkout-draft";
 import { formatPrice } from "@/lib/format";
 import type {
   AddressInput,
@@ -25,6 +27,10 @@ import { imageProps } from "@/lib/images";
 type Step = "address" | "shipping" | "payment";
 
 const STEPS: Step[] = ["address", "shipping", "payment"];
+
+// Deliberately loose: the API validates the address properly. This only stops
+// an obvious typo before the shopper leaves for the payment page.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /**
  * Three-step checkout on one page — each step collapses to a summary line once
@@ -42,8 +48,11 @@ export function CheckoutFlow({
   shippingMethods,
   paymentMethods,
   paymentFailed = false,
+  isGuest = false,
 }: {
+  /** The account's email; empty for a guest, who types one in. */
   email: string;
+  isGuest?: boolean;
   regions: Region[];
   cities: City[];
   shippingMethods: ShippingMethod[];
@@ -58,12 +67,22 @@ export function CheckoutFlow({
   const { cart, setShippingPrice, clear } = useCart();
 
   const [step, setStep] = useState<Step>("address");
-  const [address, setAddress] = useState<Partial<AddressInput>>({});
+  const [address, setAddress] = useState<Partial<AddressInput>>({ country_code: "KW" });
   const [addressErrors, setAddressErrors] = useState<AddressFormErrors>({});
+  const [guestEmail, setGuestEmail] = useState("");
   const [shippingId, setShippingId] = useState(shippingMethods[0]?.id ?? "");
-  const [paymentCode, setPaymentCode] = useState(
-    paymentMethods.find((method) => method.is_available)?.code ?? "cod",
+  const [paymentCode, setPaymentCode] = useState<string>(
+    paymentMethods.find((method) => method.is_available)?.code ?? "online",
   );
+  const orderEmail = isGuest ? guestEmail.trim() : email;
+  // The draft is keyed to an account, or to "guest" for this tab's guest.
+  const draftOwner = isGuest ? "guest" : email;
+  const isKuwait = (address.country_code ?? "KW") === "KW";
+  // Store pickup is in Kuwait, so it is not offered for an address abroad.
+  const availableShipping = isKuwait
+    ? shippingMethods
+    : shippingMethods.filter((method) => method.id !== "pickup");
+  const canPay = paymentMethods.some((method) => method.is_available);
   const [isPaying, setIsPaying] = useState(false);
   // The server's own message, not a blanket "payment failed". Cash on delivery
   // takes no money at checkout, so claiming a payment failed would describe
@@ -76,6 +95,49 @@ export function CheckoutFlow({
     name: string;
     available: number;
   } | null>(null);
+
+  // Read after mount, not in useState: the server has no sessionStorage, and
+  // the first client render has to match what it sent.
+  const [isDraftLoaded, setIsDraftLoaded] = useState(false);
+
+  useEffect(() => {
+    const draft = readCheckoutDraft(draftOwner);
+    if (draft) {
+      setAddress({ country_code: "KW", ...draft.address });
+      if (isGuest && draft.guestEmail) setGuestEmail(draft.guestEmail);
+      // Only what is still on offer: a method may have gone since it was saved.
+      if (shippingMethods.some((method) => method.id === draft.shippingId)) {
+        setShippingId(draft.shippingId);
+      }
+      if (paymentMethods.some((method) => method.code === draft.paymentCode && method.is_available)) {
+        setPaymentCode(draft.paymentCode as PaymentMethodCode);
+      }
+      // Back from a failed payment with everything filled in: straight to
+      // paying again, rather than back through two finished steps.
+      const isComplete =
+        Object.keys(validateAddress(draft.address, { required: "-", invalidPhone: "-" })).length === 0 &&
+        (!isGuest || EMAIL_PATTERN.test(draft.guestEmail ?? ""));
+      if (paymentFailed && isComplete) setStep("payment");
+    }
+    setIsDraftLoaded(true);
+    // Once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Waits for the read above, or the empty form would overwrite the draft.
+    if (isDraftLoaded) {
+      saveCheckoutDraft({ email: draftOwner, guestEmail, address, shippingId, paymentCode });
+    }
+  }, [isDraftLoaded, draftOwner, guestEmail, address, shippingId, paymentCode]);
+
+  // Switching the address abroad while pickup is chosen moves to the first
+  // method that can actually reach it.
+  useEffect(() => {
+    if (!availableShipping.some((method) => method.id === shippingId) && availableShipping[0]) {
+      setShippingId(availableShipping[0].id);
+    }
+  }, [availableShipping, shippingId]);
 
   const selectedShipping = shippingMethods.find((method) => method.id === shippingId);
 
@@ -106,6 +168,9 @@ export function CheckoutFlow({
       required: t("required"),
       invalidPhone: t("invalidPhone"),
     });
+    if (isGuest && !EMAIL_PATTERN.test(guestEmail.trim())) {
+      errors.email = guestEmail.trim() ? t("invalidEmail") : t("required");
+    }
     setAddressErrors(errors);
     if (Object.keys(errors).length === 0) setStep("shipping");
   }
@@ -132,16 +197,20 @@ export function CheckoutFlow({
           variant_id: Number(line.variant_id),
           quantity: line.quantity,
         })),
-        email,
+        email: orderEmail,
         // Slugs, not names: the server resolves the labels so an order can
         // never be snapshotted with a governorate name that disagrees with the
-        // code the shopper picked.
+        // code the shopper picked. Outside Kuwait there are no slugs, so the
+        // city and district are sent as typed.
         shipping_address: {
+          country_code: address.country_code ?? "KW",
           full_name: address.full_name ?? "",
           phone: address.phone ?? "",
-          governorate_id: address.governorate_id ?? "",
-          area_id: address.area_id ?? "",
-          block: address.block ?? "",
+          governorate_id: isKuwait ? address.governorate_id ?? "" : null,
+          area_id: isKuwait ? address.area_id ?? "" : null,
+          city: isKuwait ? null : address.city ?? "",
+          district: isKuwait ? null : address.district ?? "",
+          block: address.block?.trim() || (isKuwait ? "" : null),
           street: address.street ?? "",
           building: address.building ?? "",
           extra_directions: address.extra_directions ?? null,
@@ -176,6 +245,7 @@ export function CheckoutFlow({
       return;
     }
 
+    clearCheckoutDraft();
     await clear();
     router.push(
       `/checkout/confirmation?order=${result.order.order_number}&email=${encodeURIComponent(email)}`,
@@ -243,6 +313,18 @@ export function CheckoutFlow({
                 <div className="border-t border-hairline px-5 py-6">
                   {current === "address" && (
                     <div className="space-y-6">
+                      {isGuest && (
+                        <TextField
+                          label={t("email")}
+                          hint={t("guestEmailHint")}
+                          type="email"
+                          value={guestEmail}
+                          onChange={(event) => setGuestEmail(event.currentTarget.value)}
+                          error={addressErrors.email}
+                          autoComplete="email"
+                          dir="ltr"
+                        />
+                      )}
                       <AddressForm
                         value={address}
                         onChange={setAddress}
@@ -257,7 +339,7 @@ export function CheckoutFlow({
                   {current === "shipping" && (
                     <div className="space-y-5">
                       <ul className="space-y-3">
-                        {shippingMethods.map((method) => (
+                        {availableShipping.map((method) => (
                           <li key={method.id}>
                             <label
                               className={cn(
@@ -369,7 +451,12 @@ export function CheckoutFlow({
                         </div>
                       )}
 
-                      <Button size="lg" onClick={placeOrder} disabled={isPaying} className="w-full">
+                      {!canPay && (
+                        <p role="alert" className="border-s-2 border-brick-600 bg-sand-100 px-4 py-3 text-sm text-brick-600">
+                          {t("noPaymentMethod")}
+                        </p>
+                      )}
+                      <Button size="lg" onClick={placeOrder} disabled={isPaying || !canPay} className="w-full">
                         {isPaying
                           ? t("processing")
                           : paymentCode === "online"

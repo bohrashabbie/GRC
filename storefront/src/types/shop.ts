@@ -406,7 +406,12 @@ export interface Address {
 export type AddressInput = Omit<
   Address,
   "id" | "governorate_name" | "area_name"
->;
+> & {
+  /** ISO code. Kuwait uses governorate/area/block; elsewhere city/district. */
+  country_code?: DeliveryCountry;
+  city?: string;
+  district?: string;
+};
 
 export interface ShippingMethod {
   id: string;
@@ -418,7 +423,11 @@ export interface ShippingMethod {
   carrier_name: string | null;
 }
 
-export type PaymentMethodCode = "online" | "cod";
+export type PaymentMethodCode = "online";
+
+/** Where we deliver. Matches the API's list; Kuwait is the default. */
+export const DELIVERY_COUNTRIES = ["KW", "SA", "AE", "QA", "BH", "OM"] as const;
+export type DeliveryCountry = (typeof DELIVERY_COUNTRIES)[number];
 
 export interface PaymentMethod {
   code: PaymentMethodCode;
@@ -455,11 +464,14 @@ export interface PlaceOrderInput {
   lines: { variant_id: number; quantity: number }[];
   email: string;
   shipping_address: {
+    country_code: DeliveryCountry;
     full_name: string;
     phone: string;
-    governorate_id: string;
-    area_id: string;
-    block: string;
+    governorate_id: string | null;
+    area_id: string | null;
+    city: string | null;
+    district: string | null;
+    block: string | null;
     street: string;
     building: string;
     extra_directions: string | null;

@@ -21,6 +21,20 @@ from app.models.orders import Order
 from app.services import checkout_service, inventory_service, order_service
 
 
+@pytest.fixture(autouse=True)
+def gateway_keys(monkeypatch):
+    """Payment is online only, so placing any order needs the gateway to be
+    configured. Nothing here talks to Hesabe: these tests stop at the order."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "hesabe_base_url", "https://hesabe.test")
+    monkeypatch.setattr(settings, "hesabe_merchant_code", "842217")
+    monkeypatch.setattr(settings, "hesabe_access_code", "access")
+    monkeypatch.setattr(settings, "hesabe_secret_key", "k" * 32)
+    monkeypatch.setattr(settings, "hesabe_iv_key", "i" * 16)
+    monkeypatch.setattr(settings, "storefront_revalidate_url", "")
+
+
 def _checkout(lines: list[tuple[int, int]]):
     """A minimal valid CheckoutIn-shaped payload. Built as a namespace rather
     than the Pydantic model so a test can express a quantity the schema would
@@ -39,7 +53,7 @@ def _checkout(lines: list[tuple[int, int]]):
             extra_directions="Second floor, flat 5",
         ),
         shipping_method_id="standard",
-        payment_method_code="cod",
+        payment_method_code="online",
         coupon_code=None,
     )
 
@@ -151,9 +165,10 @@ def test_cancelling_twice_restores_stock_only_once(factory, session):
     assert _on_hand(session, variant_id) == 10
 
 
-def test_without_gateway_keys_only_cash_on_delivery_can_complete_a_checkout(factory, session, monkeypatch):
-    """No keys means no gateway, so online must be refused outright rather than
-    recording an order against a payment nobody can ever attempt."""
+def test_without_gateway_keys_no_order_can_be_placed(factory, session, monkeypatch):
+    """Payment is online only. No keys means no gateway, so the order must be
+    refused outright rather than recorded against a payment nobody can attempt,
+    and cash on delivery is never a way round it."""
     from app.config import settings
 
     monkeypatch.setattr(settings, "hesabe_secret_key", "")
@@ -162,7 +177,7 @@ def test_without_gateway_keys_only_cash_on_delivery_can_complete_a_checkout(fact
     product = factory.product(stock=5)
     variant_id = product.variants[0].id
 
-    for method in ("online", "card"):
+    for method in ("online", "cod"):
         payload = _checkout([(variant_id, 1)])
         payload.payment_method_code = method
         with pytest.raises(BusinessRuleError) as exc:
@@ -172,6 +187,14 @@ def test_without_gateway_keys_only_cash_on_delivery_can_complete_a_checkout(fact
 
     # And nothing was taken for any of those refusals.
     assert _on_hand(session, variant_id) == 5
+
+    # Cash is refused even with the gateway up: it is no longer offered.
+    monkeypatch.setattr(settings, "hesabe_secret_key", "k" * 32)
+    payload = _checkout([(variant_id, 1)])
+    payload.payment_method_code = "cod"
+    with pytest.raises(BusinessRuleError):
+        checkout_service.create_order(session, payload)
+    session.rollback()
 
     order = checkout_service.create_order(session, _checkout([(variant_id, 1)]))
     assert order.status == "pending"

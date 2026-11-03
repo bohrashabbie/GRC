@@ -72,7 +72,8 @@
     "paymentMethods": "Accepted payment methods",
     "linksTitle": "Information",
     "crNumber": "CR",
-    "vatNumber": "VAT"
+    "vatNumber": "VAT",
+    "brandBlurb": "Thobes and traditional menswear, tailored for Kuwait and the Gulf."
   },
   "product": {
     "discount": "−{percent}%",
@@ -207,7 +208,14 @@
     "building": "Building / House",
     "extraDirections": "Floor, flat or directions",
     "extraDirectionsHint": "Anything that helps the driver find you",
-    "payNow": "Pay now"
+    "payNow": "Pay now",
+    "country": "Country",
+    "city": "City",
+    "district": "District / area",
+    "blockOptional": "Block",
+    "phoneHintIntl": "Include the country code, e.g. +966 50 123 4567",
+    "noPaymentMethod": "Online payment is unavailable right now, so orders can't be placed. Please try again shortly.",
+    "guestEmailHint": "We'll send your order confirmation here."
   },
   "confirmation": {
     "title": "Thank you — your order is confirmed",
@@ -265,14 +273,15 @@
     "notSignedIn": "Sign in to see this page.",
     "loginRequired": "Sign in to continue",
     "loginForWishlist": "Save pieces to your wishlist and find them on any device.",
-    "loginForCheckout": "Sign in to complete your order.",
-    "notNow": "Not now",
+    "loginForCheckout": "Sign in to track your order and check out faster, or continue as a guest.",
     "addToWishlist": "Save to wishlist",
     "removeFromWishlist": "Remove from wishlist",
     "passwordTooShort": "Use at least 8 characters",
     "emailTaken": "An account with this email already exists",
     "badCredentials": "Email or password is incorrect",
-    "submitting": "Please wait…"
+    "submitting": "Please wait…",
+    "continueAsGuest": "Continue as guest",
+    "or": "or"
   },
   "orders": {
     "orderNumber": "Order {number}",

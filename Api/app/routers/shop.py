@@ -65,6 +65,19 @@ def get_current_customer(
     return account_service.get_customer(db, int(payload["sub"]))
 
 
+def get_optional_customer(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_customer_bearer),
+    db: Session = Depends(get_db),
+) -> Customer | None:
+    """The signed-in shopper, or None for a guest. A token that is present but
+    invalid is still refused rather than quietly treated as a guest, so an
+    expired session is noticed instead of placing an order nobody owns."""
+    if credentials is None:
+        return None
+    payload = decode_customer_access_token(credentials.credentials)
+    return account_service.get_customer(db, int(payload["sub"]))
+
+
 def _context(request: Request, accept_language: str | None) -> tuple[str, str]:
     base_url = settings.public_media_base_url or str(request.base_url).rstrip("/")
     return shop_service.locale_from_header(accept_language), base_url.rstrip("/")
@@ -236,10 +249,11 @@ def check_stock(payload: StockCheckIn, db: Session = Depends(get_db)) -> list[di
 def checkout(
     payload: CheckoutIn,
     accept_language: str | None = Header(None),
-    customer: Customer = Depends(get_current_customer),
+    customer: Customer | None = Depends(get_optional_customer),
     db: Session = Depends(get_db),
 ):
-    """Create the order and take its stock in one transaction.
+    """Create the order and take its stock in one transaction. Guests may
+    check out: their order is tied to the email they give, not an account.
 
     Returns 409 with code=insufficient_stock and details.available when a line
     cannot be filled, so the cart can say "only N left" and correct itself
@@ -249,8 +263,8 @@ def checkout(
         db,
         payload,
         locale=shop_service.locale_from_header(accept_language),
-        customer_id=customer.id,
-        customer_email=customer.email,
+        customer_id=customer.id if customer else None,
+        customer_email=customer.email if customer else None,
     )
     payment_url = None
     if payload.payment_method_code == payment_service.ONLINE_METHOD:
