@@ -90,7 +90,7 @@ DEFAULT_SETTINGS: dict[str, tuple[object, str, bool]] = {
     "store.cr_number": ("", "store", True),
     "store.vat_number": ("", "store", True),
     # Read by checkout_service on every order.
-    "shipping.free_threshold": (200, "shipping", True),
+    "shipping.free_threshold": (25, "shipping", True),
     "shipping.rate.standard": ("25.000", "shipping", True),
     "shipping.rate.express": ("45.000", "shipping", True),
     "shipping.rate.pickup": ("0.000", "shipping", True),

@@ -323,6 +323,21 @@ export async function getPublicSettings(
 }
 
 /**
+ * The order total, in KWD, above which standard delivery is free.
+ *
+ * Read from the same `shipping.free_threshold` setting the API charges by, so
+ * the banner, the cart and the checkout can never promise a different amount
+ * from the one actually applied (they once said 200 while orders used 300).
+ * Returned without trailing zeros ("25", "37.5"), ready for a sentence.
+ */
+export async function getFreeShippingThreshold(locale: LocaleCode): Promise<string> {
+  const settings = await getPublicSettings(locale);
+  const value = Number(settings["shipping.free_threshold"]);
+  // Only when the API cannot be asked. Keep it equal to the API default.
+  return Number.isFinite(value) && value > 0 ? String(value) : "25";
+}
+
+/**
  * Display currencies with today's rate per 1 KWD. Failure yields KWD alone:
  * the site still works, it just cannot convert.
  */
@@ -483,7 +498,7 @@ export async function getCities(locale: LocaleCode, regionId?: string): Promise<
 }
 
 export async function getShippingMethods(locale: LocaleCode): Promise<ShippingMethod[]> {
-  if (USE_FIXTURES) return fixtureShippingMethods(locale);
+  if (USE_FIXTURES) return fixtureShippingMethods(locale, await getFreeShippingThreshold(locale));
   return shopFetch<ShippingMethod[]>("/shipping-methods", { locale, revalidate: 600 });
 }
 
@@ -535,6 +550,7 @@ export async function getCart(
     shippingPrice,
     (slug) => bySlug.get(slug) ?? null,
     couponDiscount,
+    await getFreeShippingThreshold(locale),
   );
 }
 

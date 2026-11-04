@@ -26,7 +26,6 @@ import { fixtureProductDetail } from "./catalog";
 import { img } from "./shared";
 
 const VAT_RATE = 0.15;
-const FREE_SHIPPING_THRESHOLD = 200_000; // 200.000 KWD in fils
 const FLAT_SHIPPING = 25_000; // 25.000 KWD
 
 const toFils = (value: string) => Math.round(Number(value) * 1000);
@@ -67,7 +66,10 @@ export function fixtureBuildCart(
   resolve: (slug: string, locale: LocaleCode) => ProductDetail | null = fixtureProductDetail,
   /** The discount the API quoted for this code, in KWD, when it is a real one. */
   quotedDiscount: string | null = null,
+  /** From the `shipping.free_threshold` setting, in KWD — the one the API charges by. */
+  freeShippingFrom = "25",
 ): Cart {
+  const FREE_SHIPPING_THRESHOLD = toFils(freeShippingFrom);
   const lines: CartLine[] = [];
 
   for (const entry of stored) {

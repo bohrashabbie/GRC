@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ProductDetailView } from "@/components/pdp/product-detail-view";
+import { getFreeShippingThreshold } from "@/lib/free-shipping";
 import { ReviewsList } from "@/components/pdp/reviews-section";
 import { ProductRail } from "@/components/product/product-rail";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -102,7 +103,7 @@ export default async function ProductPage({ params }: PageProps) {
       <div className="container-site py-8 lg:py-12">
         <Breadcrumbs crumbs={crumbs} />
         <div className="mt-8">
-          <ProductDetailView product={product} />
+          <ProductDetailView product={product} freeShippingFrom={await getFreeShippingThreshold(typedLocale)} />
         </div>
       </div>
 

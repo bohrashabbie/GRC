@@ -60,7 +60,7 @@ DEFAULT_SHIPPING_RATES: dict[str, Decimal] = {
     "pickup": Decimal("0.00"),
 }
 SHIPPING_METHODS = DEFAULT_SHIPPING_RATES  # the set of valid method ids
-DEFAULT_FREE_SHIPPING_THRESHOLD = Decimal("200.00")
+DEFAULT_FREE_SHIPPING_THRESHOLD = Decimal("25.00")
 FREE_SHIPPING_METHOD = "standard"
 
 

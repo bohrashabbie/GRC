@@ -6,6 +6,7 @@ import { CategoryTiles } from "@/components/home/category-tiles";
 import { ProductRail } from "@/components/product/product-rail";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { UspStrip } from "@/components/layout/usp-strip";
+import { getFreeShippingThreshold } from "@/lib/free-shipping";
 import { getBanners, getBrands, getCategoryTree, getCollection } from "@/lib/shop-api";
 import type { Locale } from "@/i18n/routing";
 
@@ -116,7 +117,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </section>
       )}
 
-      <UspStrip />
+      <UspStrip freeShippingFrom={await getFreeShippingThreshold(typedLocale)} />
     </>
   );
 }

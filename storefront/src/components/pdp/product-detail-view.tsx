@@ -21,7 +21,13 @@ import type { ProductDetail } from "@/types/shop";
  * Owns the option selection, because both the gallery (which filters by
  * colour) and the buy panel depend on it.
  */
-export function ProductDetailView({ product }: { product: ProductDetail }) {
+export function ProductDetailView({
+  product,
+  freeShippingFrom,
+}: {
+  product: ProductDetail;
+  freeShippingFrom: string;
+}) {
   const t = useTranslations("pdp");
   const tProduct = useTranslations("product");
   const locale = useLocale() as Locale;
@@ -167,7 +173,7 @@ export function ProductDetailView({ product }: { product: ProductDetail }) {
           <WishlistButton productId={product.id} className="size-13 border border-hairline-strong" />
         </div>
 
-        <ProductAccordion product={product} locale={locale} />
+        <ProductAccordion product={product} locale={locale} freeShippingFrom={freeShippingFrom} />
       </div>
     </div>
   );

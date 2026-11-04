@@ -9,21 +9,23 @@ import { getCategoryTree } from "@/lib/shop-api";
 import { getSiteContact } from "@/lib/site-contact";
 import type { Locale } from "@/i18n/routing";
 import { TopBar } from "./top-bar";
+import { getFreeShippingThreshold } from "@/lib/free-shipping";
 import { MegaMenu } from "./mega-menu";
 import { MobileMenuTrigger } from "./mobile-menu";
 import { SearchBar, SearchDrawer } from "./search-bar";
 
 export async function Header({ locale }: { locale: Locale }) {
-  const [t, categories, contact] = await Promise.all([
+  const [t, categories, contact, freeShippingFrom] = await Promise.all([
     getTranslations("header"),
     getCategoryTree(locale),
     getSiteContact(locale),
+    getFreeShippingThreshold(locale),
   ]);
 
   return (
     <header className="sticky top-0 z-40 bg-sand-50">
       {/* The promo bar scrolls away; the bar with the logo and cart stays. */}
-      <TopBar socials={contact.socials} />
+      <TopBar socials={contact.socials} freeShippingFrom={freeShippingFrom} />
 
       <div className="border-b border-hairline bg-sand-50">
         <div className="container-site flex h-16 items-center gap-3 md:h-20 md:gap-6">

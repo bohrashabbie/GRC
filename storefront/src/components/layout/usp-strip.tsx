@@ -7,11 +7,11 @@ import { ReturnIcon, ShieldIcon, TruckIcon } from "@/components/ui/icons";
  * putting it behind a CMS table would mean a migration for a sentence that
  * changes once a year.
  */
-export function UspStrip() {
+export function UspStrip({ freeShippingFrom }: { freeShippingFrom: string }) {
   const t = useTranslations("usp");
 
   const items = [
-    { Icon: TruckIcon, title: t("shippingTitle"), body: t("shippingBody") },
+    { Icon: TruckIcon, title: t("shippingTitle", { amount: freeShippingFrom }), body: t("shippingBody") },
     { Icon: ReturnIcon, title: t("returnsTitle"), body: t("returnsBody") },
     { Icon: ShieldIcon, title: t("paymentTitle"), body: t("paymentBody") },
   ];

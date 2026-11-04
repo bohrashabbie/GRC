@@ -406,13 +406,13 @@ export function fixtureAddresses(locale: LocaleCode): Address[] {
 /* Shipping and payment methods                                               */
 /* -------------------------------------------------------------------------- */
 
-export function fixtureShippingMethods(locale: LocaleCode): ShippingMethod[] {
+export function fixtureShippingMethods(locale: LocaleCode, freeShippingFrom = "25"): ShippingMethod[] {
   const isAr = locale === "ar";
   return [
     {
       id: "standard",
       name: isAr ? "الشحن القياسي" : "Standard delivery",
-      description: isAr ? "مجاني للطلبات فوق 200 دينار" : "Free on orders over 200 KWD",
+      description: isAr ? `مجاني للطلبات فوق ${freeShippingFrom} دينار` : `Free on orders over ${freeShippingFrom} KWD`,
       price: "25.00",
       estimated_days: { min: 2, max: 4 },
       carrier_name: "SMSA",

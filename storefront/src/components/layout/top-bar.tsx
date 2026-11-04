@@ -4,7 +4,7 @@ import type { SocialLink } from "@/lib/site-contact";
 import { CurrencyMenu } from "@/components/currency/currency-menu";
 import { LocaleSwitch } from "./locale-switch";
 
-export function TopBar({ socials }: { socials: SocialLink[] }) {
+export function TopBar({ socials, freeShippingFrom }: { socials: SocialLink[]; freeShippingFrom: string }) {
   const t = useTranslations("topbar");
 
   return (
@@ -28,7 +28,7 @@ export function TopBar({ socials }: { socials: SocialLink[] }) {
           ))}
         </ul>
 
-        <p className="flex-1 text-center text-xs text-sand-200 md:flex-none">{t("promo")}</p>
+        <p className="flex-1 text-center text-xs text-sand-200 md:flex-none">{t("promo", { amount: freeShippingFrom })}</p>
 
         <div className="flex items-center gap-4">
           <CurrencyMenu className="text-sand-200" />

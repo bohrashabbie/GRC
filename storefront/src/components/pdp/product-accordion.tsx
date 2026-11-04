@@ -13,7 +13,15 @@ import { cn } from "@/lib/utils";
  * on a phone tabs push content below the fold and hide two thirds of it, and
  * the same component then has to behave differently at each breakpoint.
  */
-export function ProductAccordion({ product, locale }: { product: ProductDetail; locale: Locale }) {
+export function ProductAccordion({
+  product,
+  locale,
+  freeShippingFrom,
+}: {
+  product: ProductDetail;
+  locale: Locale;
+  freeShippingFrom: string;
+}) {
   const t = useTranslations("pdp");
   const [open, setOpen] = useState<string | null>("description");
 
@@ -46,7 +54,7 @@ export function ProductAccordion({ product, locale }: { product: ProductDetail; 
     {
       id: "shipping",
       title: t("shippingReturns"),
-      content: <p className="text-sm leading-relaxed text-ink-600">{t("shippingBody")}</p>,
+      content: <p className="text-sm leading-relaxed text-ink-600">{t("shippingBody", { amount: freeShippingFrom })}</p>,
     },
   ];
 
