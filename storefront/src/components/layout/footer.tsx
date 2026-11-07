@@ -50,6 +50,8 @@ export async function Footer({ locale }: { locale: Locale }) {
   // empty "CR:" label is worse than no line at all, and these were removed
   // from the footer once already for being placeholders.
   const crNumber = String(settings["store.cr_number"] ?? "").trim();
+  // Staff write the brand story in Settings; the built-in line stands in until then.
+  const about = String(settings[`store.about_${locale}`] ?? "").trim() || t("brandBlurb");
   const vatNumber = String(settings["store.vat_number"] ?? "").trim();
 
   // Email, phone, address, hours and the social links are all Settings keys
@@ -73,14 +75,15 @@ export async function Footer({ locale }: { locale: Locale }) {
         </div>
       </div>
 
-      {/* Three even columns */}
-      <div className="container-site grid gap-12 py-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-16">
-        <div className="sm:col-span-2 lg:col-span-1">
+      {/* Brand story gets the wide column so a real paragraph reads across,
+          not down; links and contact take the narrower columns beside it. */}
+      <div className="container-site grid gap-12 py-14 sm:grid-cols-2 lg:grid-cols-12 lg:gap-10">
+        <div className="sm:col-span-2 lg:col-span-5">
           <div className="flex items-center gap-3 text-sand-50">
             <LogoMark className="size-10" invert />
             <span className="font-display text-2xl">{tApp("name")}</span>
           </div>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-sand-300">{t("brandBlurb")}</p>
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-sand-300">{about}</p>
 
           {contact.socials.length > 0 && (
             <>
@@ -104,12 +107,14 @@ export async function Footer({ locale }: { locale: Locale }) {
           )}
         </div>
 
-        <nav aria-label={t("linksTitle")}>
+        <nav aria-label={t("linksTitle")} className="lg:col-span-4">
           <h2 className="eyebrow text-gold-400">{t("linksTitle")}</h2>
           <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3">
             {menu.items.map((item) => (
               <li key={item.id}>
-                <Link href={item.href} className={linkClass}>
+                {/* A link name is a few words; two lines at most, so a long one
+                    typed into the menu cannot stretch the column again. */}
+                <Link href={item.href} className={`line-clamp-2 ${linkClass}`}>
                   {item.label}
                 </Link>
               </li>
@@ -117,7 +122,7 @@ export async function Footer({ locale }: { locale: Locale }) {
           </ul>
         </nav>
 
-        <div>
+        <div className="lg:col-span-3">
           <h2 className="eyebrow text-gold-400">{t("contactTitle")}</h2>
           {/* Each line renders only once it has a value: a blank setting
               removes the line rather than leaving a dead link. */}

@@ -89,6 +89,9 @@ DEFAULT_SETTINGS: dict[str, tuple[object, str, bool]] = {
     # Shown in the storefront footer for the registered business.
     "store.cr_number": ("", "store", True),
     "store.vat_number": ("", "store", True),
+    # The paragraph beside the logo in the storefront footer, per language.
+    "store.about_en": ("", "store", True),
+    "store.about_ar": ("", "store", True),
     # Read by checkout_service on every order.
     "shipping.free_threshold": (25, "shipping", True),
     "shipping.rate.standard": ("25.000", "shipping", True),
