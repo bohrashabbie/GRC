@@ -26,7 +26,6 @@ import { fixtureProductDetail } from "./catalog";
 import { img } from "./shared";
 
 const VAT_RATE = 0.15;
-const FLAT_SHIPPING = 25_000; // 25.000 KWD
 
 const toFils = (value: string) => Math.round(Number(value) * 1000);
 const toMoney = (fils: number) => (fils / 1000).toFixed(3);
@@ -62,7 +61,8 @@ export function fixtureBuildCart(
   stored: StoredLine[],
   locale: LocaleCode,
   couponCode: string | null,
-  shippingMethodPrice: string | null,
+  /** The delivery method being priced, and whether it can become free. */
+  shippingMethod: { price: string; freeEligible: boolean } | null,
   resolve: (slug: string, locale: LocaleCode) => ProductDetail | null = fixtureProductDetail,
   /** The discount the API quoted for this code, in KWD, when it is a real one. */
   quotedDiscount: string | null = null,
@@ -141,17 +141,12 @@ export function fixtureBuildCart(
   // The threshold is evaluated after discount, which is the stricter reading
   // and the one that avoids a total dropping below it post-coupon.
   const qualifiesFreeShipping = afterDiscount >= FREE_SHIPPING_THRESHOLD;
-  const explicitShipping = shippingMethodPrice ? toFils(shippingMethodPrice) : null;
   const shipping =
-    lines.length === 0
+    lines.length === 0 || !shippingMethod
       ? 0
-      : explicitShipping !== null
-        ? qualifiesFreeShipping && explicitShipping === FLAT_SHIPPING
-          ? 0
-          : explicitShipping
-        : qualifiesFreeShipping
-          ? 0
-          : FLAT_SHIPPING;
+      : shippingMethod.freeEligible && qualifiesFreeShipping
+        ? 0
+        : toFils(shippingMethod.price);
 
   const grandTotal = afterDiscount + shipping;
 

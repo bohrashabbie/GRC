@@ -163,8 +163,8 @@
     "couponApply": "تطبيق",
     "couponInvalid": "هذا الكود غير صالح.",
     "couponRemove": "إزالة الكود",
-    "freeShippingRemaining": "أضف {amount} للحصول على شحن مجاني",
-    "freeShippingReached": "طلبك يُشحن مجانًا",
+    "freeShippingRemaining": "تسوّق بقيمة {amount} إضافية لتحصل على توصيل مجاني",
+    "freeShippingReached": "رائع! طلبك يحصل على توصيل مجاني",
     "maxQuantity": "المتوفر {count} فقط",
     "lineSoldOut": "نفدت الكمية — احذفه للمتابعة"
   },

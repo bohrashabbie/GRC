@@ -498,8 +498,13 @@ export async function getCities(locale: LocaleCode, regionId?: string): Promise<
 }
 
 export async function getShippingMethods(locale: LocaleCode): Promise<ShippingMethod[]> {
-  if (USE_FIXTURES) return fixtureShippingMethods(locale, await getFreeShippingThreshold(locale));
-  return shopFetch<ShippingMethod[]>("/shipping-methods", { locale, revalidate: 600 });
+  // Always the API's list: prices are staff-set in Settings, and only the
+  // API reads them. The fixture is a fallback for an API that cannot be asked.
+  try {
+    return await shopFetch<ShippingMethod[]>("/shipping-methods", { locale, revalidate: 600 });
+  } catch {
+    return fixtureShippingMethods(locale, await getFreeShippingThreshold(locale));
+  }
 }
 
 export async function getPaymentMethods(locale: LocaleCode): Promise<PaymentMethod[]> {
@@ -531,7 +536,8 @@ export async function getCart(
   stored: StoredLine[],
   locale: LocaleCode,
   couponCode: string | null = null,
-  shippingPrice: string | null = null,
+  /** The method chosen at checkout; until then the cart assumes standard. */
+  shippingMethodId: string | null = null,
   /** What the API quoted for this code, in KWD. */
   couponDiscount: string | null = null,
 ): Promise<Cart> {
@@ -543,14 +549,25 @@ export async function getCart(
 
   // The discount comes from the API's own quote, so the cart never prices a
   // coupon differently from the checkout that redeems it.
+  // Priced the way the API will charge: the chosen method's staff-set rate,
+  // and only standard delivery ever becomes free past the threshold.
+  const [methods, freeShippingFrom] = await Promise.all([
+    getShippingMethods(locale),
+    getFreeShippingThreshold(locale),
+  ]);
+  const chosen =
+    methods.find((method) => method.id === shippingMethodId) ??
+    methods.find((method) => method.id === "standard") ??
+    methods[0];
+
   return fixtureBuildCart(
     stored,
     locale,
     couponCode,
-    shippingPrice,
+    chosen ? { price: chosen.price, freeEligible: chosen.id === "standard" } : null,
     (slug) => bySlug.get(slug) ?? null,
     couponDiscount,
-    await getFreeShippingThreshold(locale),
+    freeShippingFrom,
   );
 }
 

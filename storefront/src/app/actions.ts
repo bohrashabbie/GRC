@@ -85,10 +85,10 @@ export async function rebuildCart(
   stored: StoredLine[],
   locale: LocaleCode,
   couponCode: string | null,
-  shippingPrice: string | null,
+  shippingMethodId: string | null,
   couponDiscount: string | null = null,
 ): Promise<Cart> {
-  return getCart(stored, locale, couponCode, shippingPrice, couponDiscount);
+  return getCart(stored, locale, couponCode, shippingMethodId, couponDiscount);
 }
 
 export async function subscribeToNewsletter(

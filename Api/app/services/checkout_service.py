@@ -64,7 +64,7 @@ DEFAULT_FREE_SHIPPING_THRESHOLD = Decimal("25.00")
 FREE_SHIPPING_METHOD = "standard"
 
 
-def _shipping_rate(db: Session, method_id: str) -> Decimal:
+def shipping_rate(db: Session, method_id: str) -> Decimal:
     """Staff-set price for one method, falling back to the built-in rate."""
     return system_service.decimal_setting(
         db, f"shipping.rate.{method_id}", DEFAULT_SHIPPING_RATES[method_id]
@@ -143,6 +143,13 @@ def _product_name(product: Product, locale: str) -> str:
     return by_locale.get(locale) or by_locale.get("ar") or by_locale.get("en") or f"Product {product.id}"
 
 
+def free_shipping_threshold(db: Session) -> Decimal:
+    """Order value from which standard delivery is free. Staff set it in Settings."""
+    return system_service.decimal_setting(
+        db, "shipping.free_threshold", DEFAULT_FREE_SHIPPING_THRESHOLD
+    )
+
+
 def _shipping_total(db: Session, method_id: str, subtotal: Decimal) -> Decimal:
     if method_id not in SHIPPING_METHODS:
         raise BusinessRuleError(
@@ -150,7 +157,7 @@ def _shipping_total(db: Session, method_id: str, subtotal: Decimal) -> Decimal:
             code="unknown_shipping_method",
             details={"allowed": sorted(SHIPPING_METHODS)},
         )
-    price = _shipping_rate(db, method_id)
+    price = shipping_rate(db, method_id)
     threshold = system_service.decimal_setting(
         db, "shipping.free_threshold", DEFAULT_FREE_SHIPPING_THRESHOLD
     )

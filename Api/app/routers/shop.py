@@ -285,6 +285,11 @@ def checkout(
     }
 
 
+@router.get("/shipping-methods")
+def shipping_methods(accept_language: str | None = Header(None), db: Session = Depends(get_db)):
+    return shop_service.shipping_methods(db, shop_service.locale_from_header(accept_language))
+
+
 @router.get("/payment-methods")
 def payment_methods(accept_language: str | None = Header(None)):
     return shop_service.payment_methods(shop_service.locale_from_header(accept_language))

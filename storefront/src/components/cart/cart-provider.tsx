@@ -45,7 +45,7 @@ interface CartContextValue {
   removeItem: (variantId: string) => Promise<void>;
   applyCoupon: (code: string) => Promise<boolean>;
   removeCoupon: () => Promise<void>;
-  setShippingPrice: (price: string | null) => Promise<void>;
+  setShippingMethod: (methodId: string | null) => Promise<void>;
   clear: () => Promise<void>;
 }
 
@@ -81,7 +81,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // What the API said this code is worth. Kept beside the code so a rebuild
   // (quantity change, page load) prices it the same way the till will.
   const couponDiscount = useRef<string | null>(null);
-  const shippingPrice = useRef<string | null>(null);
+  const shippingMethodId = useRef<string | null>(null);
 
   /**
    * Clamp stored quantities to what is actually available.
@@ -133,7 +133,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       stored.current,
       locale,
       coupon.current,
-      shippingPrice.current,
+      shippingMethodId.current,
       couponDiscount.current,
     );
     setCart(next);
@@ -233,9 +233,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     await sync();
   }, [sync]);
 
-  const setShippingPrice = useCallback(
-    async (price: string | null) => {
-      shippingPrice.current = price;
+  const setShippingMethod = useCallback(
+    async (methodId: string | null) => {
+      shippingMethodId.current = methodId;
       await sync();
     },
     [sync],
@@ -245,7 +245,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     stored.current = [];
     coupon.current = null;
     couponDiscount.current = null;
-    shippingPrice.current = null;
+    shippingMethodId.current = null;
     persist();
     await sync();
   }, [sync]);
@@ -263,7 +263,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       applyCoupon,
       removeCoupon,
-      setShippingPrice,
+      setShippingMethod,
       clear,
     }),
     [
@@ -276,7 +276,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       applyCoupon,
       removeCoupon,
-      setShippingPrice,
+      setShippingMethod,
       clear,
     ],
   );

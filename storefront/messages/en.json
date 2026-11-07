@@ -163,8 +163,8 @@
     "couponApply": "Apply",
     "couponInvalid": "That code isn't valid.",
     "couponRemove": "Remove coupon",
-    "freeShippingRemaining": "Add {amount} more for free shipping",
-    "freeShippingReached": "Your order ships free",
+    "freeShippingRemaining": "Shop {amount} more to get free delivery",
+    "freeShippingReached": "You've unlocked free delivery",
     "maxQuantity": "Only {count} available",
     "lineSoldOut": "Sold out — remove to continue"
   },

@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { AddressForm, validateAddress, type AddressFormErrors } from "./address-form";
 import { submitOrder } from "@/app/actions";
 import { useCart } from "@/components/cart/cart-provider";
-import { CartTotalsBlock } from "@/components/cart/cart-totals";
+import { CartTotalsBlock, FreeShippingBar } from "@/components/cart/cart-totals";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/field";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -64,7 +64,7 @@ export function CheckoutFlow({
   const tCart = useTranslations("cart");
   const locale = useLocale() as Locale;
   const router = useRouter();
-  const { cart, setShippingPrice, clear } = useCart();
+  const { cart, setShippingMethod, clear } = useCart();
 
   const [step, setStep] = useState<Step>("address");
   const [address, setAddress] = useState<Partial<AddressInput>>({ country_code: "KW" });
@@ -144,10 +144,13 @@ export function CheckoutFlow({
   // Selecting a shipping method changes what the server charges, so the cart
   // is rebuilt rather than adjusted locally.
   useEffect(() => {
-    void setShippingPrice(selectedShipping?.price ?? null);
-  }, [selectedShipping?.price, setShippingPrice]);
+    void setShippingMethod(selectedShipping?.id ?? null);
+  }, [selectedShipping?.id, setShippingMethod]);
 
   const isEmpty = !cart || cart.lines.length === 0;
+  // Standard delivery is free past the threshold; the cart has already worked
+  // that out, so the option says "Free" rather than a price nobody will pay.
+  const qualifiesFreeShipping = !isEmpty && cart.totals.free_shipping_remaining === null;
 
   if (isEmpty) {
     return (
@@ -361,7 +364,8 @@ export function CheckoutFlow({
                                 <span className="flex items-baseline justify-between gap-3">
                                   <span className="text-sm text-ink-900">{method.name}</span>
                                   <span className="tabular text-sm text-ink-900">
-                                    {Number(method.price) === 0
+                                    {Number(method.price) === 0 ||
+                                    (method.id === "standard" && qualifiesFreeShipping)
                                       ? tCart("shippingFree")
                                       : formatPrice(method.price, locale)}
                                   </span>
@@ -508,6 +512,9 @@ export function CheckoutFlow({
             ))}
           </ul>
 
+          <div className="-mx-5 mt-5 border-y border-hairline [&>div]:border-b-0">
+            <FreeShippingBar cart={cart} />
+          </div>
           <CartTotalsBlock cart={cart} className="mt-5" chargedInKwd />
         </div>
 

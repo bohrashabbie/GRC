@@ -50,6 +50,46 @@ _PAYMENT_METHOD_TEXT = {
 }
 
 
+_SHIPPING_METHOD_TEXT = {
+    "standard": {
+        "ar": ("الشحن القياسي", "مجاني للطلبات فوق {free} دينار"),
+        "en": ("Standard delivery", "Free on orders over {free} KWD"),
+        "days": {"min": 2, "max": 4},
+    },
+    "express": {
+        "ar": ("الشحن السريع", "توصيل في اليوم التالي"),
+        "en": ("Express delivery", "Next-day delivery"),
+        "days": {"min": 1, "max": 1},
+    },
+    "pickup": {
+        "ar": ("الاستلام من الفرع", "جاهز خلال 3 ساعات"),
+        "en": ("Collect in store", "Ready within 3 hours"),
+        "days": None,
+    },
+}
+
+
+def shipping_methods(db: Session, locale: str) -> list[dict]:
+    """The delivery options, priced from the same Settings the checkout charges
+    by. The storefront used to show prices written into its own code, so a
+    change in the admin reached the bill but never the screen."""
+    free_from = checkout_service.free_shipping_threshold(db)
+    methods = []
+    for method_id, text in _SHIPPING_METHOD_TEXT.items():
+        name, description = text[locale]
+        methods.append(
+            {
+                "id": method_id,
+                "name": name,
+                "description": description.format(free=f"{free_from.normalize():f}"),
+                "price": f"{checkout_service.shipping_rate(db, method_id):.3f}",
+                "estimated_days": text["days"],
+                "carrier_name": None,
+            }
+        )
+    return methods
+
+
 def payment_methods(locale: str) -> list[dict]:
     """What the checkout offers: only methods that can actually complete."""
     methods = []

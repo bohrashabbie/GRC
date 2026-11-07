@@ -530,6 +530,30 @@ def test_the_checkout_schema_refuses_cash_and_incomplete_addresses():
         CheckoutIn(**{**base, "shipping_address": {**base["shipping_address"], "country_code": "QA"}})
 
 
+def test_delivery_options_show_the_prices_staff_set(session, monkeypatch):
+    """The storefront shows these, and the checkout charges the same settings,
+    so a change in the admin reaches the screen and the bill together."""
+    from app.services import shop_service, system_service
+
+    values = {
+        "shipping.rate.standard": Decimal("2.5"),
+        "shipping.rate.express": Decimal("3.75"),
+        "shipping.rate.pickup": Decimal("0"),
+        "shipping.free_threshold": Decimal("25"),
+    }
+    monkeypatch.setattr(system_service, "decimal_setting", lambda _db, key, default: values.get(key, default))
+
+    methods = {m["id"]: m for m in shop_service.shipping_methods(session, "en")}
+
+    assert (methods["standard"]["price"], methods["express"]["price"], methods["pickup"]["price"]) == (
+        "2.500", "3.750", "0.000"
+    )
+    assert methods["standard"]["description"] == "Free on orders over 25 KWD"
+    assert checkout_service._shipping_total(session, "standard", Decimal("24.999")) == Decimal("2.500")
+    assert checkout_service._shipping_total(session, "standard", Decimal("25")) == Decimal("0")
+    assert checkout_service._shipping_total(session, "express", Decimal("30")) == Decimal("3.750")
+
+
 def test_mobile_is_sent_only_as_eight_kuwaiti_digits():
     assert payment_service._kuwaiti_mobile("+96551234567") == "51234567"
     assert payment_service._kuwaiti_mobile("+971501234567") is None
