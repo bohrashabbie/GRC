@@ -1304,3 +1304,34 @@ export type CouponCreate = {
 }
 
 export type CouponUpdate = Partial<CouponCreate>
+
+/* Porter Express ----------------------------------------------------------- */
+
+export interface PorterShipment {
+  id: number
+  tracking_number: string | null
+  status: string
+  shipped_at: string | null
+  delivered_at: string | null
+}
+
+export interface PorterPreview {
+  enabled: boolean
+  shipment: PorterShipment | null
+  is_kuwait?: boolean
+  services?: { code: string; name: string }[]
+  default_service?: string
+  areas?: { id: string; name: string }[]
+  suggested_area_id?: string | null
+  default_pieces?: number
+  default_weight?: string
+  default_description?: string
+}
+
+export interface PorterSendIn {
+  service_code: string
+  area_id: string
+  weight: string
+  pieces: number
+  description: string
+}

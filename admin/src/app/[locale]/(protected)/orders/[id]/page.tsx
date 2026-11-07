@@ -28,6 +28,7 @@ import { RequireRoutePermission } from "@/components/permission/require-route-pe
 import { OrderNotesCard } from "@/components/orders/order-notes-card"
 import { OrderRefundDialog } from "@/components/orders/order-refund-dialog"
 import { OrderStatusCard } from "@/components/orders/order-status-card"
+import { PorterShipmentCard } from "@/components/orders/porter-shipment-card"
 import { ListErrorState, ListLoadingSkeleton } from "@/components/states/list-states"
 import { ordersApi } from "@/lib/api/endpoints"
 import { formatMoney, formatTaxRate } from "@/lib/format"
@@ -261,6 +262,10 @@ function OrderDetailContent() {
 
             <div className="flex flex-col gap-4">
               <OrderStatusCard order={order} />
+              <PorterShipmentCard
+                orderId={order.id}
+                isPaid={order.payment_status === "paid" || order.payment_status === "partially_refunded"}
+              />
 
               <Card>
                 <CardHeader>

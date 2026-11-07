@@ -115,6 +115,14 @@ class OrderOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PorterSendIn(BaseModel):
+    service_code: str = Field(min_length=2, max_length=10)
+    area_id: str = Field(min_length=8, max_length=64)
+    weight: Decimal = Field(gt=0, le=1000)
+    pieces: int = Field(ge=1, le=99)
+    description: str = Field(min_length=1, max_length=100)
+
+
 class RefundRequest(BaseModel):
     payment_id: int
     amount: Decimal = Field(gt=0)

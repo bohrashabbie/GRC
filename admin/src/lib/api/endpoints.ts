@@ -1,5 +1,8 @@
 import { api, apiUpload } from "./client"
 import type {
+  PorterPreview,
+  PorterSendIn,
+  PorterShipment,
   AnalyticsRange,
   AuditListParams,
   AuditLogOut,
@@ -574,6 +577,17 @@ export const ordersApi = {
     api.post<OrderNoteOut>(`/orders/${orderId}/notes`, payload),
   refund: (orderId: number, payload: RefundRequest) =>
     api.post<PaymentRefundOut>(`/orders/${orderId}/refund`, payload),
+}
+
+/** Porter Express, the courier: send an order and follow its delivery. */
+export const shippingApi = {
+  preview: (orderId: number, signal?: AbortSignal) =>
+    api.get<PorterPreview>(`/orders/${orderId}/porter`, { signal }),
+  send: (orderId: number, payload: PorterSendIn) =>
+    api.post<PorterShipment>(`/orders/${orderId}/porter`, payload),
+  refresh: (orderId: number) =>
+    api.post<{ shipment: PorterShipment | null }>(`/orders/${orderId}/porter/refresh`),
+  label: (orderId: number) => api.get<{ html: string }>(`/orders/${orderId}/porter/label`),
 }
 
 /* -------------------------------------------------------------------------- */

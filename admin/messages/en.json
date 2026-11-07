@@ -862,6 +862,40 @@
       "amountTooHigh": "That's more than the {max} still refundable on this payment.",
       "noCapturedPayment": "This order has no captured payment to refund.",
       "hesabeHint": "This only records the refund here. Send the money back to the customer in the Hesabe merchant panel first (merchant.hesabe.com)."
+    },
+    "porter": {
+      "title": "Delivery — Porter Express",
+      "disabled": "Porter Express is not connected.",
+      "notSent": "Not sent for delivery yet.",
+      "notPaid": "Can be sent once the order is paid.",
+      "outsideKuwait": "Porter Express delivers inside Kuwait only. Send this order another way.",
+      "send": "Send to Porter Express",
+      "sendTitle": "Send to Porter Express",
+      "sendDescription": "This books a real courier pickup. Check the area before sending.",
+      "service": "Service",
+      "area": "Delivery area",
+      "chooseArea": "Choose the delivery area",
+      "areaMatched": "Matched from the customer's address. Change it if it's wrong.",
+      "areaNotMatched": "No exact match for the customer's area. Choose it from the list.",
+      "weight": "Weight (kg)",
+      "pieces": "Pieces",
+      "description": "Contents",
+      "confirmSend": "Book delivery",
+      "sent": "Sent to Porter Express. Tracking {tracking}.",
+      "tracking": "Tracking number",
+      "status": "Status",
+      "sentOn": "Sent {date}",
+      "printLabel": "Print label",
+      "refresh": "Update status",
+      "statuses": {
+        "created": "Booked",
+        "in_transit": "In transit",
+        "out_for_delivery": "Out for delivery",
+        "delivered": "Delivered",
+        "returning": "Returning",
+        "returned": "Returned",
+        "cancelled": "Cancelled"
+      }
     }
   },
   "subscribers": {

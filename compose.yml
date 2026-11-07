@@ -47,6 +47,11 @@ services:
       HESABE_ACCESS_CODE: ${HESABE_ACCESS_CODE:-}
       HESABE_SECRET_KEY: ${HESABE_SECRET_KEY:-}
       HESABE_IV_KEY: ${HESABE_IV_KEY:-}
+      # Porter Express courier. Optional: leave empty and the admin's
+      # "Send to Porter Express" is off.
+      PORTER_BASE_URL: ${PORTER_BASE_URL:-}
+      PORTER_EMAIL: ${PORTER_EMAIL:-}
+      PORTER_PASSWORD: ${PORTER_PASSWORD:-}
     volumes:
       - uploads:/app/uploads
     depends_on:

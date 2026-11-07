@@ -396,7 +396,7 @@ def get_order_detail(
             }
             for row in history
         ],
-        "tracking_number": None,
+        "tracking_number": _tracking_number_of(db, order.id),
         "tracking_url": None,
     }
 
@@ -442,6 +442,17 @@ def list_addresses(db: Session, customer_id: int) -> list[dict]:
         }
         for row, region in rows
     ]
+
+
+def _tracking_number_of(db: Session, order_id: int) -> str | None:
+    """The courier's tracking number once the order has been sent."""
+    from app.models.orders import Shipment
+
+    return db.execute(
+        select(Shipment.tracking_number)
+        .where(Shipment.order_id == order_id, Shipment.status != "cancelled")
+        .order_by(Shipment.id.desc())
+    ).scalars().first()
 
 
 def _payment_method_of(db: Session, order_id: int) -> str:

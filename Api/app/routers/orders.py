@@ -8,8 +8,16 @@ from app.database import get_db
 from app.deps import require
 from app.models.auth import User
 from app.models.orders import Order
-from app.schemas.order import OrderNoteIn, OrderNoteOut, OrderOut, OrderStatusUpdate, PaymentRefundOut, RefundRequest
-from app.services import order_service
+from app.schemas.order import (
+    OrderNoteIn,
+    OrderNoteOut,
+    OrderOut,
+    OrderStatusUpdate,
+    PaymentRefundOut,
+    PorterSendIn,
+    RefundRequest,
+)
+from app.services import order_service, shipping_service
 from app.utils import paginate
 
 router = APIRouter()
@@ -77,4 +85,45 @@ def refund_order_payment(
     return order_service.refund_payment(db, order_id, payload.payment_id, payload.amount, payload.reason, current_user.id)
 
 
-# Permission keys used by this router: order.view, order.update_status, order.note, order.refund
+@router.get("/{order_id}/porter")
+def porter_preview(order_id: int, db: Session = Depends(get_db), _user=Depends(require("order.view"))) -> dict:
+    """The shipment, if any, and what the send form needs: services, areas,
+    and the area we think the address is in."""
+    return shipping_service.preview(db, order_id)
+
+
+@router.post("/{order_id}/porter", status_code=201)
+def porter_send(
+    order_id: int,
+    payload: PorterSendIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require("shipment.manage")),
+) -> dict:
+    shipment = shipping_service.send_order(
+        db,
+        order_id,
+        service_code=payload.service_code,
+        area_id=payload.area_id,
+        weight=payload.weight,
+        pieces=payload.pieces,
+        description=payload.description,
+        actor_user_id=current_user.id,
+    )
+    return shipping_service.shipment_out(shipment)
+
+
+@router.post("/{order_id}/porter/refresh")
+def porter_refresh(order_id: int, db: Session = Depends(get_db), _user=Depends(require("order.view"))) -> dict:
+    shipment = shipping_service.latest_shipment(db, order_id)
+    if shipment is None:
+        return {"shipment": None}
+    return {"shipment": shipping_service.shipment_out(shipping_service.refresh_status(db, shipment))}
+
+
+@router.get("/{order_id}/porter/label")
+def porter_label(order_id: int, db: Session = Depends(get_db), _user=Depends(require("shipment.manage"))) -> dict:
+    """Porter's printable label, as HTML the admin opens in a print window."""
+    return {"html": shipping_service.label(db, order_id)}
+
+
+# Permission keys used by this router: order.view, order.update_status, order.note, order.refund, shipment.manage

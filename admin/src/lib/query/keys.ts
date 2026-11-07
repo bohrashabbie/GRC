@@ -111,6 +111,7 @@ export const queryKeys = {
     list: (params: Omit<OrderListParams, "cursor" | "limit">) =>
       ["orders", "list", params] as const,
     detail: (orderId: number) => ["orders", "detail", orderId] as const,
+    porter: (orderId: number) => ["orders", "porter", orderId] as const,
   },
 
   subscribers: {

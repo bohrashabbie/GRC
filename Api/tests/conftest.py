@@ -154,6 +154,7 @@ class Factory:
         )
         if order_ids:
             for table in (
+                "shipments",
                 "payment_refunds",
                 "payments",
                 "order_items",

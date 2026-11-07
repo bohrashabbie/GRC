@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     hesabe_access_code: str = ""
     hesabe_secret_key: str = ""
     hesabe_iv_key: str = ""
+    # Porter Express, the courier. Leave any empty and sending orders is off.
+    # Signs in with the Porter portal account (support@...), so these are that
+    # login: base URL https://api.porterex.com.
+    porter_base_url: str = ""
+    porter_email: str = ""
+    porter_password: str = ""
     # This API as the public internet reaches it. Hesabe sends customers and
     # webhooks here, so unlike storefront_base_url it must be the API's origin.
     shop_api_public_url: str = "http://localhost:8000"
